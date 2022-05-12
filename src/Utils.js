@@ -19,3 +19,21 @@ export const parseCells = cellsStr => {
 };
 
 export const randomArray = array => array[Math.floor(Math.random() * array.length)];
+
+export const moveCoordinates = (coordinates, direction) => {
+    const newCoordinates = [...coordinates];
+    if (direction === 'left') {
+        newCoordinates[0] -= 1;
+    }
+    if (direction === 'right') {
+        newCoordinates[0] += 1;
+    }
+    if (direction === 'top') {
+        newCoordinates[1] -= 1;
+    }
+    if (direction === 'bottom') {
+        newCoordinates[1] += 1;
+    }
+
+    return newCoordinates;
+};

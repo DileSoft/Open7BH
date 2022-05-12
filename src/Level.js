@@ -1,53 +1,40 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { sortableContainer, sortableElement } from 'react-sortable-hoc';
 import { arrayMoveImmutable } from 'array-move';
-import { parseCells, parseCoordinates, randomArray } from './Utils';
+import Select from '@mui/material/Select';
+import {
+    Button, Grid, IconButton, MenuItem,
+} from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ManIcon from '@mui/icons-material/Man';
+import AddBoxIcon from '@mui/icons-material/AddBox';
+import {
+    moveCoordinates, parseCells, parseCoordinates, randomArray,
+} from './Utils';
 
-const SortableItem = sortableElement(({ children }) => <li>{children}</li>);
+const CELL_WIDTH = 80;
 
-const SortableContainer = sortableContainer(({ children }) => <ul>{children}</ul>);
+const SortableItem = sortableElement(({ children }) => <div>{children}</div>);
+
+const SortableContainer = sortableContainer(({ children }) => <div>{children}</div>);
 
 const Level = props => {
-    const [level, setLevel] = useState({
-        width: 10,
-        height: 10,
-        cells: parseCells(
-            `empty empty empty box|1 empty
-empty wall wall box|2 empty
-empty wall wall box|3 empty
-empty empty empty box|4 empty
-empty empty empty box|5 empty`,
-        ),
-    });
+    const [level, setLevel] = useState(props.level);
+    const [characters, setCharacters] = useState(props.level.characters);
+    const [code, setCode] = useState(props.level.code);
 
-    const [characters, setCharacters] = useState([
-        { cooordinates: '0x0', name: 'first', step: -1 },
-        { cooordinates: '0x1', name: 'second', step: -1 },
-    ]);
-
-    const [code, setCode] = useState([
-        { type: 'step', directions: ['left', 'right', 'top', 'bottom'] },
-        { type: 'pickup' },
-        { type: 'step', directions: ['left', 'right', 'top', 'bottom'] },
-        { type: 'drop' },
-        { type: 'goto', step: 0 },
-        { type: 'step', directions: ['bottom'] },
-        { type: 'step', directions: ['right'] },
-        { type: 'step', directions: ['right'] },
-        { type: 'step', directions: ['right'] },
-        { type: 'step', directions: ['left'] },
-        { type: 'step', directions: ['top'] },
-        { type: 'step', directions: ['right'] },
-        { type: 'goto', step: 0 },
-    ]);
+    const [run, setRun] = useState(false);
 
     const [step, setStep] = useState(-1);
     const [speed, setSpeed] = useState(1000);
 
     useEffect(() => {
+        if (!run) {
+            return;
+        }
         const interval = setInterval(() => setStep(prevStep => prevStep + 1), speed);
         return () => clearInterval(interval);
-    }, [speed]);
+    }, [speed, run]);
 
     useEffect(() => {
         if (step === -1) {
@@ -55,7 +42,8 @@ empty empty empty box|5 empty`,
         }
         const newCharacters = JSON.parse(JSON.stringify(characters));
         const newLevel = JSON.parse(JSON.stringify(level));
-        newCharacters.forEach(character => {
+        const deleted = [];
+        newCharacters.forEach((character, characterIndex) => {
             character.step++;
             if (character.step === -1) {
                 return;
@@ -66,23 +54,14 @@ empty empty empty box|5 empty`,
             }
             const coordinates = parseCoordinates(character.cooordinates);
             if (line.type === 'step') {
-                const newCoordinates = [...coordinates];
                 const direction = randomArray(line.directions);
-                if (direction === 'left') {
-                    newCoordinates[0] -= 1;
-                }
-                if (direction === 'right') {
-                    newCoordinates[0] += 1;
-                }
-                if (direction === 'top') {
-                    newCoordinates[1] -= 1;
-                }
-                if (direction === 'bottom') {
-                    newCoordinates[1] += 1;
-                }
+                const newCoordinates = moveCoordinates(coordinates, direction);
                 const newCell = level.cells[newCoordinates.join('x')];
                 if (newCell && ['empty', 'box'].includes(newCell.type) && !characters.find(foundCharacter => foundCharacter.cooordinates === newCoordinates.join('x'))) {
                     character.cooordinates = newCoordinates.join('x');
+                }
+                if (newCell && newCell.type === 'hole') {
+                    deleted.push(characterIndex);
                 }
             }
             if (line.type === 'goto') {
@@ -105,6 +84,7 @@ empty empty empty box|5 empty`,
                 }
             }
         });
+        deleted.reverse().forEach(index => newCharacters.splice(index, 1));
         setCharacters(newCharacters);
         setLevel(newLevel);
     }, [step]);
@@ -116,11 +96,18 @@ empty empty empty box|5 empty`,
         if (cell.type === 'empty') {
             content = null;
         }
+        if (cell.type === 'hole') {
+            content = <div style={{ width: '100%', height: '100%', backgroundColor: 'black' }}></div>;
+        }
         if (cell.type === 'wall') {
             content = 'wall';
         }
         if (cell.type === 'box') {
-            content = `box (${cell.value})`;
+            content = <>
+                <AddBoxIcon fontSize="size" />
+                {' '}
+                {cell.value}
+            </>;
         }
 
         const character = characters.find(foundCharacter => foundCharacter.cooordinates === cellCoordinate);
@@ -128,13 +115,16 @@ empty empty empty box|5 empty`,
             key={cellCoordinate}
             style={{
                 position: 'absolute',
-                left: coordinates[0] * 40,
-                top: coordinates[1] * 40,
-                width: 40,
-                height: 40,
+                left: coordinates[0] * CELL_WIDTH,
+                top: coordinates[1] * CELL_WIDTH,
+                width: CELL_WIDTH,
+                height: CELL_WIDTH,
                 borderStyle: 'solid',
                 borderColor: 'black',
                 borderWidth: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
             }}
         >
             {content}
@@ -146,66 +136,169 @@ empty empty empty box|5 empty`,
                     top: 10,
                 }}
             >
-                {character.name}
-                {character.item === 'box' ? `(${character.itemValue})` : null}
+                <ManIcon fontSize="size" style={{ color: character.color }} />
+                {character.item === 'box' ? <>
+(
+                    <AddBoxIcon fontSize="size" />
+                    {' '}
+                    {character.itemValue}
+)
+                </> : null}
             </div> : null}
         </div>;
     });
 
     const renderLine = (line, lineNumber) => {
+        let result = null;
         if (line.type === 'step') {
-            return `Step: ${line.directions.join(', ')}`;
+            result = <span>
+Step:
+                {' '}
+                <Select
+                    value={line.directions}
+                    variant="standard"
+                    multiple
+                    onChange={e => {
+                        const newCode = JSON.parse(JSON.stringify(code));
+                        newCode[lineNumber].directions = e.target.value;
+                        setCode(newCode);
+                    }}
+                >
+                    {['left', 'right', 'top', 'bottom'].map(direction =>
+                        <MenuItem key={direction} value={direction}>{direction}</MenuItem>)}
+                </Select>
+            </span>;
         }
         if (line.type === 'goto') {
-            return <span>
+            result = <span>
 Goto:
                 {' '}
-                <select
+                <Select
                     value={line.step}
+                    variant="standard"
                     onChange={e => {
                         const newCode = JSON.parse(JSON.stringify(code));
                         newCode[lineNumber].step = e.target.value;
                         setCode(newCode);
                     }}
                 >
-                    {Object.keys(code).map(optionLineNumber => <option value={optionLineNumber}>{optionLineNumber}</option>)}
-                </select>
+                    {Object.keys(code).map(optionLineNumber =>
+                        <MenuItem key={optionLineNumber} value={optionLineNumber}>{optionLineNumber}</MenuItem>)}
+                </Select>
             </span>;
         }
-        return JSON.stringify(line);
+        if (!result) {
+            result = JSON.stringify(line);
+        }
+        return <span key={lineNumber}>
+            {lineNumber}
+            {': '}
+            {result}
+            <IconButton
+                size="small"
+                onMouseDown={() => {
+                    const newCode = [...code];
+                    newCode.splice(lineNumber, 1);
+                    setCode(newCode);
+                }}
+            >
+                <DeleteIcon fontSize="small" />
+            </IconButton>
+        </span>;
     };
 
-    return <div>
-        {cellDivs}
-        <div style={{
-            position: 'absolute',
-            right: 0,
-            width: 400,
-        }}
-        >
-            <SortableContainer onSortEnd={({ oldIndex, newIndex }, e) => {
-                if (e.ctrlKey) {
-                    const newCode = JSON.parse(JSON.stringify(code));
-                    newCode.splice(newIndex, 0, code[oldIndex]);
-                    setCode(newCode);
-                } else {
-                    setCode(arrayMoveImmutable(code, oldIndex, newIndex));
-                }
-            }}
-            >
-                {code.map((line, key) =>
-                    <div key={key}>
-                        <SortableItem index={key}>
-                            {characters.filter(character => character.step === key).map(character => character.name).join(', ')}
-                            {renderLine(line, key)}
-                        </SortableItem>
-                    </div>)}
-            </SortableContainer>
-            Speed:
-            {' '}
-            <input type="number" value={1000 / speed} onChange={e => setSpeed(1000 / (parseInt(e.target.value) || 1))} />
-        </div>
-    </div>;
+    const renderLines = useMemo(() => code.map((line, key) => renderLine(line, key)), [code]);
+
+    return <>
+        <Grid container>
+            <Grid item md={6}>
+                <h2>{level.task}</h2>
+                <h4>{props.level.win(level.cells, characters) ? 'Win' : null}</h4>
+                <div style={{ position: 'relative', width: level.width * CELL_WIDTH + CELL_WIDTH / 2, height: level.height * CELL_WIDTH + CELL_WIDTH / 2 }}>
+                    {cellDivs}
+                </div>
+            </Grid>
+            <Grid item md={1}>
+                <div>
+                    <Button onClick={() => {
+                        const newCode = [...code];
+                        newCode.push({ type: 'step', directions: ['left'] });
+                        setCode(newCode);
+                    }}
+                    >
+Add step
+                    </Button>
+                </div>
+                <div>
+                    <Button onClick={() => {
+                        const newCode = [...code];
+                        newCode.push({ type: 'goto', step: 0 });
+                        setCode(newCode);
+                    }}
+                    >
+Add goto
+                    </Button>
+                </div>
+                <div>
+                    <Button onClick={() => {
+                        const newCode = [...code];
+                        newCode.push({ type: 'pickup' });
+                        setCode(newCode);
+                    }}
+                    >
+Add pickup
+                    </Button>
+                </div>
+                <div>
+                    <Button onClick={() => {
+                        const newCode = [...code];
+                        newCode.push({ type: 'drop' });
+                        setCode(newCode);
+                    }}
+                    >
+Add drop
+                    </Button>
+                </div>
+            </Grid>
+            <Grid item md={5}>
+                <div style={{ paddingLeft: 20 }}>
+                    <SortableContainer onSortEnd={({ oldIndex, newIndex }, e) => {
+                        if (e.ctrlKey) {
+                            const newCode = JSON.parse(JSON.stringify(code));
+                            newCode.splice(newIndex, 0, code[oldIndex]);
+                            setCode(newCode);
+                        } else {
+                            setCode(arrayMoveImmutable(code, oldIndex, newIndex));
+                        }
+                    }}
+                    >
+                        {code.map((line, key) =>
+                            <SortableItem index={key} key={key}>
+                                {characters.filter(character => character.step === key).map(character => <span key={character.name}>
+                                    <ManIcon fontSize="size" style={{ color: character.color }} />
+                                </span>)}
+                                {renderLines[key]}
+                            </SortableItem>)}
+                    </SortableContainer>
+                    <div style={{ paddingTop: 20 }}>
+Speed:
+                        {' '}
+                        <input type="number" value={1000 / speed} onChange={e => setSpeed(1000 / (parseInt(e.target.value) || 1))} />
+                    </div>
+                    <div>
+                        <Button onClick={() => {
+                            setLevel(props.level);
+                            setCharacters(props.level.characters);
+                            setRun(!run);
+                        }}
+                        >
+                            {run ? 'Stop' : 'Run'}
+                        </Button>
+                    </div>
+                </div>
+            </Grid>
+        </Grid>
+    </>;
 };
 
 export default Level;
