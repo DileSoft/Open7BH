@@ -3,12 +3,13 @@ import { sortableContainer, sortableElement } from 'react-sortable-hoc';
 import { arrayMoveImmutable } from 'array-move';
 import Select from '@mui/material/Select';
 import {
-    Button, Grid, IconButton, MenuItem,
+    Button, Grid, IconButton, MenuItem, TextField,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ManIcon from '@mui/icons-material/Man';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import {
+    directionIcon,
     moveCoordinates, parseCells, parseCoordinates, randomArray,
 } from './Utils';
 
@@ -27,6 +28,12 @@ const Level = props => {
 
     const [step, setStep] = useState(-1);
     const [speed, setSpeed] = useState(1000);
+
+    useEffect(() => {
+        setLevel(props.level);
+        setCharacters(props.level.characters);
+        setCode(props.level.code);
+    }, [props.level]);
 
     useEffect(() => {
         if (!run) {
@@ -81,6 +88,36 @@ const Level = props => {
                     newLevel.cells[character.cooordinates].value = character.itemValue;
                     delete character.item;
                     delete character.itemValue;
+                }
+            }
+            if (line.type === 'if') {
+                const condition = line.conditions[0];
+                const value1 = newLevel.cells[moveCoordinates(coordinates, condition.value1).join('x')]?.value || 0;
+                const value2 = condition.value2;
+                let result = false;
+                if (condition.operation === '==') {
+                    result = value1 === value2;
+                }
+                if (condition.operation === '>') {
+                    result = value1 > value2;
+                }
+                if (condition.operation === '<') {
+                    result = value1 < value2;
+                }
+                if (condition.operation === '<=') {
+                    result = value1 <= value2;
+                }
+                if (condition.operation === '>=') {
+                    result = value1 >= value2;
+                }
+                if (!result) {
+                    let k = 0;
+                    for (k = character.step; k < code.length; k++) {
+                        if (code[k].type === 'endif') {
+                            break;
+                        }
+                    }
+                    character.step = k;
                 }
             }
         });
@@ -164,8 +201,11 @@ Step:
                         setCode(newCode);
                     }}
                 >
-                    {['left', 'right', 'top', 'bottom'].map(direction =>
-                        <MenuItem key={direction} value={direction}>{direction}</MenuItem>)}
+                    {['left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map(direction =>
+                        <MenuItem key={direction} value={direction}>
+                            {directionIcon(direction)}
+                            {direction}
+                        </MenuItem>)}
                 </Select>
             </span>;
         }
@@ -185,6 +225,50 @@ Goto:
                     {Object.keys(code).map(optionLineNumber =>
                         <MenuItem key={optionLineNumber} value={optionLineNumber}>{optionLineNumber}</MenuItem>)}
                 </Select>
+            </span>;
+        }
+        if (line.type === 'if') {
+            result = <span>
+If:
+                {' '}
+                <Select
+                    value={line.conditions[0].value1}
+                    variant="standard"
+                    onChange={e => {
+                        const newCode = JSON.parse(JSON.stringify(code));
+                        newCode[lineNumber].conditions[0].value1 = e.target.value;
+                        setCode(newCode);
+                    }}
+                >
+                    {['left', 'right', 'top', 'bottom', 'here', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map(option =>
+                        <MenuItem key={option} value={option}>
+                            {directionIcon(option)}
+                            {option}
+                        </MenuItem>)}
+                </Select>
+                <Select
+                    value={line.conditions[0].operation}
+                    variant="standard"
+                    onChange={e => {
+                        const newCode = JSON.parse(JSON.stringify(code));
+                        newCode[lineNumber].conditions[0].operation = e.target.value;
+                        setCode(newCode);
+                    }}
+                >
+                    {['==', '>', '<', '>=', '<='].map(option =>
+                        <MenuItem key={option} value={option}>{option}</MenuItem>)}
+                </Select>
+                <TextField
+                    type="number"
+                    value={line.conditions[0].value2}
+                    variant="standard"
+                    onChange={e => {
+                        const newCode = JSON.parse(JSON.stringify(code));
+                        newCode[lineNumber].conditions[0].value2 = parseInt(e.target.value) || 0;
+                        setCode(newCode);
+                    }}
+                />
+
             </span>;
         }
         if (!result) {
@@ -257,6 +341,26 @@ Add pickup
                     }}
                     >
 Add drop
+                    </Button>
+                </div>
+                <div>
+                    <Button onClick={() => {
+                        const newCode = [...code];
+                        newCode.push({ type: 'if', conditions: [{ value1: 'here', operation: '==', value2: 0 }] });
+                        setCode(newCode);
+                    }}
+                    >
+Add if
+                    </Button>
+                </div>
+                <div>
+                    <Button onClick={() => {
+                        const newCode = [...code];
+                        newCode.push({ type: 'endif' });
+                        setCode(newCode);
+                    }}
+                    >
+Add endif
                     </Button>
                 </div>
             </Grid>

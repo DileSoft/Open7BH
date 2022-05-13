@@ -3,13 +3,17 @@ import './App.css';
 import Level from './Level';
 import { parseCells } from './Utils';
 import levels from './levels';
-
-const level = levels[0];
+import { MenuItem, Select } from '@mui/material';
+import { useState } from 'react';
 
 function App() {
+    const [level, setLevel] = useState(0);
     return (
         <div className="App">
-            <Level level={level} />
+            <Select variant="standard" value={level} onChange={e => setLevel(e.target.value)}>
+                {levels.map((currentLevel, number) => <MenuItem value={number}>{currentLevel.task}</MenuItem>)}
+            </Select>
+            <Level level={levels[level]} />
         </div>
     );
 }
