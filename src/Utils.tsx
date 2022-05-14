@@ -7,6 +7,7 @@ import SouthEastIcon from '@mui/icons-material/SouthEast';
 import NorthWestIcon from '@mui/icons-material/NorthWest';
 import NorthEastIcon from '@mui/icons-material/NorthEast';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import { CellType, DirectionType } from './types';
 
 export const parseCoordinates = cellCoordinate => cellCoordinate.split('x').map(value => parseInt(value));
 
@@ -15,11 +16,12 @@ export const parseCells = cellsStr => {
     cellsStr.split(/[\r\n]+/).forEach((line, lineIndex) => {
         line.split(/ +/).forEach((cell, cellIndex) => {
             const cellData = cell.split('|');
-            const cellObject = {
+            const cellObject:CellType = {
                 type: cellData[0],
             };
             if (cellObject.type === 'box') {
-                cellObject.value = parseInt(cellData[1]);
+                cellObject.type = 'empty';
+                cellObject.item = { type: 'box', value: parseInt(cellData[1]), tag: cellData[2] };
             }
             result[`${cellIndex}x${lineIndex}`] = cellObject;
         });
@@ -28,9 +30,9 @@ export const parseCells = cellsStr => {
     return result;
 };
 
-export const randomArray = array => array[Math.floor(Math.random() * array.length)];
+export const randomArray = <T, >(array:T[]):T => array[Math.floor(Math.random() * array.length)];
 
-export const moveCoordinates = (coordinates, direction) => {
+export const moveCoordinates = (coordinates, direction:DirectionType) => {
     const newCoordinates = [...coordinates];
     if (direction === 'left') {
         newCoordinates[0] -= 1;
@@ -80,3 +82,5 @@ export const directionIcon = direction => {
     const Icon = icons[direction];
     return Icon ? <Icon fontSize="small" /> : null;
 };
+
+export const clone = <T, >(input:T):T => JSON.parse(JSON.stringify(input)) as T;

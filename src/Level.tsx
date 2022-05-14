@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+// @ts-ignore
 import { sortableContainer, sortableElement } from 'react-sortable-hoc';
+import copy from 'copy-to-clipboard';
 import { arrayMoveImmutable } from 'array-move';
 import Select from '@mui/material/Select';
 import {
@@ -10,8 +12,11 @@ import ManIcon from '@mui/icons-material/Man';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import {
     directionIcon,
-    moveCoordinates, parseCells, parseCoordinates, randomArray,
+    moveCoordinates, parseCells, parseCoordinates, randomArray, clone,
 } from './Utils';
+import {
+    CharacterType, DirectionType, LevelType, LineGotoType, LineIfType, LineStepType, LineType,
+} from './types';
 
 const CELL_WIDTH = 80;
 
@@ -19,14 +24,14 @@ const SortableItem = sortableElement(({ children }) => <div>{children}</div>);
 
 const SortableContainer = sortableContainer(({ children }) => <div>{children}</div>);
 
-const Level = props => {
-    const [level, setLevel] = useState(props.level);
-    const [characters, setCharacters] = useState(props.level.characters);
-    const [code, setCode] = useState(props.level.code);
+function   Level(props) {
+    const [level, setLevel] = useState<LevelType>(props.level);
+    const [characters, setCharacters] = useState<CharacterType[]>(props.level.characters);
+    const [code, setCode] = useState<LineType[]>(props.level.code);
 
     const [run, setRun] = useState(false);
 
-    const [step, setStep] = useState(-1);
+    const [step, setStep] = useState<number>(-1);
     const [speed, setSpeed] = useState(1000);
 
     useEffect(() => {
@@ -47,10 +52,13 @@ const Level = props => {
         if (step === -1) {
             return;
         }
-        const newCharacters = JSON.parse(JSON.stringify(characters));
-        const newLevel = JSON.parse(JSON.stringify(level));
+        const newCharacters = clone(characters);
+        const newLevel = clone(level);
         const deleted = [];
         newCharacters.forEach((character, characterIndex) => {
+            if (character.terminated) {
+                return;
+            }
             character.step++;
             if (character.step === -1) {
                 return;
@@ -59,40 +67,36 @@ const Level = props => {
             if (!line) {
                 return;
             }
-            const coordinates = parseCoordinates(character.cooordinates);
+            const coordinates = parseCoordinates(character.coordinates);
             if (line.type === 'step') {
                 const direction = randomArray(line.directions);
                 const newCoordinates = moveCoordinates(coordinates, direction);
                 const newCell = level.cells[newCoordinates.join('x')];
-                if (newCell && ['empty', 'box'].includes(newCell.type) && !characters.find(foundCharacter => foundCharacter.cooordinates === newCoordinates.join('x'))) {
-                    character.cooordinates = newCoordinates.join('x');
+                if (newCell && ['empty', 'hole'].includes(newCell.type) && !characters.find(foundCharacter => foundCharacter.coordinates === newCoordinates.join('x'))) {
+                    character.coordinates = newCoordinates.join('x');
                 }
                 if (newCell && newCell.type === 'hole') {
-                    deleted.push(characterIndex);
+                    character.terminated = true;
                 }
             }
             if (line.type === 'goto') {
                 character.step = line.step - 1;
             }
             if (line.type === 'pickup') {
-                if (!character.item && newLevel.cells[character.cooordinates].type === 'box') {
-                    character.item = 'box';
-                    character.itemValue = newLevel.cells[character.cooordinates].value;
-                    newLevel.cells[character.cooordinates].type = 'empty';
-                    delete newLevel.cells[character.cooordinates].value;
+                if (!character.item && newLevel.cells[character.coordinates].item?.type === 'box') {
+                    character.item = newLevel.cells[character.coordinates].item;
+                    delete newLevel.cells[character.coordinates].item;
                 }
             }
             if (line.type === 'drop') {
-                if (character.item && newLevel.cells[character.cooordinates].type === 'empty') {
-                    newLevel.cells[character.cooordinates].type = 'box';
-                    newLevel.cells[character.cooordinates].value = character.itemValue;
+                if (character.item?.type === 'box' && !newLevel.cells[character.coordinates].item) {
+                    newLevel.cells[character.coordinates].item = character.item;
                     delete character.item;
-                    delete character.itemValue;
                 }
             }
             if (line.type === 'if') {
                 const condition = line.conditions[0];
-                const value1 = newLevel.cells[moveCoordinates(coordinates, condition.value1).join('x')]?.value || 0;
+                const value1 = newLevel.cells[moveCoordinates(coordinates, condition.value1 as DirectionType).join('x')].item?.value || 0;
                 const value2 = condition.value2;
                 let result = false;
                 if (condition.operation === '==') {
@@ -121,7 +125,6 @@ const Level = props => {
                 }
             }
         });
-        deleted.reverse().forEach(index => newCharacters.splice(index, 1));
         setCharacters(newCharacters);
         setLevel(newLevel);
     }, [step]);
@@ -139,15 +142,14 @@ const Level = props => {
         if (cell.type === 'wall') {
             content = 'wall';
         }
-        if (cell.type === 'box') {
+        if (cell.item?.type === 'box') {
             content = <>
-                <AddBoxIcon fontSize="size" />
+                <AddBoxIcon fontSize="small" />
                 {' '}
-                {cell.value}
+                {cell.item.value}
             </>;
         }
 
-        const character = characters.find(foundCharacter => foundCharacter.cooordinates === cellCoordinate);
         return <div
             key={cellCoordinate}
             style={{
@@ -165,23 +167,28 @@ const Level = props => {
             }}
         >
             {content}
-            {character ? <div
-                key={character.name}
-                style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: 10,
-                }}
-            >
-                <ManIcon fontSize="size" style={{ color: character.color }} />
-                {character.item === 'box' ? <>
+        </div>;
+    });
+
+    const characterDivs = characters.map(character =>            {
+        const coordinates = parseCoordinates(character.coordinates);
+        return <div
+            key={character.name}
+            style={{
+                position: 'absolute',
+                opacity: character.terminated ? 0 : 1,
+                transform: `translate(${coordinates[0] * CELL_WIDTH}px, ${coordinates[1] * CELL_WIDTH + 10}px)`,
+                transition: `all ${speed}ms ease-in`,
+            }}
+        >
+            <ManIcon fontSize="small" style={{ color: character.color }} />
+            {character.item?.type === 'box' ? <>
 (
-                    <AddBoxIcon fontSize="size" />
-                    {' '}
-                    {character.itemValue}
+                <AddBoxIcon fontSize="small" />
+                {' '}
+                {character.item.value}
 )
-                </> : null}
-            </div> : null}
+            </> : null}
         </div>;
     });
 
@@ -196,7 +203,7 @@ Step:
                     variant="standard"
                     multiple
                     onChange={e => {
-                        const newCode = JSON.parse(JSON.stringify(code));
+                        const newCode = clone(code) as LineStepType[];
                         newCode[lineNumber].directions = e.target.value;
                         setCode(newCode);
                     }}
@@ -217,7 +224,7 @@ Goto:
                     value={line.step}
                     variant="standard"
                     onChange={e => {
-                        const newCode = JSON.parse(JSON.stringify(code));
+                        const newCode = clone(code) as LineGotoType[];
                         newCode[lineNumber].step = e.target.value;
                         setCode(newCode);
                     }}
@@ -235,7 +242,7 @@ If:
                     value={line.conditions[0].value1}
                     variant="standard"
                     onChange={e => {
-                        const newCode = JSON.parse(JSON.stringify(code));
+                        const newCode = clone(code) as LineIfType[];
                         newCode[lineNumber].conditions[0].value1 = e.target.value;
                         setCode(newCode);
                     }}
@@ -250,7 +257,7 @@ If:
                     value={line.conditions[0].operation}
                     variant="standard"
                     onChange={e => {
-                        const newCode = JSON.parse(JSON.stringify(code));
+                        const newCode = clone(code) as LineIfType[];
                         newCode[lineNumber].conditions[0].operation = e.target.value;
                         setCode(newCode);
                     }}
@@ -263,7 +270,7 @@ If:
                     value={line.conditions[0].value2}
                     variant="standard"
                     onChange={e => {
-                        const newCode = JSON.parse(JSON.stringify(code));
+                        const newCode = clone(code) as LineIfType[];
                         newCode[lineNumber].conditions[0].value2 = parseInt(e.target.value) || 0;
                         setCode(newCode);
                     }}
@@ -293,116 +300,118 @@ If:
 
     const renderLines = useMemo(() => code.map((line, key) => renderLine(line, key)), [code]);
 
-    return <>
-        <Grid container>
-            <Grid item md={6}>
-                <h2>{level.task}</h2>
-                <h4>{props.level.win(level.cells, characters) ? 'Win' : null}</h4>
-                <div style={{ position: 'relative', width: level.width * CELL_WIDTH + CELL_WIDTH / 2, height: level.height * CELL_WIDTH + CELL_WIDTH / 2 }}>
-                    {cellDivs}
-                </div>
-            </Grid>
-            <Grid item md={1}>
-                <div>
-                    <Button onClick={() => {
-                        const newCode = [...code];
-                        newCode.push({ type: 'step', directions: ['left'] });
-                        setCode(newCode);
-                    }}
-                    >
-Add step
-                    </Button>
-                </div>
-                <div>
-                    <Button onClick={() => {
-                        const newCode = [...code];
-                        newCode.push({ type: 'goto', step: 0 });
-                        setCode(newCode);
-                    }}
-                    >
-Add goto
-                    </Button>
-                </div>
-                <div>
-                    <Button onClick={() => {
-                        const newCode = [...code];
-                        newCode.push({ type: 'pickup' });
-                        setCode(newCode);
-                    }}
-                    >
-Add pickup
-                    </Button>
-                </div>
-                <div>
-                    <Button onClick={() => {
-                        const newCode = [...code];
-                        newCode.push({ type: 'drop' });
-                        setCode(newCode);
-                    }}
-                    >
-Add drop
-                    </Button>
-                </div>
-                <div>
-                    <Button onClick={() => {
-                        const newCode = [...code];
-                        newCode.push({ type: 'if', conditions: [{ value1: 'here', operation: '==', value2: 0 }] });
-                        setCode(newCode);
-                    }}
-                    >
-Add if
-                    </Button>
-                </div>
-                <div>
-                    <Button onClick={() => {
-                        const newCode = [...code];
-                        newCode.push({ type: 'endif' });
-                        setCode(newCode);
-                    }}
-                    >
-Add endif
-                    </Button>
-                </div>
-            </Grid>
-            <Grid item md={5}>
-                <div style={{ paddingLeft: 20 }}>
-                    <SortableContainer onSortEnd={({ oldIndex, newIndex }, e) => {
-                        if (e.ctrlKey) {
-                            const newCode = JSON.parse(JSON.stringify(code));
-                            newCode.splice(newIndex, 0, code[oldIndex]);
-                            setCode(newCode);
-                        } else {
-                            setCode(arrayMoveImmutable(code, oldIndex, newIndex));
-                        }
-                    }}
-                    >
-                        {code.map((line, key) =>
-                            <SortableItem index={key} key={key}>
-                                {characters.filter(character => character.step === key).map(character => <span key={character.name}>
-                                    <ManIcon fontSize="size" style={{ color: character.color }} />
-                                </span>)}
-                                {renderLines[key]}
-                            </SortableItem>)}
-                    </SortableContainer>
-                    <div style={{ paddingTop: 20 }}>
-Speed:
-                        {' '}
-                        <input type="number" value={1000 / speed} onChange={e => setSpeed(1000 / (parseInt(e.target.value) || 1))} />
-                    </div>
-                    <div>
-                        <Button onClick={() => {
-                            setLevel(props.level);
-                            setCharacters(props.level.characters);
-                            setRun(!run);
-                        }}
-                        >
-                            {run ? 'Stop' : 'Run'}
-                        </Button>
-                    </div>
-                </div>
-            </Grid>
+    return <Grid container>
+        <Grid item md={6}>
+            <h2>{level.task}</h2>
+            <h4>{props.level.win(level.cells, characters) ? 'Win' : null}</h4>
+            <div style={{ position: 'relative', width: level.width * CELL_WIDTH + CELL_WIDTH / 2, height: level.height * CELL_WIDTH + CELL_WIDTH / 2 }}>
+                {cellDivs}
+                {characterDivs}
+            </div>
         </Grid>
-    </>;
-};
+        <Grid item md={1}>
+            <div>
+                <Button onClick={() => {
+                    const newCode = [...code];
+                    newCode.push({ type: 'step', directions: ['left'] });
+                    setCode(newCode);
+                }}
+                >
+Add step
+                </Button>
+            </div>
+            <div>
+                <Button onClick={() => {
+                    const newCode = [...code];
+                    newCode.push({ type: 'goto', step: 0 });
+                    setCode(newCode);
+                }}
+                >
+Add goto
+                </Button>
+            </div>
+            <div>
+                <Button onClick={() => {
+                    const newCode = [...code];
+                    newCode.push({ type: 'pickup' });
+                    setCode(newCode);
+                }}
+                >
+Add pickup
+                </Button>
+            </div>
+            <div>
+                <Button onClick={() => {
+                    const newCode = [...code];
+                    newCode.push({ type: 'drop' });
+                    setCode(newCode);
+                }}
+                >
+Add drop
+                </Button>
+            </div>
+            <div>
+                <Button onClick={() => {
+                    const newCode = [...code];
+                    newCode.push({ type: 'if', conditions: [{ value1: 'here', operation: '==', value2: 0 }] });
+                    setCode(newCode);
+                }}
+                >
+Add if
+                </Button>
+            </div>
+            <div>
+                <Button onClick={() => {
+                    const newCode = [...code];
+                    newCode.push({ type: 'endif' });
+                    setCode(newCode);
+                }}
+                >
+Add endif
+                </Button>
+            </div>
+        </Grid>
+        <Grid item md={5}>
+            <div style={{ paddingLeft: 20 }}>
+                <SortableContainer onSortEnd={({ oldIndex, newIndex }, e) => {
+                    if (e.ctrlKey) {
+                        const newCode = clone(code);
+                        newCode.splice(newIndex, 0, code[oldIndex]);
+                        setCode(newCode);
+                    } else {
+                        setCode(arrayMoveImmutable(code, oldIndex, newIndex));
+                    }
+                }}
+                >
+                    {code.map((line, key) =>
+                        <SortableItem index={key} key={key}>
+                            {characters.filter(character => character.step === key).map(character => <span key={character.name}>
+                                <ManIcon fontSize="small" style={{ color: character.color }} />
+                            </span>)}
+                            {renderLines[key]}
+                        </SortableItem>)}
+                </SortableContainer>
+                <div style={{ paddingTop: 20 }}>
+Speed:
+                    {' '}
+                    <input type="number" value={1000 / speed} onChange={e => setSpeed(1000 / (parseInt(e.target.value) || 1))} />
+                </div>
+                <div>
+                    <Button onClick={() => {
+                        setLevel(props.level);
+                        setCharacters(props.level.characters);
+                        setRun(!run);
+                    }}
+                    >
+                        {run ? 'Stop' : 'Run'}
+                    </Button>
+                </div>
+                <div>
+                    <Button onClick={() => copy(JSON.stringify(code, null, 2))}>Copy</Button>
+                </div>
+            </div>
+        </Grid>
+    </Grid>;
+}
 
 export default Level;

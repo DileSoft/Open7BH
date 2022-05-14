@@ -7,20 +7,28 @@ module.exports = {
         'eslint:recommended',
         'plugin:react/recommended',
         'airbnb',
-        // 'react-app',
+        'plugin:@typescript-eslint/recommended',
         'plugin:eqeqeq-fix/recommended',
     ],
-    parser: 'babel-eslint',
+    settings: {
+        'import/resolver': {
+            node: {
+                extensions: ['.js', '.jsx', '.ts', '.tsx'],
+            },
+        },
+    },
+    parser: '@typescript-eslint/parser',
     parserOptions: {
         ecmaFeatures: {
             jsx: true,
         },
-        ecmaVersion: 12,
+        ecmaVersion: 'latest',
         sourceType: 'module',
     },
     plugins: [
         'only-warn',
         'react',
+        '@typescript-eslint',
     ],
     rules: {
         'arrow-parens': [1, 'as-needed'],
