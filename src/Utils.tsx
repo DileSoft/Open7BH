@@ -7,19 +7,22 @@ import SouthEastIcon from '@mui/icons-material/SouthEast';
 import NorthWestIcon from '@mui/icons-material/NorthWest';
 import NorthEastIcon from '@mui/icons-material/NorthEast';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
-import { CellType, DirectionType } from './types';
+import {
+    CellsType,
+    CellType, CoordinatesArrayType, CoordinatesType, DirectionType,
+} from './types';
 
-export const parseCoordinates = cellCoordinate => cellCoordinate.split('x').map(value => parseInt(value));
+export const parseCoordinates = (cellCoordinate:CoordinatesType):CoordinatesArrayType => cellCoordinate.split('x').map(value => parseInt(value));
 
-export const parseCells = cellsStr => {
+export const parseCells = (cellsStr:string):CellsType => {
     const result = {};
     cellsStr.split(/[\r\n]+/).forEach((line, lineIndex) => {
         line.split(/ +/).forEach((cell, cellIndex) => {
             const cellData = cell.split('|');
             const cellObject:CellType = {
                 type: cellData[0],
-            };
-            if (cellObject.type === 'box') {
+            } as CellType;
+            if (cellData[0] === 'box') {
                 cellObject.type = 'empty';
                 cellObject.item = { type: 'box', value: parseInt(cellData[1]), tag: cellData[2] };
             }
@@ -32,7 +35,7 @@ export const parseCells = cellsStr => {
 
 export const randomArray = <T, >(array:T[]):T => array[Math.floor(Math.random() * array.length)];
 
-export const moveCoordinates = (coordinates, direction:DirectionType) => {
+export const moveCoordinates = (coordinates:CoordinatesArrayType, direction:DirectionType):CoordinatesArrayType => {
     const newCoordinates = [...coordinates];
     if (direction === 'left') {
         newCoordinates[0] -= 1;
@@ -66,7 +69,7 @@ export const moveCoordinates = (coordinates, direction:DirectionType) => {
     return newCoordinates;
 };
 
-export const directionIcon = direction => {
+export const directionIcon = (direction:DirectionType) => {
     const icons = {
         left: WestIcon,
         right: EastIcon,

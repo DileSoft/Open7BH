@@ -12,7 +12,7 @@ import ManIcon from '@mui/icons-material/Man';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import {
     directionIcon,
-    moveCoordinates, parseCells, parseCoordinates, randomArray, clone,
+    moveCoordinates, parseCoordinates, randomArray, clone,
 } from './Utils';
 import {
     CharacterType, DirectionType, LevelType, LineGotoType, LineIfType, LineStepType, LineType,
@@ -54,7 +54,6 @@ function   Level(props) {
         }
         const newCharacters = clone(characters);
         const newLevel = clone(level);
-        const deleted = [];
         newCharacters.forEach((character, characterIndex) => {
             if (character.terminated) {
                 return;
@@ -208,7 +207,7 @@ Step:
                         setCode(newCode);
                     }}
                 >
-                    {['left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map(direction =>
+                    {['left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((direction:DirectionType) =>
                         <MenuItem key={direction} value={direction}>
                             {directionIcon(direction)}
                             {direction}
@@ -247,7 +246,7 @@ If:
                         setCode(newCode);
                     }}
                 >
-                    {['left', 'right', 'top', 'bottom', 'here', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map(option =>
+                    {['left', 'right', 'top', 'bottom', 'here', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((option:DirectionType) =>
                         <MenuItem key={option} value={option}>
                             {directionIcon(option)}
                             {option}

@@ -1,16 +1,18 @@
 export interface ItemType {
-    type: string;
+    type: 'box';
     value?: number;
     tag?: string;
 }
 
 export interface CellType {
     item?: ItemType;
-    type: string;
+    type: 'empty'|'hole'|'wall';
 }
 
+export type CellsType = {[key: string]: CellType};
+
 export interface LevelType {
-    cells: {[key: string]: CellType};
+    cells: CellsType;
     task: string;
     characters: CharacterType[];
     code: LineType[];
@@ -19,8 +21,15 @@ export interface LevelType {
     height: number;
 }
 
+/**
+ * 1x1
+ */
+export type CoordinatesType = string;
+
+export type CoordinatesArrayType = number[];
+
 export interface CharacterType {
-    coordinates: string;
+    coordinates: CoordinatesType;
     color: string;
     name: string;
     item?: ItemType;
@@ -60,6 +69,42 @@ export interface LineDropType {
 
 export interface LineEndifType {
     type: 'endif';
+}
+
+export interface LineSayType {
+    type: 'say';
+    text: string;
+    direction: DirectionType;
+}
+
+export interface LineHearType {
+    type: 'hear';
+    text: string;
+}
+
+export interface LineVariableType {
+    type: 'variable';
+    slot: number;
+}
+
+export interface LineCalcType {
+    type: 'calc';
+    slot: number;
+    value1: number;
+    value2: number;
+    operation: '+' | '-' | '/' | '*';
+}
+
+export interface LineNearType {
+    type: 'near'
+    slot: number;
+    find: 'box' | 'empty' | 'hole' | 'character';
+}
+
+export interface LineForEachType {
+    type: 'foreach';
+    directions: DirectionType[];
+    slot: number;
 }
 
 export type LineType = LineStepType | LineGotoType | LineIfType | LinePickupType |LineDropType | LineEndifType;
