@@ -10,12 +10,15 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import ManIcon from '@mui/icons-material/Man';
 import AddBoxIcon from '@mui/icons-material/AddBox';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import WestIcon from '@mui/icons-material/West';
+import EastIcon from '@mui/icons-material/East';
 import {
     directionIcon,
     moveCoordinates, parseCoordinates, randomArray, clone,
 } from './Utils';
 import {
-    CharacterType, DirectionType, LevelType, LineGotoType, LineIfType, LineStepType, LineType,
+    CharacterType, DirectionType, DirectionTypeWithHere, IfOperationType, LevelType, LineGiveType, LineGotoType, LineIfType, LineStepType, LineType, ValueDirectionType, ValueNumberType,
 } from './types';
 
 const CELL_WIDTH = 80;
@@ -54,7 +57,9 @@ function   Level(props) {
         }
         const newCharacters = clone(characters);
         const newLevel = clone(level);
+        const newCoordinatesArray = [];
         newCharacters.forEach((character, characterIndex) => {
+            newCoordinatesArray[characterIndex] = character.coordinates;
             if (character.terminated) {
                 return;
             }
@@ -71,11 +76,8 @@ function   Level(props) {
                 const direction = randomArray(line.directions);
                 const newCoordinates = moveCoordinates(coordinates, direction);
                 const newCell = level.cells[newCoordinates.join('x')];
-                if (newCell && ['empty', 'hole'].includes(newCell.type) && !characters.find(foundCharacter => foundCharacter.coordinates === newCoordinates.join('x'))) {
-                    character.coordinates = newCoordinates.join('x');
-                }
-                if (newCell && newCell.type === 'hole') {
-                    character.terminated = true;
+                if (newCell && ['empty', 'hole'].includes(newCell.type)) {
+                    newCoordinatesArray[characterIndex] = newCoordinates.join('x');
                 }
             }
             if (line.type === 'goto') {
@@ -93,25 +95,49 @@ function   Level(props) {
                     delete character.item;
                 }
             }
+            if (line.type === 'take') {
+                const itemCoordinates = moveCoordinates(coordinates, line.direction).join('x');
+                if (!character.item && newLevel.cells[itemCoordinates]?.type === 'printer') {
+                    character.item = { type: 'box', value: Math.floor(Math.random() * 99) };
+                    newLevel.cells[itemCoordinates].printed++;
+                }
+            }
+            if (line.type === 'give') {
+                const itemCoordinates = moveCoordinates(coordinates, line.direction).join('x');
+                if (character.item && newLevel.cells[itemCoordinates]?.type === 'shredder') {
+                    delete character.item;
+                    newLevel.cells[itemCoordinates].shredded++;
+                }
+            }
             if (line.type === 'if') {
-                const condition = line.conditions[0];
-                const value1 = newLevel.cells[moveCoordinates(coordinates, condition.value1 as DirectionType).join('x')].item?.value || 0;
-                const value2 = condition.value2;
                 let result = false;
-                if (condition.operation === '==') {
-                    result = value1 === value2;
-                }
-                if (condition.operation === '>') {
-                    result = value1 > value2;
-                }
-                if (condition.operation === '<') {
-                    result = value1 < value2;
-                }
-                if (condition.operation === '<=') {
-                    result = value1 <= value2;
-                }
-                if (condition.operation === '>=') {
-                    result = value1 >= value2;
+                const condition = line.conditions[0];
+                const value1coordinates = moveCoordinates(coordinates, condition.value1.value as DirectionType).join('x');
+                if (newLevel.cells[value1coordinates]) {
+                    const value1 = characters.find(foundCharacter => condition.value1.value !== 'here' && foundCharacter.coordinates === value1coordinates)?.item?.value ||
+                  newLevel.cells[value1coordinates]?.item?.value || 0;
+                    let value2 = 0;
+                    if (condition.value2.type === 'number') {
+                        value2 = (condition.value2 as ValueNumberType).value;
+                    }
+                    if (condition.value2.type === 'myitem') {
+                        value2 = character.item?.value || 0;
+                    }
+                    if (condition.operation === '==') {
+                        result = value1 === value2;
+                    }
+                    if (condition.operation === '>') {
+                        result = value1 > value2;
+                    }
+                    if (condition.operation === '<') {
+                        result = value1 < value2;
+                    }
+                    if (condition.operation === '<=') {
+                        result = value1 <= value2;
+                    }
+                    if (condition.operation === '>=') {
+                        result = value1 >= value2;
+                    }
                 }
                 if (!result) {
                     let k = 0;
@@ -122,6 +148,22 @@ function   Level(props) {
                     }
                     character.step = k;
                 }
+            }
+        });
+        newCharacters.forEach((character, characterIndex) => {
+            const line = code[character.step];
+            if (!line) {
+                return;
+            }
+            if (!characters.find(foundCharacter => foundCharacter.coordinates === newCoordinatesArray[characterIndex]) ||
+            characters.find((foundCharacter, foundCharacterIndex) =>
+                foundCharacter.coordinates === newCoordinatesArray[characterIndex] && character.coordinates === newCoordinatesArray[foundCharacterIndex])) {
+                character.coordinates = newCoordinatesArray[characterIndex];
+                if (level.cells[character.coordinates].type === 'hole') {
+                    character.terminated = true;
+                }
+            } else if (code[character.step].type === 'step') {
+                character.step--;
             }
         });
         setCharacters(newCharacters);
@@ -140,6 +182,12 @@ function   Level(props) {
         }
         if (cell.type === 'wall') {
             content = 'wall';
+        }
+        if (cell.type === 'printer') {
+            content = 'printer';
+        }
+        if (cell.type === 'shredder') {
+            content = 'shredder';
         }
         if (cell.item?.type === 'box') {
             content = <>
@@ -191,7 +239,7 @@ function   Level(props) {
         </div>;
     });
 
-    const renderLine = (line, lineNumber) => {
+    const renderLine = (line: LineType, lineNumber: number) => {
         let result = null;
         if (line.type === 'step') {
             result = <span>
@@ -203,7 +251,57 @@ Step:
                     multiple
                     onChange={e => {
                         const newCode = clone(code) as LineStepType[];
-                        newCode[lineNumber].directions = e.target.value;
+                        newCode[lineNumber].directions = e.target.value as DirectionType[];
+                        setCode(newCode);
+                    }}
+                >
+                    {['left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((direction:DirectionType) =>
+                        <MenuItem key={direction} value={direction}>
+                            {directionIcon(direction)}
+                            {direction}
+                        </MenuItem>)}
+                </Select>
+            </span>;
+        }
+        if (line.type === 'give') {
+            result = <span>
+Give:
+                {' '}
+                <ManIcon fontSize="small" />
+                <EastIcon fontSize="small" />
+                <CheckBoxOutlineBlankIcon fontSize="small" />
+                {' '}
+                <Select
+                    value={line.direction}
+                    variant="standard"
+                    onChange={e => {
+                        const newCode = clone(code) as LineGiveType[];
+                        newCode[lineNumber].direction = e.target.value as DirectionType;
+                        setCode(newCode);
+                    }}
+                >
+                    {['left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((direction:DirectionType) =>
+                        <MenuItem key={direction} value={direction}>
+                            {directionIcon(direction)}
+                            {direction}
+                        </MenuItem>)}
+                </Select>
+            </span>;
+        }
+        if (line.type === 'take') {
+            result = <span>
+                Take
+                {' '}
+                <ManIcon fontSize="small" />
+                <WestIcon fontSize="small" />
+                <CheckBoxOutlineBlankIcon fontSize="small" />
+                {' '}
+                <Select
+                    value={line.direction}
+                    variant="standard"
+                    onChange={e => {
+                        const newCode = clone(code) as LineGiveType[];
+                        newCode[lineNumber].direction = e.target.value as DirectionType;
                         setCode(newCode);
                     }}
                 >
@@ -224,7 +322,7 @@ Goto:
                     variant="standard"
                     onChange={e => {
                         const newCode = clone(code) as LineGotoType[];
-                        newCode[lineNumber].step = e.target.value;
+                        newCode[lineNumber].step = e.target.value as number;
                         setCode(newCode);
                     }}
                 >
@@ -238,11 +336,11 @@ Goto:
 If:
                 {' '}
                 <Select
-                    value={line.conditions[0].value1}
+                    value={line.conditions[0].value1.value}
                     variant="standard"
                     onChange={e => {
                         const newCode = clone(code) as LineIfType[];
-                        newCode[lineNumber].conditions[0].value1 = e.target.value;
+                        newCode[lineNumber].conditions[0].value1.value = e.target.value as DirectionTypeWithHere;
                         setCode(newCode);
                     }}
                 >
@@ -257,23 +355,41 @@ If:
                     variant="standard"
                     onChange={e => {
                         const newCode = clone(code) as LineIfType[];
-                        newCode[lineNumber].conditions[0].operation = e.target.value;
+                        newCode[lineNumber].conditions[0].operation = e.target.value as IfOperationType;
                         setCode(newCode);
                     }}
                 >
                     {['==', '>', '<', '>=', '<='].map(option =>
                         <MenuItem key={option} value={option}>{option}</MenuItem>)}
                 </Select>
-                <TextField
-                    type="number"
-                    value={line.conditions[0].value2}
-                    variant="standard"
+                <Select
+                    value={(line as LineIfType).conditions[0].value2.type}
                     onChange={e => {
                         const newCode = clone(code) as LineIfType[];
-                        newCode[lineNumber].conditions[0].value2 = parseInt(e.target.value) || 0;
+                        if (e.target.value === 'number') {
+                            newCode[lineNumber].conditions[0].value2 = { type: 'number', value: 0 };
+                        }
+                        if (e.target.value === 'myitem') {
+                            newCode[lineNumber].conditions[0].value2 = { type: 'myitem' };
+                        }
                         setCode(newCode);
                     }}
-                />
+                    variant="standard"
+                >
+                    {['number', 'myitem'].map(option =>
+                        <MenuItem key={option} value={option}>{option}</MenuItem>)}
+                </Select>
+                {line.conditions[0].value2.type === 'number' ?
+                    <TextField
+                        type="number"
+                        value={line.conditions[0].value2.value}
+                        variant="standard"
+                        onChange={e => {
+                            const newCode = clone(code) as LineIfType[];
+                            (newCode[lineNumber].conditions[0].value2 as ValueNumberType).value = parseInt(e.target.value) || 0;
+                            setCode(newCode);
+                        }}
+                    /> : null}
 
             </span>;
         }
@@ -322,6 +438,26 @@ Add step
             <div>
                 <Button onClick={() => {
                     const newCode = [...code];
+                    newCode.push({ type: 'give', direction: 'left' });
+                    setCode(newCode);
+                }}
+                >
+Add give
+                </Button>
+            </div>
+            <div>
+                <Button onClick={() => {
+                    const newCode = [...code];
+                    newCode.push({ type: 'take', direction: 'left' });
+                    setCode(newCode);
+                }}
+                >
+Add take
+                </Button>
+            </div>
+            <div>
+                <Button onClick={() => {
+                    const newCode = [...code];
                     newCode.push({ type: 'goto', step: 0 });
                     setCode(newCode);
                 }}
@@ -351,8 +487,15 @@ Add drop
             </div>
             <div>
                 <Button onClick={() => {
-                    const newCode = [...code];
-                    newCode.push({ type: 'if', conditions: [{ value1: 'here', operation: '==', value2: 0 }] });
+                    const newCode = [...code] as LineIfType[];
+                    newCode.push({
+                        type: 'if',
+                        conditions: [{
+                            value1: { type: 'direction', value: 'here' },
+                            operation: '==',
+                            value2: { type: 'number', value: 0 },
+                        }],
+                    });
                     setCode(newCode);
                 }}
                 >

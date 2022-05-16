@@ -82,7 +82,7 @@ hole hole`,
         ]),
         code: ([
             { type: 'step', directions: ['bottom'] },
-            { type: 'if', conditions: [{ value1: 'here', operation: '>', value2: 1 }] },
+            { type: 'if', conditions: [{ value1: { type: 'direction', value: 'here' }, operation: '>', value2: { type: 'number', value: 1 } }] },
             { type: 'pickup' },
             { type: 'endif' },
             { type: 'goto', step: 0 },
@@ -124,6 +124,120 @@ empty empty empty empty empty`,
             cells['2x3'].item?.type === 'box' &&
             cells['3x4'].item?.type === 'box' &&
             cells['4x5'].item?.type === 'box',
+    },
+    {
+        task: 'Sort numbers',
+        width: 5,
+        height: 5,
+        cells: parseCells(
+            `empty empty empty empty empty
+box|4 box|3 box|2 box|1 box|5
+empty empty empty empty empty
+empty empty empty empty empty
+empty empty empty empty empty`,
+        ),
+        characters: ([
+            {
+                coordinates: '0x1', name: '1', color: 'purple', step: -1,
+            },
+            {
+                coordinates: '1x1', name: '2', color: 'red', step: -1,
+            },
+            {
+                coordinates: '2x1', name: '3', color: 'green', step: -1,
+            },
+            {
+                coordinates: '3x1', name: '4', color: 'yellow', step: -1,
+            },
+            {
+                coordinates: '4x1', name: '5', color: 'blue', step: -1,
+            },
+        ]),
+        code: ([
+            {
+                type: 'pickup',
+            },
+            {
+                type: 'if',
+                conditions: [
+                    {
+                        value1: {
+                            type: 'direction',
+                            value: 'right',
+                        },
+                        operation: '<',
+                        value2: {
+                            type: 'myitem',
+                        },
+                    },
+                ],
+            },
+            {
+                type: 'step',
+                directions: [
+                    'right',
+                ],
+            },
+            {
+                type: 'endif',
+            },
+            {
+                type: 'if',
+                conditions: [
+                    {
+                        value1: {
+                            type: 'direction',
+                            value: 'left',
+                        },
+                        operation: '>',
+                        value2: {
+                            type: 'myitem',
+                        },
+                    },
+                ],
+            },
+            {
+                type: 'step',
+                directions: [
+                    'left',
+                ],
+            },
+            {
+                type: 'endif',
+            },
+            {
+                type: 'goto',
+                step: 1,
+            },
+        ]),
+        win: (cells, characters) => cells['0x1'].item?.type === 'box' &&
+            cells['1x2'].item?.type === 'box' &&
+            cells['2x3'].item?.type === 'box' &&
+            cells['3x4'].item?.type === 'box' &&
+            cells['4x5'].item?.type === 'box',
+    },
+    {
+        task: 'Print and shred 10 boxes',
+        width: 5,
+        height: 5,
+        cells: parseCells(
+            `empty empty empty empty empty
+empty empty empty empty empty
+empty printer shredder empty empty
+empty empty empty empty empty
+empty empty empty empty empty`,
+        ),
+        characters: ([
+            {
+                coordinates: '1x1', name: 'first', color: 'red', step: -1,
+            },
+            {
+                coordinates: '2x1', name: 'second', color: 'green', step: -1,
+            },
+        ]),
+        code: ([
+        ]),
+        win: (cells, characters) => cells['2x2'].shredded >= 10,
     },
 ];
 

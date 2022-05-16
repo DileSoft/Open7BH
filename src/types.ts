@@ -6,7 +6,9 @@ export interface ItemType {
 
 export interface CellType {
     item?: ItemType;
-    type: 'empty'|'hole'|'wall';
+    type: 'empty'|'hole'|'wall'|'printer'|'shredder';
+    printed?: number;
+    shredded?: number;
 }
 
 export type CellsType = {[key: string]: CellType};
@@ -45,17 +47,43 @@ export interface LineStepType {
     directions: DirectionType[];
 }
 
+export interface LineGiveType {
+    type: 'give';
+    direction: DirectionType;
+}
+
+export interface LineTakeType {
+    type: 'take';
+    direction: DirectionType;
+}
+
 export interface LineGotoType {
     type: 'goto';
     step: number;
 }
 
+export interface ValueDirectionType {
+    type: 'direction';
+    value: DirectionTypeWithHere;
+}
+
+export interface ValueNumberType {
+    type: 'number';
+    value: number;
+}
+
+export interface ValueMyItemType {
+    type: 'myitem';
+}
+
+export type IfOperationType = '==' | '!=' | '>' | '<' | '>=' | '<=';
+
 export interface LineIfType {
     type: 'if'
     conditions: [{
-        value1: DirectionTypeWithHere;
-        operation: '==' | '!=' | '>' | '<' | '>=' | '<=';
-        value2: number;
+        value1: ValueDirectionType;
+        operation: IfOperationType;
+        value2: ValueNumberType | ValueMyItemType;
     }];
 }
 
@@ -107,4 +135,4 @@ export interface LineForEachType {
     slot: number;
 }
 
-export type LineType = LineStepType | LineGotoType | LineIfType | LinePickupType |LineDropType | LineEndifType;
+export type LineType = LineStepType | LineGotoType | LineIfType | LinePickupType |LineDropType | LineEndifType | LineGiveType | LineTakeType;
