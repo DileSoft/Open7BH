@@ -1,5 +1,5 @@
 import { LevelType } from './types';
-import { parseCells } from './Utils';
+import { cellCharacter, parseCells } from './Utils';
 
 const levels:LevelType[] = [
     {
@@ -119,11 +119,7 @@ empty empty empty empty empty`,
         ]),
         code: ([
         ]),
-        win: (cells, characters) => cells['0x1'].item?.type === 'box' &&
-            cells['1x2'].item?.type === 'box' &&
-            cells['2x3'].item?.type === 'box' &&
-            cells['3x4'].item?.type === 'box' &&
-            cells['4x5'].item?.type === 'box',
+        win: (cells, characters) => [0, 1, 2, 3, 4].every(number => cells[`${number}x${number + 1}`].item?.type === 'box'),
     },
     {
         task: 'Sort numbers',
@@ -131,7 +127,7 @@ empty empty empty empty empty`,
         height: 5,
         cells: parseCells(
             `empty empty empty empty empty
-box|4 box|3 box|2 box|1 box|5
+box|random box|random box|random box|random box|random
 empty empty empty empty empty
 empty empty empty empty empty
 empty empty empty empty empty`,
@@ -210,11 +206,11 @@ empty empty empty empty empty`,
                 step: 1,
             },
         ]),
-        win: (cells, characters) => cells['0x1'].item?.type === 'box' &&
-            cells['1x2'].item?.type === 'box' &&
-            cells['2x3'].item?.type === 'box' &&
-            cells['3x4'].item?.type === 'box' &&
-            cells['4x5'].item?.type === 'box',
+        win: (cells, characters) => [0, 1, 2, 3, 4].every(
+            number => number === 0 ||
+            cellCharacter(characters, `${number}x1`)?.item?.value >=
+             cellCharacter(characters, `${number - 1}x1`)?.item?.value,
+        ),
     },
     {
         task: 'Print and shred 10 boxes',

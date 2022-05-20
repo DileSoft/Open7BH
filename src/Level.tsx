@@ -193,7 +193,7 @@ function   Level(props) {
             content = <>
                 <AddBoxIcon fontSize="small" />
                 {' '}
-                {cell.item.value}
+                {cell.item.isRandom && !run ? '?' : cell.item.value}
             </>;
         }
 
@@ -239,6 +239,7 @@ function   Level(props) {
         </div>;
     });
 
+    let intend = 0;
     const renderLine = (line: LineType, lineNumber: number) => {
         let result = null;
         if (line.type === 'step') {
@@ -396,10 +397,14 @@ If:
         if (!result) {
             result = JSON.stringify(line);
         }
-        return <span key={lineNumber}>
+
+        if (line.type === 'endif') {
+            intend -= 20;
+        }
+        result = <span key={lineNumber}>
             {lineNumber}
             {': '}
-            {result}
+            <span style={{ paddingLeft: intend }}>{result}</span>
             <IconButton
                 size="small"
                 onMouseDown={() => {
@@ -411,6 +416,11 @@ If:
                 <DeleteIcon fontSize="small" />
             </IconButton>
         </span>;
+        if (line.type === 'if') {
+            intend += 20;
+        }
+
+        return result;
     };
 
     const renderLines = useMemo(() => code.map((line, key) => renderLine(line, key)), [code]);
@@ -525,13 +535,15 @@ Add endif
                     }
                 }}
                 >
-                    {code.map((line, key) =>
-                        <SortableItem index={key} key={key}>
+                    {code.map((line, key) => {
+                        const result = <SortableItem index={key} key={key}>
                             {characters.filter(character => character.step === key).map(character => <span key={character.name}>
                                 <ManIcon fontSize="small" style={{ color: character.color }} />
                             </span>)}
                             {renderLines[key]}
-                        </SortableItem>)}
+                        </SortableItem>;
+                        return result;
+                    })}
                 </SortableContainer>
                 <div style={{ paddingTop: 20 }}>
 Speed:
@@ -539,11 +551,21 @@ Speed:
                     <input type="number" value={1000 / speed} onChange={e => setSpeed(1000 / (parseInt(e.target.value) || 1))} />
                 </div>
                 <div>
-                    <Button onClick={() => {
-                        setLevel(props.level);
-                        setCharacters(props.level.characters);
-                        setRun(!run);
-                    }}
+                    <Button
+                        onClick={() => {
+                            const newLevel = clone(props.level as LevelType);
+                            if (!run) {
+                                Object.values(newLevel.cells).forEach(cell => {
+                                    if (cell.item?.isRandom) {
+                                        cell.item.value = Math.floor(Math.random() * 99);
+                                    }
+                                });
+                            }
+                            setLevel(newLevel);
+                            setCharacters(props.level.characters);
+                            setRun(!run);
+                        }}
+                        disabled={intend !== 0}
                     >
                         {run ? 'Stop' : 'Run'}
                     </Button>

@@ -2,6 +2,7 @@ export interface ItemType {
     type: 'box';
     value?: number;
     tag?: string;
+    isRandom?: boolean;
 }
 
 export interface CellType {

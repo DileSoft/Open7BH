@@ -9,7 +9,7 @@ import NorthEastIcon from '@mui/icons-material/NorthEast';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import {
     CellsType,
-    CellType, CoordinatesArrayType, CoordinatesType, DirectionType,
+    CellType, CharacterType, CoordinatesArrayType, CoordinatesType, DirectionType,
 } from './types';
 
 export const parseCoordinates = (cellCoordinate:CoordinatesType):CoordinatesArrayType => cellCoordinate.split('x').map(value => parseInt(value));
@@ -24,7 +24,12 @@ export const parseCells = (cellsStr:string):CellsType => {
             } as CellType;
             if (cellData[0] === 'box') {
                 cellObject.type = 'empty';
-                cellObject.item = { type: 'box', value: parseInt(cellData[1]), tag: cellData[2] };
+                cellObject.item = {
+                    type: 'box',
+                    value: parseInt(cellData[1]),
+                    tag: cellData[2],
+                    isRandom: cellData[1] === 'random',
+                };
             }
             result[`${cellIndex}x${lineIndex}`] = cellObject;
         });
@@ -87,3 +92,5 @@ export const directionIcon = (direction:DirectionType) => {
 };
 
 export const clone = <T, >(input:T):T => JSON.parse(JSON.stringify(input)) as T;
+
+export const cellCharacter = (characters:CharacterType[], cell:CoordinatesType):CharacterType => characters.find(character => character.coordinates === cell);
