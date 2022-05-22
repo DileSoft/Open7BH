@@ -13,12 +13,13 @@ import AddBoxIcon from '@mui/icons-material/AddBox';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import WestIcon from '@mui/icons-material/West';
 import EastIcon from '@mui/icons-material/East';
+import { v4 as uuidv4 } from 'uuid';
 import {
     directionIcon,
     moveCoordinates, parseCoordinates, randomArray, clone,
 } from './Utils';
 import {
-    CharacterType, DirectionType, DirectionTypeWithHere, IfOperationType, LevelType, LineGiveType, LineGotoType, LineIfType, LineStepType, LineType, ValueDirectionType, ValueNumberType,
+    CharacterType, CoordinatesType, DirectionType, DirectionTypeWithHere, IfOperationType, LevelType, LineGiveType, LineGotoType, LineIfType, LineStepType, LineType, ValueDirectionType, ValueNumberType,
 } from './types';
 
 const CELL_WIDTH = 80;
@@ -27,7 +28,7 @@ const SortableItem = sortableElement(({ children }) => <div>{children}</div>);
 
 const SortableContainer = sortableContainer(({ children }) => <div>{children}</div>);
 
-function   Level(props) {
+function Level(props: {level: LevelType}) {
     const [level, setLevel] = useState<LevelType>(props.level);
     const [characters, setCharacters] = useState<CharacterType[]>(props.level.characters);
     const [code, setCode] = useState<LineType[]>(props.level.code);
@@ -57,7 +58,7 @@ function   Level(props) {
         }
         const newCharacters = clone(characters);
         const newLevel = clone(level);
-        const newCoordinatesArray = [];
+        const newCoordinatesArray:CoordinatesType[] = [];
         newCharacters.forEach((character, characterIndex) => {
             newCoordinatesArray[characterIndex] = character.coordinates;
             if (character.terminated) {
@@ -112,9 +113,9 @@ function   Level(props) {
             if (line.type === 'if') {
                 let result = false;
                 const condition = line.conditions[0];
-                const value1coordinates = moveCoordinates(coordinates, condition.value1.value as DirectionType).join('x');
+                const value1coordinates = moveCoordinates(coordinates, (condition.value1 as ValueDirectionType).value).join('x');
                 if (newLevel.cells[value1coordinates]) {
-                    const value1 = characters.find(foundCharacter => condition.value1.value !== 'here' && foundCharacter.coordinates === value1coordinates)?.item?.value ||
+                    const value1 = characters.find(foundCharacter => (condition.value1 as ValueDirectionType).value !== 'here' && foundCharacter.coordinates === value1coordinates)?.item?.value ||
                   newLevel.cells[value1coordinates]?.item?.value || 0;
                     let value2 = 0;
                     if (condition.value2.type === 'number') {
@@ -164,6 +165,37 @@ function   Level(props) {
                 }
             } else if (code[character.step].type === 'step') {
                 character.step--;
+            }
+        });
+        const gived:string[] = [];
+        newCharacters.forEach((character, characterIndex) => {
+            const line = code[character.step];
+            if (!line) {
+                return;
+            }
+            if (gived.includes(character.name)) {
+                return;
+            }
+            if (line.type === 'give' && character.item?.type === 'box') {
+                const giveCell = moveCoordinates(parseCoordinates(character.coordinates), line.direction);
+                const giveCharacter = newCharacters.find(foundCharacter => foundCharacter.coordinates === giveCell.join('x'));
+                const giveCharacterStep = giveCharacter ? code[giveCharacter.step] : null;
+                if (giveCharacter) {
+                    if (!giveCharacter.item) {
+                        giveCharacter.item = character.item;
+                        delete character.item;
+                        gived.push(giveCharacter.name);
+                    } else if (giveCharacter.item && giveCharacterStep?.type === 'give' &&
+                    moveCoordinates(parseCoordinates(giveCharacter.coordinates), giveCharacterStep.direction).join('x') === character.coordinates
+                    ) {
+                        const tempItem = character.item;
+                        character.item = giveCharacter.item;
+                        giveCharacter.item = tempItem;
+                        gived.push(giveCharacter.name);
+                    } else {
+                        character.step--;
+                    }
+                }
             }
         });
         setCharacters(newCharacters);
@@ -337,11 +369,11 @@ Goto:
 If:
                 {' '}
                 <Select
-                    value={line.conditions[0].value1.value}
+                    value={(line.conditions[0].value1 as ValueDirectionType).value}
                     variant="standard"
                     onChange={e => {
                         const newCode = clone(code) as LineIfType[];
-                        newCode[lineNumber].conditions[0].value1.value = e.target.value as DirectionTypeWithHere;
+                        (newCode[lineNumber].conditions[0].value1 as ValueDirectionType).value = e.target.value as DirectionTypeWithHere;
                         setCode(newCode);
                     }}
                 >
@@ -394,6 +426,12 @@ If:
 
             </span>;
         }
+        if (line.type === 'endif') {
+            result = 'Endif';
+        }
+        if (line.type === 'pickup') {
+            result = 'Pickup';
+        }
         if (!result) {
             result = JSON.stringify(line);
         }
@@ -409,7 +447,14 @@ If:
                 size="small"
                 onMouseDown={() => {
                     const newCode = [...code];
+                    const deleteLine = newCode[lineNumber];
                     newCode.splice(lineNumber, 1);
+                    if (deleteLine.type === 'if') {
+                        newCode.splice(newCode.findIndex(foundLine => foundLine.type === 'endif' && foundLine.ifId === deleteLine.id), 1);
+                    }
+                    if (deleteLine.type === 'endif') {
+                        newCode.splice(newCode.findIndex(foundLine => foundLine.type === 'if' && foundLine.id === deleteLine.ifId), 1);
+                    }
                     setCode(newCode);
                 }}
             >
@@ -428,7 +473,7 @@ If:
     return <Grid container>
         <Grid item md={6}>
             <h2>{level.task}</h2>
-            <h4>{props.level.win(level.cells, characters) ? 'Win' : null}</h4>
+            <h4>{run && props.level.win(level.cells, characters) ? 'Win' : null}</h4>
             <div style={{ position: 'relative', width: level.width * CELL_WIDTH + CELL_WIDTH / 2, height: level.height * CELL_WIDTH + CELL_WIDTH / 2 }}>
                 {cellDivs}
                 {characterDivs}
@@ -438,7 +483,7 @@ If:
             <div>
                 <Button onClick={() => {
                     const newCode = [...code];
-                    newCode.push({ type: 'step', directions: ['left'] });
+                    newCode.push({ type: 'step', directions: ['left'], id: uuidv4() });
                     setCode(newCode);
                 }}
                 >
@@ -448,7 +493,7 @@ Add step
             <div>
                 <Button onClick={() => {
                     const newCode = [...code];
-                    newCode.push({ type: 'give', direction: 'left' });
+                    newCode.push({ type: 'give', direction: 'left', id: uuidv4() });
                     setCode(newCode);
                 }}
                 >
@@ -458,7 +503,7 @@ Add give
             <div>
                 <Button onClick={() => {
                     const newCode = [...code];
-                    newCode.push({ type: 'take', direction: 'left' });
+                    newCode.push({ type: 'take', direction: 'left', id: uuidv4() });
                     setCode(newCode);
                 }}
                 >
@@ -468,7 +513,7 @@ Add take
             <div>
                 <Button onClick={() => {
                     const newCode = [...code];
-                    newCode.push({ type: 'goto', step: 0 });
+                    newCode.push({ type: 'goto', step: 0, id: uuidv4() });
                     setCode(newCode);
                 }}
                 >
@@ -478,7 +523,7 @@ Add goto
             <div>
                 <Button onClick={() => {
                     const newCode = [...code];
-                    newCode.push({ type: 'pickup' });
+                    newCode.push({ type: 'pickup', id: uuidv4() });
                     setCode(newCode);
                 }}
                 >
@@ -488,7 +533,7 @@ Add pickup
             <div>
                 <Button onClick={() => {
                     const newCode = [...code];
-                    newCode.push({ type: 'drop' });
+                    newCode.push({ type: 'drop', id: uuidv4() });
                     setCode(newCode);
                 }}
                 >
@@ -497,7 +542,8 @@ Add drop
             </div>
             <div>
                 <Button onClick={() => {
-                    const newCode = [...code] as LineIfType[];
+                    const newCode = [...code] as LineType[];
+                    const id = uuidv4();
                     newCode.push({
                         type: 'if',
                         conditions: [{
@@ -505,21 +551,12 @@ Add drop
                             operation: '==',
                             value2: { type: 'number', value: 0 },
                         }],
-                    });
+                        id
+                    }, { type: 'endif', ifId: uuidv4() });
                     setCode(newCode);
                 }}
                 >
 Add if
-                </Button>
-            </div>
-            <div>
-                <Button onClick={() => {
-                    const newCode = [...code];
-                    newCode.push({ type: 'endif' });
-                    setCode(newCode);
-                }}
-                >
-Add endif
                 </Button>
             </div>
         </Grid>

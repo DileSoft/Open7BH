@@ -38,27 +38,33 @@ export interface CharacterType {
     item?: ItemType;
     step: number;
     terminated?: boolean;
+    slots?: [number];
 }
 
 export type DirectionType = ('left'|'right'|'top'|'bottom'|'top-left'|'top-right'|'bottom-left'|'bottom-right');
 export type DirectionTypeWithHere = DirectionType | 'here';
 
-export interface LineStepType {
+export interface LineAbstractType {
+    type: string;
+    id?: string;
+}
+
+export interface LineStepType extends LineAbstractType {
     type: 'step';
     directions: DirectionType[];
 }
 
-export interface LineGiveType {
+export interface LineGiveType extends LineAbstractType {
     type: 'give';
     direction: DirectionType;
 }
 
-export interface LineTakeType {
+export interface LineTakeType extends LineAbstractType {
     type: 'take';
     direction: DirectionType;
 }
 
-export interface LineGotoType {
+export interface LineGotoType extends LineAbstractType {
     type: 'goto';
     step: number;
 }
@@ -77,63 +83,98 @@ export interface ValueMyItemType {
     type: 'myitem';
 }
 
+export interface ValueSomethingType {
+    type: 'something';
+}
+
+export interface ValueEmptyType {
+    type: 'empty';
+}
+
+export interface ValueHoleType {
+    type: 'hole';
+}
+
+export interface ValueCharacterType {
+    type: 'character';
+}
+
+export interface ValueBoxType {
+    type: 'box';
+}
+
+export interface ValueSlotType {
+    type: 'slot';
+    slot: number;
+}
+
 export type IfOperationType = '==' | '!=' | '>' | '<' | '>=' | '<=';
 
-export interface LineIfType {
-    type: 'if'
+export interface LineIfType extends LineAbstractType {
+    type: 'if';
+    id: string;
     conditions: [{
-        value1: ValueDirectionType;
+        value1: ValueDirectionType | ValueMyItemType | ValueSlotType;
         operation: IfOperationType;
-        value2: ValueNumberType | ValueMyItemType;
+        value2: ValueNumberType | ValueMyItemType | ValueDirectionType | ValueSlotType |
+         ValueHoleType | ValueSomethingType | ValueEmptyType | ValueCharacterType | ValueBoxType;
     }];
 }
 
-export interface LinePickupType {
+export interface LinePickupType extends LineAbstractType {
     type: 'pickup';
 }
 
-export interface LineDropType {
+export interface LineDropType extends LineAbstractType {
     type: 'drop';
 }
 
-export interface LineEndifType {
+export interface LineEndifType extends LineAbstractType {
     type: 'endif';
+    ifId: string;
 }
 
-export interface LineSayType {
+export interface LineSayType extends LineAbstractType {
     type: 'say';
     text: string;
-    direction: DirectionType;
+    target: ValueDirectionType | ValueSlotType;
 }
 
-export interface LineHearType {
+export interface LineHearType extends LineAbstractType {
     type: 'hear';
     text: string;
 }
 
-export interface LineVariableType {
+export interface LineVariableType extends LineAbstractType {
     type: 'variable';
     slot: number;
+    value: ValueDirectionType | ValueSlotType | ValueMyItemType | ValueNumberType;
 }
 
-export interface LineCalcType {
+export interface LineCalcType extends LineAbstractType {
     type: 'calc';
     slot: number;
-    value1: number;
-    value2: number;
+    value1: ValueDirectionType | ValueSlotType | ValueMyItemType | ValueNumberType;
+    value2: ValueDirectionType | ValueSlotType | ValueMyItemType | ValueNumberType;
     operation: '+' | '-' | '/' | '*';
 }
 
-export interface LineNearType {
+export interface LineNearType extends LineAbstractType {
     type: 'near'
     slot: number;
     find: 'box' | 'empty' | 'hole' | 'character';
 }
 
-export interface LineForEachType {
+export interface LineForEachType extends LineAbstractType {
     type: 'foreach';
     directions: DirectionType[];
     slot: number;
+    id: string;
+}
+
+export interface LineEndforeachType extends LineAbstractType {
+    type: 'endforeach';
+    foreachId: string;
 }
 
 export type LineType = LineStepType | LineGotoType | LineIfType | LinePickupType |LineDropType | LineEndifType | LineGiveType | LineTakeType;

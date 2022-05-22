@@ -9,7 +9,7 @@ import NorthEastIcon from '@mui/icons-material/NorthEast';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 import {
     CellsType,
-    CellType, CharacterType, CoordinatesArrayType, CoordinatesType, DirectionType,
+    CellType, CharacterType, CoordinatesArrayType, CoordinatesType, DirectionType, DirectionTypeWithHere,
 } from './types';
 
 export const parseCoordinates = (cellCoordinate:CoordinatesType):CoordinatesArrayType => cellCoordinate.split('x').map(value => parseInt(value));
@@ -40,7 +40,7 @@ export const parseCells = (cellsStr:string):CellsType => {
 
 export const randomArray = <T, >(array:T[]):T => array[Math.floor(Math.random() * array.length)];
 
-export const moveCoordinates = (coordinates:CoordinatesArrayType, direction:DirectionType):CoordinatesArrayType => {
+export const moveCoordinates = (coordinates:CoordinatesArrayType, direction:DirectionTypeWithHere):CoordinatesArrayType => {
     const newCoordinates = [...coordinates];
     if (direction === 'left') {
         newCoordinates[0] -= 1;
