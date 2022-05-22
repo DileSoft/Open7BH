@@ -10,7 +10,7 @@ function App() {
         <div className="App">
             <h1>Open7BH</h1>
             <Select variant="standard" value={level} onChange={e => setLevel(parseInt(e.target.value as string))}>
-                {levels.map((currentLevel, number) => <MenuItem value={number}>{currentLevel.task}</MenuItem>)}
+                {levels.map((currentLevel, number) => <MenuItem key={number} value={number}>{currentLevel.task}</MenuItem>)}
             </Select>
             <Level level={levels[level]} />
         </div>
