@@ -9,7 +9,6 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ManIcon from '@mui/icons-material/Man';
-import AddBoxIcon from '@mui/icons-material/AddBox';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import WestIcon from '@mui/icons-material/West';
 import EastIcon from '@mui/icons-material/East';
@@ -21,8 +20,7 @@ import {
 import {
     CharacterType, CoordinatesType, DirectionType, DirectionTypeWithHere, IfOperationType, LevelType, LineGiveType, LineGotoType, LineIfType, LineStepType, LineType, ValueDirectionType, ValueNumberType,
 } from './types';
-
-const CELL_WIDTH = 80;
+import Cells from './Cells';
 
 const SortableItem = sortableElement(({ children }) => <div>{children}</div>);
 
@@ -201,75 +199,6 @@ function Level(props: {level: LevelType}) {
         setCharacters(newCharacters);
         setLevel(newLevel);
     }, [step]);
-
-    const cellDivs = Object.keys(level.cells).map(cellCoordinate => {
-        const coordinates = parseCoordinates(cellCoordinate);
-        const cell = level.cells[cellCoordinate];
-        let content;
-        if (cell.type === 'empty') {
-            content = null;
-        }
-        if (cell.type === 'hole') {
-            content = <div style={{ width: '100%', height: '100%', backgroundColor: 'black' }}></div>;
-        }
-        if (cell.type === 'wall') {
-            content = 'wall';
-        }
-        if (cell.type === 'printer') {
-            content = 'printer';
-        }
-        if (cell.type === 'shredder') {
-            content = 'shredder';
-        }
-        if (cell.item?.type === 'box') {
-            content = <>
-                <AddBoxIcon fontSize="small" />
-                {' '}
-                {cell.item.isRandom && !run ? '?' : cell.item.value}
-            </>;
-        }
-
-        return <div
-            key={cellCoordinate}
-            style={{
-                position: 'absolute',
-                left: coordinates[0] * CELL_WIDTH,
-                top: coordinates[1] * CELL_WIDTH,
-                width: CELL_WIDTH,
-                height: CELL_WIDTH,
-                borderStyle: 'solid',
-                borderColor: 'black',
-                borderWidth: 1,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-            }}
-        >
-            {content}
-        </div>;
-    });
-
-    const characterDivs = characters.map(character =>            {
-        const coordinates = parseCoordinates(character.coordinates);
-        return <div
-            key={character.name}
-            style={{
-                position: 'absolute',
-                opacity: character.terminated ? 0 : 1,
-                transform: `translate(${coordinates[0] * CELL_WIDTH}px, ${coordinates[1] * CELL_WIDTH + 10}px)`,
-                transition: `all ${speed}ms ease-in`,
-            }}
-        >
-            <ManIcon fontSize="small" style={{ color: character.color }} />
-            {character.item?.type === 'box' ? <>
-(
-                <AddBoxIcon fontSize="small" />
-                {' '}
-                {character.item.value}
-)
-            </> : null}
-        </div>;
-    });
 
     let intend = 0;
     const renderLine = (line: LineType, lineNumber: number) => {
@@ -474,10 +403,14 @@ If:
         <Grid item md={6}>
             <h2>{level.task}</h2>
             <h4>{run && props.level.win(level.cells, characters) ? 'Win' : null}</h4>
-            <div style={{ position: 'relative', width: level.width * CELL_WIDTH + CELL_WIDTH / 2, height: level.height * CELL_WIDTH + CELL_WIDTH / 2 }}>
-                {cellDivs}
-                {characterDivs}
-            </div>
+            <Cells
+                cells={level.cells}
+                characters={characters}
+                width={level.width}
+                height={level.height}
+                run={run}
+                speed={speed}
+            />
         </Grid>
         <Grid item md={1}>
             <div>
@@ -551,8 +484,8 @@ Add drop
                             operation: '==',
                             value2: { type: 'number', value: 0 },
                         }],
-                        id
-                    }, { type: 'endif', ifId: uuidv4() });
+                        id,
+                    }, { type: 'endif', ifId: id });
                     setCode(newCode);
                 }}
                 >
@@ -568,7 +501,20 @@ Add if
                         newCode.splice(newIndex, 0, code[oldIndex]);
                         setCode(newCode);
                     } else {
-                        setCode(arrayMoveImmutable(code, oldIndex, newIndex));
+                        const newCode = arrayMoveImmutable(code, oldIndex, newIndex);
+                        const blocks = [];
+                        newCode.forEach(line => {
+                            if (line.type === 'if') {
+                                blocks.push(line.id);
+                            }
+                            if (line.type === 'endif' && blocks[blocks.length - 1] === line.ifId) {
+                                blocks.splice(blocks.indexOf(line.ifId), 1);
+                            }
+                        });
+                        if (blocks.length) {
+                            return;
+                        }
+                        setCode(newCode);
                     }
                 }}
                 >

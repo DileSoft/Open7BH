@@ -5,9 +5,11 @@ export interface ItemType {
     isRandom?: boolean;
 }
 
+export type CellTypeType = 'empty'|'hole'|'wall'|'printer'|'shredder'|'nothing';
+
 export interface CellType {
     item?: ItemType;
-    type: 'empty'|'hole'|'wall'|'printer'|'shredder';
+    type: CellTypeType;
     printed?: number;
     shredded?: number;
 }

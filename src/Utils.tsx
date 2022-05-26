@@ -38,6 +38,41 @@ export const parseCells = (cellsStr:string):CellsType => {
     return result;
 };
 
+export const cellsStringify = (cells:CellsType):string => {
+    let result = '';
+    let width = 0;
+    let height = 0;
+    Object.keys(cells).forEach(coordinates => {
+        const coordinatesArray = parseCoordinates(coordinates);
+        if (coordinatesArray[0] + 1 > width) {
+            width = coordinatesArray[0] + 1;
+        }
+        if (coordinatesArray[1] + 1 > height) {
+            height = coordinatesArray[1] + 1;
+        }
+    });
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const cell = cells[`${x}x${y}`];
+            if (cell) {
+                if (cell.type !== 'empty') {
+                    result += `${cell.type} `;
+                } else if (cell.item?.type === 'box') {
+                    result += `box|${cell.item.isRandom ? 'random' : cell.item.value}|${cell.item.tag || ''} `;
+                } else {
+                    result += 'empty ';
+                }
+            } else {
+                result += 'nothing ';
+            }
+        }
+        result = `${result.trim()}\n`;
+    }
+
+    return result.trim();
+};
+
 export const randomArray = <T, >(array:T[]):T => array[Math.floor(Math.random() * array.length)];
 
 export const moveCoordinates = (coordinates:CoordinatesArrayType, direction:DirectionTypeWithHere):CoordinatesArrayType => {
