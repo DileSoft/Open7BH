@@ -15,7 +15,7 @@ import EastIcon from '@mui/icons-material/East';
 import { v4 as uuidv4 } from 'uuid';
 import {
     directionIcon,
-    moveCoordinates, parseCoordinates, randomArray, clone,
+    moveCoordinates, parseCoordinates, randomArray, clone, getRandomInt,
 } from './Utils';
 import {
     CharacterType, CoordinatesType, DirectionType, DirectionTypeWithHere, IfOperationType, LevelType, LineGiveType, LineGotoType, LineIfType, LineStepType, LineType, ValueDirectionType, ValueNumberType,
@@ -97,7 +97,7 @@ function Level(props: {level: LevelType}) {
             if (line.type === 'take') {
                 const itemCoordinates = moveCoordinates(coordinates, line.direction).join('x');
                 if (!character.item && newLevel.cells[itemCoordinates]?.type === 'printer') {
-                    character.item = { type: 'box', value: Math.floor(Math.random() * 99) };
+                    character.item = { type: 'box', value: getRandomInt(0, 99) };
                     newLevel.cells[itemCoordinates].printed++;
                 }
             }
@@ -540,7 +540,7 @@ Speed:
                             if (!run) {
                                 Object.values(newLevel.cells).forEach(cell => {
                                     if (cell.item?.isRandom) {
-                                        cell.item.value = Math.floor(Math.random() * 99);
+                                        cell.item.value = getRandomInt(0, 99);
                                     }
                                 });
                             }

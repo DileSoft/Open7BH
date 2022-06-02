@@ -1,5 +1,5 @@
 import { Checkbox, MenuItem, Select } from '@mui/material';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Level from './Level';
 import Editor from './Editor';
 import levels from './levelsList';
@@ -28,5 +28,4 @@ function App() {
         </div>
     );
 }
-
 export default App;

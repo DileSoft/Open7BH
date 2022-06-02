@@ -4,7 +4,7 @@ import { parseCells } from '../Utils';
 const level:LevelType = {
     task: 'Remove only box with 2',
     width: 5,
-    height: 5,
+    height: 7,
     cells: parseCells(
         `empty empty empty empty empty
 box|2|tag2 box|1|tag1 wall empty empty

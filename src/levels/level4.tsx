@@ -4,7 +4,7 @@ import { parseCells } from '../Utils';
 const level:LevelType = {
     task: 'Diagonal boxes',
     width: 5,
-    height: 5,
+    height: 7,
     cells: parseCells(
         `empty empty empty empty empty
 box|1 box|1 box|1 box|1 box|1
