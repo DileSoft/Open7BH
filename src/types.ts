@@ -105,6 +105,10 @@ export interface ValueBoxType {
     type: 'box';
 }
 
+export interface ValueAllType {
+    type: 'all';
+}
+
 export interface ValueSlotType {
     type: 'slot';
     slot: number;
@@ -139,7 +143,7 @@ export interface LineEndifType extends LineAbstractType {
 export interface LineSayType extends LineAbstractType {
     type: 'say';
     text: string;
-    target: ValueDirectionType | ValueSlotType;
+    target: ValueDirectionType | ValueSlotType | ValueAllType;
 }
 
 export interface LineHearType extends LineAbstractType {
@@ -179,4 +183,6 @@ export interface LineEndforeachType extends LineAbstractType {
     foreachId: string;
 }
 
-export type LineType = LineStepType | LineGotoType | LineIfType | LinePickupType |LineDropType | LineEndifType | LineGiveType | LineTakeType;
+export type LineType = LineStepType | LineGotoType | LineIfType | LinePickupType
+| LineDropType | LineEndifType | LineGiveType | LineTakeType
+| LineSayType | LineHearType;

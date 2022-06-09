@@ -3,24 +3,19 @@ import { useEffect, useMemo, useState } from 'react';
 import { sortableContainer, sortableElement } from 'react-sortable-hoc';
 import copy from 'copy-to-clipboard';
 import { arrayMoveImmutable } from 'array-move';
-import Select from '@mui/material/Select';
 import {
-    Button, Grid, IconButton, MenuItem, TextField,
+    Button, Grid,
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
 import ManIcon from '@mui/icons-material/Man';
-import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
-import WestIcon from '@mui/icons-material/West';
-import EastIcon from '@mui/icons-material/East';
-import { v4 as uuidv4 } from 'uuid';
 import {
-    directionIcon,
     moveCoordinates, parseCoordinates, randomArray, clone, getRandomInt,
 } from './Utils';
 import {
-    CharacterType, CoordinatesType, DirectionType, DirectionTypeWithHere, IfOperationType, LevelType, LineGiveType, LineGotoType, LineIfType, LineStepType, LineType, ValueDirectionType, ValueNumberType,
+    CharacterType, CoordinatesType, LevelType, LineType, ValueDirectionType, ValueNumberType,
 } from './types';
 import Cells from './Cells';
+import AddPanel from './AddPanel';
+import renderLine from './renderLine';
 
 const SortableItem = sortableElement(({ children }) => <div>{children}</div>);
 
@@ -201,203 +196,12 @@ function Level(props: {level: LevelType}) {
     }, [step]);
 
     let intend = 0;
-    const renderLine = (line: LineType, lineNumber: number) => {
-        let result = null;
-        if (line.type === 'step') {
-            result = <span>
-Step:
-                {' '}
-                <Select
-                    value={line.directions}
-                    variant="standard"
-                    multiple
-                    onChange={e => {
-                        const newCode = clone(code) as LineStepType[];
-                        newCode[lineNumber].directions = e.target.value as DirectionType[];
-                        setCode(newCode);
-                    }}
-                >
-                    {['left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((direction:DirectionType) =>
-                        <MenuItem key={direction} value={direction}>
-                            {directionIcon(direction)}
-                            {direction}
-                        </MenuItem>)}
-                </Select>
-            </span>;
-        }
-        if (line.type === 'give') {
-            result = <span>
-Give:
-                {' '}
-                <ManIcon fontSize="small" />
-                <EastIcon fontSize="small" />
-                <CheckBoxOutlineBlankIcon fontSize="small" />
-                {' '}
-                <Select
-                    value={line.direction}
-                    variant="standard"
-                    onChange={e => {
-                        const newCode = clone(code) as LineGiveType[];
-                        newCode[lineNumber].direction = e.target.value as DirectionType;
-                        setCode(newCode);
-                    }}
-                >
-                    {['left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((direction:DirectionType) =>
-                        <MenuItem key={direction} value={direction}>
-                            {directionIcon(direction)}
-                            {direction}
-                        </MenuItem>)}
-                </Select>
-            </span>;
-        }
-        if (line.type === 'take') {
-            result = <span>
-                Take
-                {' '}
-                <ManIcon fontSize="small" />
-                <WestIcon fontSize="small" />
-                <CheckBoxOutlineBlankIcon fontSize="small" />
-                {' '}
-                <Select
-                    value={line.direction}
-                    variant="standard"
-                    onChange={e => {
-                        const newCode = clone(code) as LineGiveType[];
-                        newCode[lineNumber].direction = e.target.value as DirectionType;
-                        setCode(newCode);
-                    }}
-                >
-                    {['left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((direction:DirectionType) =>
-                        <MenuItem key={direction} value={direction}>
-                            {directionIcon(direction)}
-                            {direction}
-                        </MenuItem>)}
-                </Select>
-            </span>;
-        }
-        if (line.type === 'goto') {
-            result = <span>
-Goto:
-                {' '}
-                <Select
-                    value={line.step}
-                    variant="standard"
-                    onChange={e => {
-                        const newCode = clone(code) as LineGotoType[];
-                        newCode[lineNumber].step = e.target.value as number;
-                        setCode(newCode);
-                    }}
-                >
-                    {Object.keys(code).map(optionLineNumber =>
-                        <MenuItem key={optionLineNumber} value={optionLineNumber}>{optionLineNumber}</MenuItem>)}
-                </Select>
-            </span>;
-        }
-        if (line.type === 'if') {
-            result = <span>
-If:
-                {' '}
-                <Select
-                    value={(line.conditions[0].value1 as ValueDirectionType).value}
-                    variant="standard"
-                    onChange={e => {
-                        const newCode = clone(code) as LineIfType[];
-                        (newCode[lineNumber].conditions[0].value1 as ValueDirectionType).value = e.target.value as DirectionTypeWithHere;
-                        setCode(newCode);
-                    }}
-                >
-                    {['left', 'right', 'top', 'bottom', 'here', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((option:DirectionType) =>
-                        <MenuItem key={option} value={option}>
-                            {directionIcon(option)}
-                            {option}
-                        </MenuItem>)}
-                </Select>
-                <Select
-                    value={line.conditions[0].operation}
-                    variant="standard"
-                    onChange={e => {
-                        const newCode = clone(code) as LineIfType[];
-                        newCode[lineNumber].conditions[0].operation = e.target.value as IfOperationType;
-                        setCode(newCode);
-                    }}
-                >
-                    {['==', '>', '<', '>=', '<='].map(option =>
-                        <MenuItem key={option} value={option}>{option}</MenuItem>)}
-                </Select>
-                <Select
-                    value={(line as LineIfType).conditions[0].value2.type}
-                    onChange={e => {
-                        const newCode = clone(code) as LineIfType[];
-                        if (e.target.value === 'number') {
-                            newCode[lineNumber].conditions[0].value2 = { type: 'number', value: 0 };
-                        }
-                        if (e.target.value === 'myitem') {
-                            newCode[lineNumber].conditions[0].value2 = { type: 'myitem' };
-                        }
-                        setCode(newCode);
-                    }}
-                    variant="standard"
-                >
-                    {['number', 'myitem'].map(option =>
-                        <MenuItem key={option} value={option}>{option}</MenuItem>)}
-                </Select>
-                {line.conditions[0].value2.type === 'number' ?
-                    <TextField
-                        type="number"
-                        value={line.conditions[0].value2.value}
-                        variant="standard"
-                        onChange={e => {
-                            const newCode = clone(code) as LineIfType[];
-                            (newCode[lineNumber].conditions[0].value2 as ValueNumberType).value = parseInt(e.target.value) || 0;
-                            setCode(newCode);
-                        }}
-                    /> : null}
 
-            </span>;
-        }
-        if (line.type === 'endif') {
-            result = 'Endif';
-        }
-        if (line.type === 'pickup') {
-            result = 'Pickup';
-        }
-        if (!result) {
-            result = JSON.stringify(line);
-        }
-
-        if (line.type === 'endif') {
-            intend -= 20;
-        }
-        result = <span key={lineNumber}>
-            {lineNumber}
-            {': '}
-            <span style={{ paddingLeft: intend }}>{result}</span>
-            <IconButton
-                size="small"
-                onMouseDown={() => {
-                    const newCode = [...code];
-                    const deleteLine = newCode[lineNumber];
-                    newCode.splice(lineNumber, 1);
-                    if (deleteLine.type === 'if') {
-                        newCode.splice(newCode.findIndex(foundLine => foundLine.type === 'endif' && foundLine.ifId === deleteLine.id), 1);
-                    }
-                    if (deleteLine.type === 'endif') {
-                        newCode.splice(newCode.findIndex(foundLine => foundLine.type === 'if' && foundLine.id === deleteLine.ifId), 1);
-                    }
-                    setCode(newCode);
-                }}
-            >
-                <DeleteIcon fontSize="small" />
-            </IconButton>
-        </span>;
-        if (line.type === 'if') {
-            intend += 20;
-        }
-
-        return result;
-    };
-
-    const renderLines = useMemo(() => code.map((line, key) => renderLine(line, key)), [code]);
+    const renderLines = useMemo(() => code.map((line, key) => {
+        const lineResult = renderLine(line, key, code, setCode, intend);
+        intend = lineResult.intend;
+        return lineResult.result;
+    }), [code]);
 
     return <Grid container>
         <Grid item md={6}>
@@ -413,85 +217,7 @@ If:
             />
         </Grid>
         <Grid item md={1}>
-            <div>
-                <Button onClick={() => {
-                    const newCode = [...code];
-                    newCode.push({ type: 'step', directions: ['left'], id: uuidv4() });
-                    setCode(newCode);
-                }}
-                >
-Add step
-                </Button>
-            </div>
-            <div>
-                <Button onClick={() => {
-                    const newCode = [...code];
-                    newCode.push({ type: 'give', direction: 'left', id: uuidv4() });
-                    setCode(newCode);
-                }}
-                >
-Add give
-                </Button>
-            </div>
-            <div>
-                <Button onClick={() => {
-                    const newCode = [...code];
-                    newCode.push({ type: 'take', direction: 'left', id: uuidv4() });
-                    setCode(newCode);
-                }}
-                >
-Add take
-                </Button>
-            </div>
-            <div>
-                <Button onClick={() => {
-                    const newCode = [...code];
-                    newCode.push({ type: 'goto', step: 0, id: uuidv4() });
-                    setCode(newCode);
-                }}
-                >
-Add goto
-                </Button>
-            </div>
-            <div>
-                <Button onClick={() => {
-                    const newCode = [...code];
-                    newCode.push({ type: 'pickup', id: uuidv4() });
-                    setCode(newCode);
-                }}
-                >
-Add pickup
-                </Button>
-            </div>
-            <div>
-                <Button onClick={() => {
-                    const newCode = [...code];
-                    newCode.push({ type: 'drop', id: uuidv4() });
-                    setCode(newCode);
-                }}
-                >
-Add drop
-                </Button>
-            </div>
-            <div>
-                <Button onClick={() => {
-                    const newCode = [...code] as LineType[];
-                    const id = uuidv4();
-                    newCode.push({
-                        type: 'if',
-                        conditions: [{
-                            value1: { type: 'direction', value: 'here' },
-                            operation: '==',
-                            value2: { type: 'number', value: 0 },
-                        }],
-                        id,
-                    }, { type: 'endif', ifId: id });
-                    setCode(newCode);
-                }}
-                >
-Add if
-                </Button>
-            </div>
+            <AddPanel code={code} setCode={setCode} />
         </Grid>
         <Grid item md={5}>
             <div style={{ paddingLeft: 20 }}>
