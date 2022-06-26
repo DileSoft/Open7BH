@@ -10,7 +10,7 @@ import WestIcon from '@mui/icons-material/West';
 import EastIcon from '@mui/icons-material/East';
 import { clone, directionIcon } from './Utils';
 import {
-    DirectionType, DirectionTypeWithHere, IfOperationType, LineGiveType, LineGotoType, LineIfType, LineStepType, LineType, ValueDirectionType, ValueNumberType,
+    DirectionType, DirectionTypeWithHere, IfOperationType, LineGiveType, LineGotoType, LineIfType, LineStepType, LineType, ValueDirectionType, ValueNumberType, StepDirection,
 } from './types';
 
 function renderLine(line: LineType, lineNumber: number, code: LineType[], setCode: React.Dispatch<React.SetStateAction<LineType[]>>, intend: number) {
@@ -20,12 +20,13 @@ function renderLine(line: LineType, lineNumber: number, code: LineType[], setCod
 Step:
             {' '}
             <Select
-                value={line.directions}
+                IconComponent={null}
+                value={(line.destination as StepDirection).directions}
                 variant="standard"
                 multiple
                 onChange={e => {
                     const newCode = clone(code) as LineStepType[];
-                    newCode[lineNumber].directions = e.target.value as DirectionType[];
+                    (newCode[lineNumber].destination as StepDirection).directions = e.target.value as DirectionType[];
                     setCode(newCode);
                 }}
             >
@@ -46,6 +47,7 @@ Give:
             <CheckBoxOutlineBlankIcon fontSize="small" />
             {' '}
             <Select
+                IconComponent={null}
                 value={line.direction}
                 variant="standard"
                 onChange={e => {
@@ -71,6 +73,7 @@ Give:
             <CheckBoxOutlineBlankIcon fontSize="small" />
             {' '}
             <Select
+                IconComponent={null}
                 value={line.direction}
                 variant="standard"
                 onChange={e => {
@@ -92,6 +95,7 @@ Give:
 Goto:
             {' '}
             <Select
+                IconComponent={null}
                 value={line.step}
                 variant="standard"
                 onChange={e => {
@@ -110,6 +114,19 @@ Goto:
 If:
             {' '}
             <Select
+                IconComponent={null}
+                value={(line as LineIfType).conditions[0].value1.type}
+                onChange={e => {
+                    const newCode = clone(code) as LineIfType[];
+                    setCode(newCode);
+                }}
+                variant="standard"
+            >
+                {['direction', 'myitem', 'slot'].map(option =>
+                    <MenuItem key={option} value={option}>{option}</MenuItem>)}
+            </Select>
+            <Select
+                IconComponent={null}
                 value={(line.conditions[0].value1 as ValueDirectionType).value}
                 variant="standard"
                 onChange={e => {
@@ -125,6 +142,7 @@ If:
                     </MenuItem>)}
             </Select>
             <Select
+                IconComponent={null}
                 value={line.conditions[0].operation}
                 variant="standard"
                 onChange={e => {
@@ -137,6 +155,7 @@ If:
                     <MenuItem key={option} value={option}>{option}</MenuItem>)}
             </Select>
             <Select
+                IconComponent={null}
                 value={(line as LineIfType).conditions[0].value2.type}
                 onChange={e => {
                     const newCode = clone(code) as LineIfType[];
@@ -146,11 +165,29 @@ If:
                     if (e.target.value === 'myitem') {
                         newCode[lineNumber].conditions[0].value2 = { type: 'myitem' };
                     }
+                    if (e.target.value === 'direction') {
+                        newCode[lineNumber].conditions[0].value2 = { type: 'direction', value: 'left' };
+                    }
+                    if (e.target.value === 'slot') {
+                        newCode[lineNumber].conditions[0].value2 = { type: 'slot', slot: 1 };
+                    }
+                    if (e.target.value === 'something') {
+                        newCode[lineNumber].conditions[0].value2 = { type: 'something' };
+                    }
+                    if (e.target.value === 'empty') {
+                        newCode[lineNumber].conditions[0].value2 = { type: 'empty' };
+                    }
+                    if (e.target.value === 'hole') {
+                        newCode[lineNumber].conditions[0].value2 = { type: 'hole' };
+                    }
+                    if (e.target.value === 'character') {
+                        newCode[lineNumber].conditions[0].value2 = { type: 'character' };
+                    }
                     setCode(newCode);
                 }}
                 variant="standard"
             >
-                {['number', 'myitem'].map(option =>
+                {['number', 'myitem', 'direction', 'something', 'empty', 'hole', 'character', 'box', 'slot'].map(option =>
                     <MenuItem key={option} value={option}>{option}</MenuItem>)}
             </Select>
             {line.conditions[0].value2.type === 'number' ?

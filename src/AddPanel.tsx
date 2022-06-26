@@ -7,7 +7,14 @@ const actions = [
     {
         type: 'step',
         add: (newCode:LineType[]) => {
-            newCode.push({ type: 'step', directions: ['left'], id: uuidv4() });
+            newCode.push({
+                type: 'step',
+                destination: {
+                    type: 'direction',
+                    directions: ['left'],
+                },
+                id: uuidv4(),
+            });
         },
     },
     {
@@ -53,6 +60,50 @@ const actions = [
                 }],
                 id,
             }, { type: 'endif', ifId: id });
+        },
+    },
+    {
+        type: 'near',
+        add: (newCode:LineType[]) => {
+            newCode.push({
+                type: 'near', find: 'empty', slot: 1, id: uuidv4(),
+            });
+        },
+    },
+    {
+        type: 'variable',
+        add: (newCode:LineType[]) => {
+            newCode.push({
+                type: 'variable',
+                slot: 1,
+                value: {
+                    type: 'number',
+                    value: 0,
+                },
+                id: uuidv4(),
+            });
+        },
+    },
+    {
+        type: 'say',
+        add: (newCode:LineType[]) => {
+            newCode.push({
+                type: 'say',
+                text: 'hi',
+                target: {
+                    type: 'direction',
+                    value: 'left',
+                },
+                id: uuidv4(),
+            });
+        },
+    },
+    {
+        type: 'hear',
+        add: (newCode:LineType[]) => {
+            newCode.push({
+                type: 'hear', text: 'hi', id: uuidv4(),
+            });
         },
     },
 ];

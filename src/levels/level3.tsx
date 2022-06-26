@@ -23,7 +23,7 @@ hole hole`,
         },
     ]),
     code: ([
-        { type: 'step', directions: ['bottom'] },
+        { type: 'step', destination: { type: 'direction', directions: ['bottom'] } },
         {
             type: 'if',
             conditions: [{ value1: { type: 'direction', value: 'here' }, operation: '>', value2: { type: 'number', value: 1 } }],

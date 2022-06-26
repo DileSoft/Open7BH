@@ -51,9 +51,19 @@ export interface LineAbstractType {
     id?: string;
 }
 
+export interface StepDirection {
+    type: 'direction';
+    directions: DirectionType[];
+}
+
+export interface StepSlot {
+    type: 'slot';
+    slot: number;
+}
+
 export interface LineStepType extends LineAbstractType {
     type: 'step';
-    directions: DirectionType[];
+    destination: StepDirection | StepSlot;
 }
 
 export interface LineGiveType extends LineAbstractType {
@@ -105,6 +115,14 @@ export interface ValueBoxType {
     type: 'box';
 }
 
+export interface ValuePrinterType {
+    type: 'printer';
+}
+
+export interface ValueShredderType {
+    type: 'shredder';
+}
+
 export interface ValueAllType {
     type: 'all';
 }
@@ -123,7 +141,8 @@ export interface LineIfType extends LineAbstractType {
         value1: ValueDirectionType | ValueMyItemType | ValueSlotType;
         operation: IfOperationType;
         value2: ValueNumberType | ValueMyItemType | ValueDirectionType | ValueSlotType |
-         ValueHoleType | ValueSomethingType | ValueEmptyType | ValueCharacterType | ValueBoxType;
+         ValueHoleType | ValueSomethingType | ValueEmptyType | ValueCharacterType | ValueBoxType |
+         ValuePrinterType | ValueShredderType;
     }];
 }
 
@@ -185,4 +204,4 @@ export interface LineEndforeachType extends LineAbstractType {
 
 export type LineType = LineStepType | LineGotoType | LineIfType | LinePickupType
 | LineDropType | LineEndifType | LineGiveType | LineTakeType
-| LineSayType | LineHearType;
+| LineSayType | LineHearType | LineNearType | LineVariableType;

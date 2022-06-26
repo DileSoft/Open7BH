@@ -11,7 +11,7 @@ import {
     moveCoordinates, parseCoordinates, randomArray, clone, getRandomInt,
 } from './Utils';
 import {
-    CharacterType, CoordinatesType, LevelType, LineType, ValueDirectionType, ValueNumberType,
+    CharacterType, CoordinatesType, LevelType, LineType, StepDirection, ValueDirectionType, ValueNumberType,
 } from './types';
 import Cells from './Cells';
 import AddPanel from './AddPanel';
@@ -67,7 +67,7 @@ function Level(props: {level: LevelType}) {
             }
             const coordinates = parseCoordinates(character.coordinates);
             if (line.type === 'step') {
-                const direction = randomArray(line.directions);
+                const direction = randomArray((line.destination as StepDirection).directions);
                 const newCoordinates = moveCoordinates(coordinates, direction);
                 const newCell = level.cells[newCoordinates.join('x')];
                 if (newCell && ['empty', 'hole'].includes(newCell.type)) {
@@ -109,7 +109,7 @@ function Level(props: {level: LevelType}) {
                 const value1coordinates = moveCoordinates(coordinates, (condition.value1 as ValueDirectionType).value).join('x');
                 if (newLevel.cells[value1coordinates]) {
                     const value1 = characters.find(foundCharacter => (condition.value1 as ValueDirectionType).value !== 'here' && foundCharacter.coordinates === value1coordinates)?.item?.value ||
-                  newLevel.cells[value1coordinates]?.item?.value || 0;
+                        newLevel.cells[value1coordinates]?.item?.value || 0;
                     let value2 = 0;
                     if (condition.value2.type === 'number') {
                         value2 = (condition.value2 as ValueNumberType).value;
