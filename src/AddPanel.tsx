@@ -20,13 +20,13 @@ const actions = [
     {
         type: 'give',
         add: (newCode:LineType[]) => {
-            newCode.push({ type: 'give', direction: 'left', id: uuidv4() });
+            newCode.push({ type: 'give', direction: { type: 'direction', value: 'left' }, id: uuidv4() });
         },
     },
     {
         type: 'take',
         add: (newCode:LineType[]) => {
-            newCode.push({ type: 'take', direction: 'left', id: uuidv4() });
+            newCode.push({ type: 'take', direction: { type: 'direction', value: 'left' }, id: uuidv4() });
         },
     },
     {
@@ -66,7 +66,7 @@ const actions = [
         type: 'near',
         add: (newCode:LineType[]) => {
             newCode.push({
-                type: 'near', find: 'empty', slot: 1, id: uuidv4(),
+                type: 'near', find: 'wall', slot: 1, id: uuidv4(),
             });
         },
     },
@@ -104,6 +104,18 @@ const actions = [
             newCode.push({
                 type: 'hear', text: 'hi', id: uuidv4(),
             });
+        },
+    },
+    {
+        type: 'foreach',
+        add: (newCode:LineType[]) => {
+            const id = uuidv4();
+            newCode.push({
+                type: 'foreach',
+                directions: ['left'],
+                slot: 1,
+                id,
+            }, { type: 'endforeach', foreachId: id });
         },
     },
 ];

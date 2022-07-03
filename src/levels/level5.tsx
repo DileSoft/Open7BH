@@ -51,7 +51,7 @@ empty empty empty empty empty`,
         },
         {
             type: 'give',
-            direction:'right',
+            direction:{ type: 'direction', value: 'right' },
 
         },
         {
@@ -76,7 +76,7 @@ empty empty empty empty empty`,
         },
         {
             type: 'give',
-            direction:'left',
+            direction:{ type: 'direction', value: 'left' },
         },
         {
             type: 'endif',

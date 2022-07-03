@@ -90,14 +90,14 @@ function Level(props: {level: LevelType}) {
                 }
             }
             if (line.type === 'take') {
-                const itemCoordinates = moveCoordinates(coordinates, line.direction).join('x');
+                const itemCoordinates = moveCoordinates(coordinates, (line.direction as ValueDirectionType).value).join('x');
                 if (!character.item && newLevel.cells[itemCoordinates]?.type === 'printer') {
                     character.item = { type: 'box', value: getRandomInt(0, 99) };
                     newLevel.cells[itemCoordinates].printed++;
                 }
             }
             if (line.type === 'give') {
-                const itemCoordinates = moveCoordinates(coordinates, line.direction).join('x');
+                const itemCoordinates = moveCoordinates(coordinates, (line.direction as ValueDirectionType).value).join('x');
                 if (character.item && newLevel.cells[itemCoordinates]?.type === 'shredder') {
                     delete character.item;
                     newLevel.cells[itemCoordinates].shredded++;
@@ -107,6 +107,47 @@ function Level(props: {level: LevelType}) {
                 let result = false;
                 const condition = line.conditions[0];
                 const value1coordinates = moveCoordinates(coordinates, (condition.value1 as ValueDirectionType).value).join('x');
+                // let number1:number;
+                // let number2:number;
+                // let type1:string;
+                // let type2:string;
+
+                // if (condition.value1.type === 'direction') {
+                //     number1 = characters.find(foundCharacter => (condition.value1 as ValueDirectionType).value !== 'here' && foundCharacter.coordinates === value1coordinates)?.item?.value ||
+                //     newLevel.cells[value1coordinates]?.item?.value;
+                //     type1 = newLevel.cells[value1coordinates]?.type;
+                // }
+                // else if (condition.value1.type === 'slot') {
+                // }
+                // else if (condition.value1.type === 'myitem') {
+                //     if (character.item) {
+                //         number1 = character.item.value;
+                //         type1 = character.item.type;
+                //     }
+                // }
+                // if (condition.value2.type === 'direction') {
+                //     const value2coordinates = moveCoordinates(coordinates, (condition.value2 as ValueDirectionType).value).join('x');
+                //     number2 = characters.find(foundCharacter => (condition.value2 as ValueDirectionType).value !== 'here' && foundCharacter.coordinates === value2coordinates)?.item?.value ||
+                //     newLevel.cells[value2coordinates]?.item?.value;
+                //     type2 = newLevel.cells[value1coordinates]?.type;
+                //     result = number1 === number2;
+                // }
+                // else if (condition.value2.type === 'slot') {
+                // }
+                // else if (condition.value2.type === 'myitem') {
+                //     if (character.item) {
+                //         number2 = character.item.value;
+                //         type2 = character.item.type;
+                //     }
+                //     result = number1 === number2;
+                // } else if (condition.value2.type === 'number') {
+                //     number2 = condition.value2.value;
+                //     result = number1 === number2;
+                // } else {
+                //     type2 = condition.value2.type;
+                //     result = type1 === type2;
+                // }
+
                 if (newLevel.cells[value1coordinates]) {
                     const value1 = characters.find(foundCharacter => (condition.value1 as ValueDirectionType).value !== 'here' && foundCharacter.coordinates === value1coordinates)?.item?.value ||
                         newLevel.cells[value1coordinates]?.item?.value || 0;
@@ -119,6 +160,9 @@ function Level(props: {level: LevelType}) {
                     }
                     if (condition.operation === '==') {
                         result = value1 === value2;
+                    }
+                    if (condition.operation === '!=') {
+                        result = value1 !== value2;
                     }
                     if (condition.operation === '>') {
                         result = value1 > value2;
@@ -170,7 +214,7 @@ function Level(props: {level: LevelType}) {
                 return;
             }
             if (line.type === 'give' && character.item?.type === 'box') {
-                const giveCell = moveCoordinates(parseCoordinates(character.coordinates), line.direction);
+                const giveCell = moveCoordinates(parseCoordinates(character.coordinates), (line.direction as ValueDirectionType).value);
                 const giveCharacter = newCharacters.find(foundCharacter => foundCharacter.coordinates === giveCell.join('x'));
                 const giveCharacterStep = giveCharacter ? code[giveCharacter.step] : null;
                 if (giveCharacter) {
@@ -179,7 +223,7 @@ function Level(props: {level: LevelType}) {
                         delete character.item;
                         gived.push(giveCharacter.name);
                     } else if (giveCharacter.item && giveCharacterStep?.type === 'give' &&
-                    moveCoordinates(parseCoordinates(giveCharacter.coordinates), giveCharacterStep.direction).join('x') === character.coordinates
+                    moveCoordinates(parseCoordinates(giveCharacter.coordinates), (giveCharacterStep.direction as ValueDirectionType).value).join('x') === character.coordinates
                     ) {
                         const tempItem = character.item;
                         character.item = giveCharacter.item;
@@ -235,6 +279,12 @@ function Level(props: {level: LevelType}) {
                             }
                             if (line.type === 'endif' && blocks[blocks.length - 1] === line.ifId) {
                                 blocks.splice(blocks.indexOf(line.ifId), 1);
+                            }
+                            if (line.type === 'foreach') {
+                                blocks.push(line.id);
+                            }
+                            if (line.type === 'endforeach' && blocks[blocks.length - 1] === line.foreachId) {
+                                blocks.splice(blocks.indexOf(line.foreachId), 1);
                             }
                         });
                         if (blocks.length) {

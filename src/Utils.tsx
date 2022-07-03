@@ -7,6 +7,8 @@ import SouthEastIcon from '@mui/icons-material/SouthEast';
 import NorthWestIcon from '@mui/icons-material/NorthWest';
 import NorthEastIcon from '@mui/icons-material/NorthEast';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import { MenuItem, Select, SelectChangeEvent } from '@mui/material';
+import React from 'react';
 import {
     CellsType,
     CellType, CharacterType, CoordinatesArrayType, CoordinatesType, DirectionType, DirectionTypeWithHere,

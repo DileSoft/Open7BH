@@ -1,3 +1,5 @@
+import React from 'react';
+
 export interface ItemType {
     type: 'box';
     value?: number;
@@ -68,12 +70,12 @@ export interface LineStepType extends LineAbstractType {
 
 export interface LineGiveType extends LineAbstractType {
     type: 'give';
-    direction: DirectionType;
+    direction: ValueDirectionType | ValueSlotType;
 }
 
 export interface LineTakeType extends LineAbstractType {
     type: 'take';
-    direction: DirectionType;
+    direction: ValueDirectionType | ValueSlotType;
 }
 
 export interface LineGotoType extends LineAbstractType {
@@ -187,7 +189,7 @@ export interface LineCalcType extends LineAbstractType {
 export interface LineNearType extends LineAbstractType {
     type: 'near'
     slot: number;
-    find: 'box' | 'empty' | 'hole' | 'character';
+    find: 'box' | 'wall' | 'hole' | 'character' | 'printer' | 'shredder';
 }
 
 export interface LineForEachType extends LineAbstractType {
@@ -204,4 +206,6 @@ export interface LineEndforeachType extends LineAbstractType {
 
 export type LineType = LineStepType | LineGotoType | LineIfType | LinePickupType
 | LineDropType | LineEndifType | LineGiveType | LineTakeType
-| LineSayType | LineHearType | LineNearType | LineVariableType;
+| LineSayType | LineHearType | LineNearType | LineVariableType | LineForEachType | LineEndforeachType;
+
+export type RenderLineType<T, > = (line: T, lineNumber: number, code: T[], setCode: React.Dispatch<React.SetStateAction<T[]>>) => React.ReactNode
