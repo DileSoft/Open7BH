@@ -8,6 +8,7 @@ import { clone } from '../Utils';
 const nearRenderLine:RenderLineType<LineNearType> = (line, lineNumber, code, setCode):React.ReactNode => <span>
 Near:
     {' '}
+    slot
     <TextField
         type="number"
         value={line.slot}
@@ -18,6 +19,7 @@ Near:
             setCode(newCode);
         }}
     />
+    =
     <Select
         IconComponent={null}
         value={line.find}

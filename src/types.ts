@@ -43,6 +43,7 @@ export interface CharacterType {
     step: number;
     terminated?: boolean;
     slots?: [number];
+    wait?: string;
 }
 
 export type DirectionType = ('left'|'right'|'top'|'bottom'|'top-left'|'top-right'|'bottom-left'|'bottom-right');
@@ -145,6 +146,7 @@ export interface LineIfType extends LineAbstractType {
         value2: ValueNumberType | ValueMyItemType | ValueDirectionType | ValueSlotType |
          ValueHoleType | ValueSomethingType | ValueEmptyType | ValueCharacterType | ValueBoxType |
          ValuePrinterType | ValueShredderType;
+        logic: 'AND' | 'OR';
     }];
 }
 

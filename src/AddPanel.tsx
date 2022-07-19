@@ -57,6 +57,7 @@ const actions = [
                     value1: { type: 'direction', value: 'here' },
                     operation: '==',
                     value2: { type: 'number', value: 0 },
+                    logic: 'OR',
                 }],
                 id,
             }, { type: 'endif', ifId: id });

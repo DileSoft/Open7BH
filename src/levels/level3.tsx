@@ -26,7 +26,9 @@ hole hole`,
         { type: 'step', destination: { type: 'direction', directions: ['bottom'] } },
         {
             type: 'if',
-            conditions: [{ value1: { type: 'direction', value: 'here' }, operation: '>', value2: { type: 'number', value: 1 } }],
+            conditions: [{
+                value1: { type: 'direction', value: 'here' }, operation: '>', value2: { type: 'number', value: 1 }, logic: 'OR',
+            }],
             id: 'if1',
         },
         { type: 'pickup' },

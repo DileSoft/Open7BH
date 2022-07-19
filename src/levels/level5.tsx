@@ -7,7 +7,7 @@ const level:LevelType = {
     height: 5,
     cells: parseCells(
         `empty empty empty empty empty
-box|random box|random box|random box|random box|random
+box|random box|0 box|random box|random box|random
 empty empty empty empty empty
 empty empty empty empty empty
 empty empty empty empty empty`,
@@ -46,6 +46,7 @@ empty empty empty empty empty`,
                     value2: {
                         type: 'myitem',
                     },
+                    logic: 'OR',
                 },
             ],
         },
@@ -71,6 +72,7 @@ empty empty empty empty empty`,
                     value2: {
                         type: 'myitem',
                     },
+                    logic: 'OR',
                 },
             ],
         },

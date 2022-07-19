@@ -8,6 +8,7 @@ import { clone, directionIcon } from '../Utils';
 const variableRenderLine:RenderLineType<LineVariableType> = (line, lineNumber, code, setCode):React.ReactNode => <span>
 Variable
     {' '}
+    slot
     <TextField
         type="number"
         value={line.slot}
@@ -18,6 +19,7 @@ Variable
             setCode(newCode);
         }}
     />
+    =
     <Select
         IconComponent={null}
         value={line.value.type}
