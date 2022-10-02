@@ -21,10 +21,14 @@ const SortableItem = sortableElement(({ children }) => <div>{children}</div>);
 
 const SortableContainer = sortableContainer(({ children }) => <div>{children}</div>);
 
-function Level(props: {level: LevelType}) {
+function Level(props: {level: LevelType, levelNumber: number}) {
     const [level, setLevel] = useState<LevelType>(props.level);
     const [characters, setCharacters] = useState<CharacterType[]>(props.level.characters);
-    const [code, setCode] = useState<LineType[]>(props.level.code);
+    const [code, setRawCode] = useState<LineType[]>(props.level.code);
+    const setCode = (newCode: LineType[]) => {
+        window.localStorage.setItem(`level${props.levelNumber}`, JSON.stringify(newCode));
+        setRawCode(newCode);
+    };
 
     const [run, setRun] = useState(false);
 
@@ -34,7 +38,11 @@ function Level(props: {level: LevelType}) {
     useEffect(() => {
         setLevel(props.level);
         setCharacters(props.level.characters);
-        setCode(props.level.code);
+        if (window.localStorage.getItem(`level${props.levelNumber}`)) {
+            setRawCode(JSON.parse(window.localStorage.getItem(`level${props.levelNumber}`)));
+        } else {
+            setCode(props.level.code);
+        }
     }, [props.level]);
 
     useEffect(() => {
@@ -353,6 +361,15 @@ Speed:
                 </div>
                 <div>
                     <Button onClick={() => copy(JSON.stringify(code, null, 2))}>Copy</Button>
+                </div>
+                <div>
+                    <Button onClick={() => {
+                        window.localStorage.setItem(`level${props.levelNumber}`, JSON.stringify(props.level.code));
+                        setCode(props.level.code);
+                    }}
+                    >
+Clear
+                    </Button>
                 </div>
             </div>
         </Grid>

@@ -86,6 +86,25 @@ const actions = [
         },
     },
     {
+        type: 'calc',
+        add: (newCode:LineType[]) => {
+            newCode.push({
+                type: 'calc',
+                slot: 1,
+                value1: {
+                    type: 'number',
+                    value: 0,
+                },
+                operation: '+',
+                value2: {
+                    type: 'number',
+                    value: 0,
+                },
+                id: uuidv4(),
+            });
+        },
+    },
+    {
         type: 'say',
         add: (newCode:LineType[]) => {
             newCode.push({

@@ -35,6 +35,10 @@ export type CoordinatesType = string;
 
 export type CoordinatesArrayType = number[];
 
+export interface SlotType {
+    value: ValueNumberType;
+}
+
 export interface CharacterType {
     coordinates: CoordinatesType;
     color: string;
@@ -208,6 +212,6 @@ export interface LineEndforeachType extends LineAbstractType {
 
 export type LineType = LineStepType | LineGotoType | LineIfType | LinePickupType
 | LineDropType | LineEndifType | LineGiveType | LineTakeType
-| LineSayType | LineHearType | LineNearType | LineVariableType | LineForEachType | LineEndforeachType;
+| LineSayType | LineHearType | LineNearType | LineVariableType | LineForEachType | LineEndforeachType | LineCalcType;
 
 export type RenderLineType<T, > = (line: T, lineNumber: number, code: T[], setCode: React.Dispatch<React.SetStateAction<T[]>>) => React.ReactNode

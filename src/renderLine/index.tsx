@@ -5,6 +5,7 @@ import React from 'react';
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import {
+    LineCalcType,
     LineDropType, LineForEachType, LineGiveType, LineGotoType, LineHearType, LineIfType, LineNearType, LinePickupType, LineSayType, LineStepType, LineTakeType, LineType, LineVariableType,
 } from '../types';
 import stepRenderLine from './step';
@@ -16,6 +17,7 @@ import pickupRenderLine from './pickup';
 import dropRenderLine from './drop';
 import nearRenderLine from './near';
 import variableRenderLine from './variable';
+import calcRenderLine from './calc';
 import sayRenderLine from './say';
 import hearRenderLine from './hear';
 import foreachRenderLine from './foreach';
@@ -51,6 +53,9 @@ function renderLine(line: LineType, lineNumber: number, code: LineType[], setCod
     }
     if (line.type === 'variable') {
         result = variableRenderLine(line, lineNumber, code as LineVariableType[], setCode);
+    }
+    if (line.type === 'calc') {
+        result = calcRenderLine(line, lineNumber, code as LineCalcType[], setCode);
     }
     if (line.type === 'say') {
         result = sayRenderLine(line, lineNumber, code as LineSayType[], setCode);

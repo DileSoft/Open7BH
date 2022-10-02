@@ -13,7 +13,7 @@ const ifRenderLine:RenderLineType<LineIfType> = (line, lineNumber, code, setCode
 If:
     {' '}
     {line.conditions.map((condition, conditionKey) => <span key={conditionKey}>
-        <Select
+        {!!conditionKey && <Select
             IconComponent={null}
             value={condition.logic}
             variant="standard"
@@ -27,7 +27,7 @@ If:
                 <MenuItem key={option} value={option}>
                     {option}
                 </MenuItem>)}
-        </Select>
+        </Select>}
         <Select
             IconComponent={null}
             value={condition.value1.type}
@@ -173,6 +173,7 @@ If:
         >
             <ClearIcon />
         </IconButton>
+        {conditionKey === line.conditions.length - 1 &&
         <IconButton
             size="small"
             onMouseDown={() => {
@@ -187,7 +188,7 @@ If:
             }}
         >
             <AddIcon />
-        </IconButton>
+        </IconButton>}
     </span>)}
 
 </span>;
