@@ -11,7 +11,7 @@ import {
     moveCoordinates, parseCoordinates, randomArray, clone, getRandomInt,
 } from './Utils';
 import {
-    CharacterType, CoordinatesType, LevelType, LineType, StepDirection, ValueDirectionType, ValueNumberType,
+    CharacterType, CoordinatesType, LevelType, LineType, StepDirection, ValueDirectionType, ValueNumberType, ValuePrinterType,
 } from './types';
 import Cells from './Cells';
 import AddPanel from './AddPanel';
@@ -81,17 +81,14 @@ function Level(props: {level: LevelType, levelNumber: number}) {
                 if (newCell && ['empty', 'hole'].includes(newCell.type)) {
                     newCoordinatesArray[characterIndex] = newCoordinates.join('x');
                 }
-            }
-            if (line.type === 'goto') {
+            } else if (line.type === 'goto') {
                 character.step = line.step - 1;
-            }
-            if (line.type === 'pickup') {
+            } else if (line.type === 'pickup') {
                 if (!character.item && newLevel.cells[character.coordinates].item?.type === 'box') {
                     character.item = newLevel.cells[character.coordinates].item;
                     delete newLevel.cells[character.coordinates].item;
                 }
-            }
-            if (line.type === 'drop') {
+            } else if (line.type === 'drop') {
                 if (character.item?.type === 'box' && !newLevel.cells[character.coordinates].item) {
                     newLevel.cells[character.coordinates].item = character.item;
                     delete character.item;
@@ -103,19 +100,16 @@ function Level(props: {level: LevelType, levelNumber: number}) {
                     character.item = { type: 'box', value: getRandomInt(0, 99) };
                     newLevel.cells[itemCoordinates].printed++;
                 }
-            }
-            if (line.type === 'give') {
+            } else if (line.type === 'give') {
                 const itemCoordinates = moveCoordinates(coordinates, (line.direction as ValueDirectionType).value).join('x');
                 if (character.item && newLevel.cells[itemCoordinates]?.type === 'shredder') {
                     delete character.item;
                     newLevel.cells[itemCoordinates].shredded++;
                 }
-            }
-            if (line.type === 'hear') {
+            } else if (line.type === 'hear') {
                 character.wait = line.text;
                 character.step--;
-            }
-            if (line.type === 'say') {
+            } else if (line.type === 'say') {
                 if (line.target.type === 'direction') {
                     const targetCoordinates = moveCoordinates(coordinates, line.target.value).join('x');
                     const targetCharacter = newCharacters.find(foundCharacter => foundCharacter.coordinates === targetCoordinates);
@@ -124,8 +118,20 @@ function Level(props: {level: LevelType, levelNumber: number}) {
                         targetCharacter.step++;
                     }
                 }
-            }
-            if (line.type === 'if') {
+                if (line.target.type === 'all') {
+                    newCharacters.forEach(foundCharacter => {
+                        if (foundCharacter.wait === line.text) {
+                            foundCharacter.wait = '';
+                            foundCharacter.step++;
+                        }
+                    });
+                }
+            } else if (line.type === 'foreach') {
+            } else if (line.type === 'endforeach') {
+            } else if (line.type === 'calc') {
+            } else if (line.type === 'variable') {
+            } else if (line.type === 'near') {
+            } else if (line.type === 'if') {
                 let result = false;
                 line.conditions.forEach(condition => {
                     let localResult = false;

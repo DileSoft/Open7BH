@@ -36,7 +36,10 @@ export type CoordinatesType = string;
 export type CoordinatesArrayType = number[];
 
 export interface SlotType {
-    value: ValueNumberType;
+    value: ValueNumberType | ValueBoxType
+     | ValueCharacterType | ValuePrinterType
+     | ValueShredderType | ValueHoleType
+     | ValueSomethingType | ValueEmptyType
 }
 
 export interface CharacterType {
@@ -46,7 +49,7 @@ export interface CharacterType {
     item?: ItemType;
     step: number;
     terminated?: boolean;
-    slots?: [number];
+    slots?: [SlotType];
     wait?: string;
 }
 

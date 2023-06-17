@@ -34,14 +34,19 @@ const sayRenderLine:RenderLineType<LineSayType> = (line, lineNumber, code, setCo
                     slot: 1,
                 };
             }
+            if (e.target.value === 'all') {
+                newCode[lineNumber].target = {
+                    type: 'all',
+                };
+            }
             setCode(newCode);
         }}
         variant="standard"
     >
-        {['direction', 'slot'].map(option =>
+        {['direction', 'all', 'slot'].map(option =>
             <MenuItem key={option} value={option}>{option}</MenuItem>)}
     </Select>
-    <Select
+    {line.target.type === 'direction' && <Select
         IconComponent={null}
         value={(line.target as ValueDirectionType).value}
         variant="standard"
@@ -56,7 +61,7 @@ const sayRenderLine:RenderLineType<LineSayType> = (line, lineNumber, code, setCo
                 {directionIcon(direction)}
                 {direction}
             </MenuItem>)}
-    </Select>
+    </Select>}
     {line.target.type === 'slot' &&
         <TextField
             type="number"
