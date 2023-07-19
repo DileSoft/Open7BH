@@ -49,8 +49,13 @@ export interface CharacterType {
     item?: ItemType;
     step: number;
     terminated?: boolean;
-    slots?: [SlotType];
+    slots?: SlotType[];
     wait?: string;
+    loops: {
+        id: string;
+        direction: DirectionType;
+        value: CellType;
+    }[];
 }
 
 export type DirectionType = ('left'|'right'|'top'|'bottom'|'top-left'|'top-right'|'bottom-left'|'bottom-right');
@@ -213,8 +218,18 @@ export interface LineEndforeachType extends LineAbstractType {
     foreachId: string;
 }
 
+export interface LineEndType extends LineAbstractType {
+    type: 'end';
+}
+
+export interface LineWriteType extends LineAbstractType {
+    type: 'write';
+    value: ValueDirectionType | ValueSlotType | ValueMyItemType | ValueNumberType;
+}
+
 export type LineType = LineStepType | LineGotoType | LineIfType | LinePickupType
 | LineDropType | LineEndifType | LineGiveType | LineTakeType
-| LineSayType | LineHearType | LineNearType | LineVariableType | LineForEachType | LineEndforeachType | LineCalcType;
+| LineSayType | LineHearType | LineNearType | LineVariableType | LineForEachType | LineEndforeachType | LineCalcType
+| LineEndType | LineWriteType;
 
 export type RenderLineType<T, > = (line: T, lineNumber: number, code: T[], setCode: React.Dispatch<React.SetStateAction<T[]>>) => React.ReactNode

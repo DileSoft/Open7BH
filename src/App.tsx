@@ -1,4 +1,4 @@
-import { Checkbox, MenuItem, Select } from '@mui/material';
+import { Checkbox, MenuItem, Select, Tabs, Tab } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import React, { useState } from 'react';
 import Level from './Level';
@@ -33,11 +33,10 @@ function App() {
         <ThemeProvider theme={theme}>
             <div className="App">
                 <h1>Open7BH</h1>
-                <div>
-                Editor:
-                    {' '}
-                    <Checkbox onChange={e => setEditor(e.target.checked)} checked={editor} />
-                </div>
+                <Tabs value={editor ? 1 : 0} onChange={(e, value) => setEditor(value === 1)}>
+                    <Tab label="Game" />
+                    <Tab label="Editor" />
+                </Tabs>
                 {editor ? <Editor /> :
                     <>
                         <div>

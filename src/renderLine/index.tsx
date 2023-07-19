@@ -7,6 +7,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import {
     LineCalcType,
     LineDropType, LineForEachType, LineGiveType, LineGotoType, LineHearType, LineIfType, LineNearType, LinePickupType, LineSayType, LineStepType, LineTakeType, LineType, LineVariableType,
+    LineEndType, LineWriteType,
 } from '../types';
 import stepRenderLine from './step';
 import giveRenderLine from './give';
@@ -21,6 +22,8 @@ import calcRenderLine from './calc';
 import sayRenderLine from './say';
 import hearRenderLine from './hear';
 import foreachRenderLine from './foreach';
+import endRenderLine from './end';
+import writeRenderLine from './write';
 
 function renderLine(line: LineType, lineNumber: number, code: LineType[], setCode: React.Dispatch<React.SetStateAction<LineType[]>>, intend: number) {
     let result = null;
@@ -68,6 +71,12 @@ function renderLine(line: LineType, lineNumber: number, code: LineType[], setCod
     }
     if (line.type === 'endforeach') {
         result = 'Endforeach';
+    }
+    if (line.type === 'end') {
+        result = endRenderLine(line, lineNumber, code as LineEndType[], setCode);
+    }
+    if (line.type === 'write') {
+        result = writeRenderLine(line, lineNumber, code as LineWriteType[], setCode);
     }
     if (!result) {
         result = JSON.stringify(line);

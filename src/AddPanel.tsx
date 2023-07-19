@@ -138,6 +138,24 @@ const actions = [
             }, { type: 'endforeach', foreachId: id });
         },
     },
+    {
+        type: 'end',
+        add: (newCode:LineType[]) => {
+            newCode.push({ type: 'end' });
+        },
+    },
+    {
+        type: 'write',
+        add: (newCode:LineType[]) => {
+            newCode.push({
+                type: 'write',
+                value: {
+                    type: 'number',
+                    value: 0,
+                },
+            });
+        },
+    },
 ];
 
 function AddPanel(props: {code: LineType[], setCode: React.Dispatch<React.SetStateAction<LineType[]>>}) {

@@ -4,14 +4,14 @@ import { sortableContainer, sortableElement } from 'react-sortable-hoc';
 import copy from 'copy-to-clipboard';
 import { arrayMoveImmutable } from 'array-move';
 import {
-    Button, Grid,
+    Button, Grid, TextField,
 } from '@mui/material';
 import ManIcon from '@mui/icons-material/Man';
 import {
     moveCoordinates, parseCoordinates, randomArray, clone, getRandomInt,
 } from './Utils';
 import {
-    CharacterType, CoordinatesType, LevelType, LineType, StepDirection, ValueDirectionType, ValueNumberType, ValuePrinterType,
+    CharacterType, CoordinatesType, LevelType, LineForEachType, LineType, StepDirection, ValueDirectionType, ValueNumberType, ValuePrinterType,
 } from './types';
 import Cells from './Cells';
 import AddPanel from './AddPanel';
@@ -127,10 +127,70 @@ function Level(props: {level: LevelType, levelNumber: number}) {
                     });
                 }
             } else if (line.type === 'foreach') {
+                if (!character.loops.find(foundLoop => foundLoop.id === line.id)) {
+                    character.loops.push({
+                        id: line.id,
+                        direction: line.directions[0],
+                        value: level.cells[moveCoordinates(coordinates, line.directions[0]).join('x')],
+                    });
+                    character.slots[line.slot] = {
+                        value: {
+                            type: 'number',
+                            value: level.cells[moveCoordinates(coordinates, line.directions[0]).join('x')]?.item?.value,
+                        },
+                    };
+                } else {
+                    const loop = character.loops.find(foundLoop => foundLoop.id === line.id);
+                    loop.direction = line.directions[(line.directions.indexOf(loop.direction) + 1)];
+                    loop.value = level.cells[moveCoordinates(coordinates, loop.direction).join('x')];
+                    character.slots[line.slot] = {
+                        value: {
+                            type: 'number',
+                            value: level.cells[moveCoordinates(coordinates, loop.direction).join('x')]?.item?.value,
+                        },
+                    };
+                }
             } else if (line.type === 'endforeach') {
+                const forEachStep = code.findIndex(foundLine => foundLine.type === 'foreach' && foundLine.id === line.foreachId);
+                const directions = (code[forEachStep] as LineForEachType).directions;
+                if (directions[directions.length - 1] !== character.loops.find(foundLoop => foundLoop.id === line.foreachId).direction) {
+                    character.step = forEachStep - 1;
+                }
             } else if (line.type === 'calc') {
+                let value1 = 0;
+                let value2 = 0;
+                let result = 0;
+                if (line.value1.type === 'number') {
+                    value1 = (line.value1 as ValueNumberType).value;
+                } else if (line.value1.type === 'slot') {
+                    value1 = (character.slots[line.value1.slot].value as ValueNumberType).value;
+                }
+                if (line.value2.type === 'number') {
+                    value2 = (line.value1 as ValueNumberType).value;
+                } else if (line.value2.type === 'slot') {
+                    value2 = (character.slots[line.value2.slot].value as ValueNumberType).value;
+                }
+                if (line.operation === '+') {
+                    result = value1 + value2;
+                } else if (line.operation === '-') {
+                    result = value1 - value2;
+                } else if (line.operation === '*') {
+                    result = value1 * value2;
+                } else if (line.operation === '/') {
+                    result = value1 / value2;
+                }
+                character.slots[line.slot] = { value: { type: 'number', value: result } };
             } else if (line.type === 'variable') {
+                if (line.value.type === 'number') {
+                    character.slots[line.slot] = { value: line.value };
+                }
             } else if (line.type === 'near') {
+            } else if (line.type === 'end') {
+                character.terminated = true;
+            } else if (line.type === 'write') {
+                if (character.item?.type === 'box') {
+                    character.item.value = (line.value as ValueNumberType).value;
+                }
             } else if (line.type === 'if') {
                 let result = false;
                 line.conditions.forEach(condition => {
@@ -343,40 +403,96 @@ function Level(props: {level: LevelType, levelNumber: number}) {
                 <div style={{ paddingTop: 20 }}>
 Speed:
                     {' '}
-                    <input type="number" value={1000 / speed} onChange={e => setSpeed(1000 / (parseInt(e.target.value) || 1))} />
+                    <TextField
+                        variant="standard"
+                        type="number"
+                        value={1000 / speed}
+                        onChange={e => setSpeed(1000 / (parseInt(e.target.value) || 1))}
+                    />
                 </div>
-                <div>
-                    <Button
-                        onClick={() => {
-                            const newLevel = clone(props.level as LevelType);
-                            if (!run) {
-                                Object.values(newLevel.cells).forEach(cell => {
-                                    if (cell.item?.isRandom) {
-                                        cell.item.value = getRandomInt(0, 99);
-                                    }
+                <div style={{ display: 'flex', gap: 4 }}>
+                    <div>
+                        <Button
+                            variant="contained"
+                            onClick={() => {
+                                const newLevel = clone(props.level as LevelType);
+                                if (!run) {
+                                    Object.values(newLevel.cells).forEach(cell => {
+                                        if (cell.item?.isRandom) {
+                                            cell.item.value = getRandomInt(0, 99);
+                                        }
+                                    });
+                                }
+                                setLevel(newLevel);
+                                const newCharacters = clone(props.level.characters);
+                                newCharacters.forEach(character => {
+                                    character.slots = [{
+                                        value: {
+                                            type: 'number',
+                                            value: 0,
+                                        },
+                                    },
+                                    {
+                                        value: {
+                                            type: 'number',
+                                            value: 0,
+                                        },
+                                    },
+                                    {
+                                        value: {
+                                            type: 'number',
+                                            value: 0,
+                                        },
+                                    },
+                                    {
+                                        value: {
+                                            type: 'number',
+                                            value: 0,
+                                        },
+                                    },
+                                    ];
+                                    character.loops = [];
                                 });
-                            }
-                            setLevel(newLevel);
-                            setCharacters(props.level.characters);
-                            setRun(!run);
-                        }}
-                        disabled={intend !== 0}
-                    >
-                        {run ? 'Stop' : 'Run'}
-                    </Button>
-                </div>
-                <div>
-                    <Button onClick={() => copy(JSON.stringify(code, null, 2))}>Copy</Button>
-                </div>
-                <div>
-                    <Button onClick={() => {
-                        window.localStorage.setItem(`level${props.levelNumber}`, JSON.stringify(props.level.code));
-                        setCode(props.level.code);
-                    }}
-                    >
+                                setCharacters(newCharacters);
+                                setRun(!run);
+                            }}
+                            disabled={intend !== 0}
+                        >
+                            {run ? 'Stop' : 'Run'}
+                        </Button>
+                    </div>
+                    <div>
+                        <Button
+                            variant="contained"
+                            onClick={() => copy(JSON.stringify(code, null, 2))}
+                        >
+Copy
+                        </Button>
+                    </div>
+                    <div>
+                        <Button
+                            variant="contained"
+                            onClick={() => {
+                                window.localStorage.setItem(`level${props.levelNumber}`, JSON.stringify(props.level.code));
+                                setCode(props.level.code);
+                            }}
+                        >
 Clear
-                    </Button>
+                        </Button>
+                    </div>
                 </div>
+                {characters.map(character => <div key={character.name}>
+                    {character.name}
+                    {' '}
+                    <span style={{ color: character.color }}>
+                        <ManIcon fontSize="small" />
+                    </span>
+                    {' '}
+                    {character.slots?.map((slot, key) => <span key={key}>
+                        {(slot.value as ValueNumberType)?.value}
+                        {' '}
+                    </span>)}
+                </div>)}
             </div>
         </Grid>
     </Grid>;
