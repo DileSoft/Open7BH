@@ -36,7 +36,10 @@ abstract class Cell {
     }
 
     setCharacter(character: Character) {
-        this.character = character;
+        if (this.isEmpty && !this.character) {
+            this.character = character;
+            character.cell = this;
+        }
     }
 
     getItem(): Box | null {

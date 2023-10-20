@@ -16,383 +16,69 @@ import {
 import Cells from './Cells';
 import AddPanel from './AddPanel';
 import renderLine from './renderLine';
+import Game, { GameSerialized, GameState } from './Classes/Game';
+import { LevelSerializedType } from './Classes/Level';
 
 const SortableItem = sortableElement(({ children }) => <div>{children}</div>);
 
 const SortableContainer = sortableContainer(({ children }) => <div>{children}</div>);
 
-function Level(props: {level: LevelType, levelNumber: number}) {
-    const [level, setLevel] = useState<LevelType>(props.level);
-    const [characters, setCharacters] = useState<CharacterType[]>(props.level.characters);
-    const [code, setRawCode] = useState<LineType[]>(props.level.code);
-    const setCode = (newCode: LineType[]) => {
-        window.localStorage.setItem(`level${props.levelNumber}`, JSON.stringify(newCode));
-        setRawCode(newCode);
-    };
-
-    const [run, setRun] = useState(false);
-
-    const [step, setStep] = useState<number>(-1);
-    const [speed, setSpeed] = useState(1000);
+function Level(props: {level: LevelSerializedType, levelNumber: number}) {
+    const [game, setGame] = useState<GameSerialized>();
 
     useEffect(() => {
-        setLevel(props.level);
-        setCharacters(props.level.characters);
-        if (window.localStorage.getItem(`level${props.levelNumber}`)) {
-            setRawCode(JSON.parse(window.localStorage.getItem(`level${props.levelNumber}`)));
-        } else {
-            setCode(props.level.code);
-        }
+        const gameObject = new Game();
+        gameObject.deserialize({ level: props.level });
+        gameObject.renderCallback = setGame;
+        gameObject.render();
     }, [props.level]);
 
-    useEffect(() => {
-        if (!run) {
-            return;
-        }
-        const interval = setInterval(() => setStep(prevStep => prevStep + 1), speed);
-        return () => clearInterval(interval);
-    }, [speed, run]);
-
-    useEffect(() => {
-        if (step === -1) {
-            return;
-        }
-        const newCharacters = clone(characters);
-        const newLevel = clone(level);
-        const newCoordinatesArray:CoordinatesType[] = [];
-        newCharacters.forEach((character, characterIndex) => {
-            newCoordinatesArray[characterIndex] = character.coordinates;
-            if (character.terminated) {
-                return;
-            }
-            character.step++;
-            if (character.step === -1) {
-                return;
-            }
-            const line = code[character.step];
-            if (!line) {
-                return;
-            }
-            const coordinates = parseCoordinates(character.coordinates);
-            if (line.type === 'step') {
-                const direction = randomArray((line.destination as StepDirection).directions);
-                const newCoordinates = moveCoordinates(coordinates, direction);
-                const newCell = level.cells[newCoordinates.join('x')];
-                if (newCell && ['empty', 'hole'].includes(newCell.type)) {
-                    newCoordinatesArray[characterIndex] = newCoordinates.join('x');
-                }
-            } else if (line.type === 'goto') {
-                character.step = line.step - 1;
-            } else if (line.type === 'pickup') {
-                if (!character.item && newLevel.cells[character.coordinates].item?.type === 'box') {
-                    character.item = newLevel.cells[character.coordinates].item;
-                    delete newLevel.cells[character.coordinates].item;
-                }
-            } else if (line.type === 'drop') {
-                if (character.item?.type === 'box' && !newLevel.cells[character.coordinates].item) {
-                    newLevel.cells[character.coordinates].item = character.item;
-                    delete character.item;
-                }
-            }
-            if (line.type === 'take') {
-                const itemCoordinates = moveCoordinates(coordinates, (line.direction as ValueDirectionType).value).join('x');
-                if (!character.item && newLevel.cells[itemCoordinates]?.type === 'printer') {
-                    character.item = { type: 'box', value: getRandomInt(0, 99) };
-                    newLevel.cells[itemCoordinates].printed++;
-                }
-            } else if (line.type === 'give') {
-                const itemCoordinates = moveCoordinates(coordinates, (line.direction as ValueDirectionType).value).join('x');
-                if (character.item && newLevel.cells[itemCoordinates]?.type === 'shredder') {
-                    delete character.item;
-                    newLevel.cells[itemCoordinates].shredded++;
-                }
-            } else if (line.type === 'hear') {
-                character.wait = line.text;
-                character.step--;
-            } else if (line.type === 'say') {
-                if (line.target.type === 'direction') {
-                    const targetCoordinates = moveCoordinates(coordinates, line.target.value).join('x');
-                    const targetCharacter = newCharacters.find(foundCharacter => foundCharacter.coordinates === targetCoordinates);
-                    if (targetCharacter && targetCharacter.wait === line.text) {
-                        targetCharacter.wait = '';
-                        targetCharacter.step++;
-                    }
-                }
-                if (line.target.type === 'all') {
-                    newCharacters.forEach(foundCharacter => {
-                        if (foundCharacter.wait === line.text) {
-                            foundCharacter.wait = '';
-                            foundCharacter.step++;
-                        }
-                    });
-                }
-            } else if (line.type === 'foreach') {
-                if (!character.loops.find(foundLoop => foundLoop.id === line.id)) {
-                    character.loops.push({
-                        id: line.id,
-                        direction: line.directions[0],
-                        value: level.cells[moveCoordinates(coordinates, line.directions[0]).join('x')],
-                    });
-                    character.slots[line.slot] = {
-                        value: {
-                            type: 'number',
-                            value: level.cells[moveCoordinates(coordinates, line.directions[0]).join('x')]?.item?.value,
-                        },
-                    };
-                } else {
-                    const loop = character.loops.find(foundLoop => foundLoop.id === line.id);
-                    loop.direction = line.directions[(line.directions.indexOf(loop.direction) + 1)];
-                    loop.value = level.cells[moveCoordinates(coordinates, loop.direction).join('x')];
-                    character.slots[line.slot] = {
-                        value: {
-                            type: 'number',
-                            value: level.cells[moveCoordinates(coordinates, loop.direction).join('x')]?.item?.value,
-                        },
-                    };
-                }
-            } else if (line.type === 'endforeach') {
-                const forEachStep = code.findIndex(foundLine => foundLine.type === 'foreach' && foundLine.id === line.foreachId);
-                const directions = (code[forEachStep] as LineForEachType).directions;
-                if (directions[directions.length - 1] !== character.loops.find(foundLoop => foundLoop.id === line.foreachId).direction) {
-                    character.step = forEachStep - 1;
-                }
-            } else if (line.type === 'calc') {
-                let value1 = 0;
-                let value2 = 0;
-                let result = 0;
-                if (line.value1.type === 'number') {
-                    value1 = (line.value1 as ValueNumberType).value;
-                } else if (line.value1.type === 'slot') {
-                    value1 = (character.slots[line.value1.slot].value as ValueNumberType).value;
-                }
-                if (line.value2.type === 'number') {
-                    value2 = (line.value1 as ValueNumberType).value;
-                } else if (line.value2.type === 'slot') {
-                    value2 = (character.slots[line.value2.slot].value as ValueNumberType).value;
-                }
-                if (line.operation === '+') {
-                    result = value1 + value2;
-                } else if (line.operation === '-') {
-                    result = value1 - value2;
-                } else if (line.operation === '*') {
-                    result = value1 * value2;
-                } else if (line.operation === '/') {
-                    result = value1 / value2;
-                }
-                character.slots[line.slot] = { value: { type: 'number', value: result } };
-            } else if (line.type === 'variable') {
-                if (line.value.type === 'number') {
-                    character.slots[line.slot] = { value: line.value };
-                }
-            } else if (line.type === 'near') {
-            } else if (line.type === 'end') {
-                character.terminated = true;
-            } else if (line.type === 'write') {
-                if (character.item?.type === 'box') {
-                    character.item.value = (line.value as ValueNumberType).value;
-                }
-            } else if (line.type === 'if') {
-                let result = false;
-                line.conditions.forEach(condition => {
-                    let localResult = false;
-                    let number1:number;
-                    let number2:number;
-                    let type1:string;
-                    let type2:string;
-                    let conditionType: 'number' | 'type';
-
-                    if (condition.value1.type === 'direction') {
-                        const value1coordinates = moveCoordinates(coordinates, (condition.value1 as ValueDirectionType).value).join('x');
-                        number1 = characters.find(foundCharacter => (condition.value1 as ValueDirectionType).value !== 'here' && foundCharacter.coordinates === value1coordinates)?.item?.value;
-                        if (number1 === undefined) {
-                            number1 = newLevel.cells[value1coordinates]?.item?.value;
-                        }
-                        type1 = newLevel.cells[value1coordinates]?.type;
-                    } else if (condition.value1.type === 'slot') {
-                    } else if (condition.value1.type === 'myitem') {
-                        if (character.item) {
-                            number1 = character.item.value;
-                            type1 = character.item.type;
-                        }
-                    }
-                    if (condition.value2.type === 'direction') {
-                        const value2coordinates = moveCoordinates(coordinates, (condition.value2 as ValueDirectionType).value).join('x');
-                        number2 = characters.find(foundCharacter => (condition.value2 as ValueDirectionType).value !== 'here' && foundCharacter.coordinates === value2coordinates)?.item?.value;
-                        if (number2 === undefined) {
-                            number2 = newLevel.cells[value2coordinates]?.item?.value;
-                        }
-                        type2 = newLevel.cells[value2coordinates]?.type;
-                        localResult = number1 === number2;
-                    } else if (condition.value2.type === 'slot') {
-                    } else if (condition.value2.type === 'myitem') {
-                        if (character.item) {
-                            number2 = character.item.value;
-                            type2 = character.item.type;
-                        }
-                        conditionType = 'number';
-                    } else if (condition.value2.type === 'number') {
-                        number2 = condition.value2.value;
-                        conditionType = 'number';
-                    } else {
-                        type2 = condition.value2.type;
-                        localResult = type1 === type2;
-                        conditionType = 'type';
-                    }
-
-                    if (conditionType === 'number') {
-                        if (condition.operation === '==') {
-                            localResult = number1 === number2;
-                        }
-                        if (condition.operation === '!=') {
-                            localResult = number1 !== number2;
-                        }
-                        if (condition.operation === '>') {
-                            localResult = number1 > number2;
-                        }
-                        if (condition.operation === '<') {
-                            localResult = number1 < number2;
-                        }
-                        if (condition.operation === '<=') {
-                            localResult = number1 <= number2;
-                        }
-                        if (condition.operation === '>=') {
-                            localResult = number1 >= number2;
-                        }
-                    }
-                    if (conditionType === 'type') {
-                        if (condition.operation === '==') {
-                            localResult = type1 === type2;
-                        }
-                        if (condition.operation === '!=') {
-                            localResult = type1 !== type2;
-                        }
-                    }
-                    if (condition.logic === 'OR') {
-                        result = result || localResult;
-                    } else {
-                        result = result && localResult;
-                    }
-                });
-                if (!result) {
-                    let k = 0;
-                    for (k = character.step; k < code.length; k++) {
-                        if (code[k].type === 'endif') {
-                            break;
-                        }
-                    }
-                    character.step = k;
-                }
-            }
-        });
-        newCharacters.forEach((character, characterIndex) => {
-            const line = code[character.step];
-            if (!line) {
-                return;
-            }
-            if (!characters.find(foundCharacter => foundCharacter.coordinates === newCoordinatesArray[characterIndex]) ||
-            characters.find((foundCharacter, foundCharacterIndex) =>
-                foundCharacter.coordinates === newCoordinatesArray[characterIndex] && character.coordinates === newCoordinatesArray[foundCharacterIndex])) {
-                character.coordinates = newCoordinatesArray[characterIndex];
-                if (level.cells[character.coordinates].type === 'hole') {
-                    character.terminated = true;
-                }
-            } else if (code[character.step].type === 'step') {
-                character.step--;
-            }
-        });
-        const gived:string[] = [];
-        newCharacters.forEach((character, characterIndex) => {
-            const line = code[character.step];
-            if (!line) {
-                return;
-            }
-            if (gived.includes(character.name)) {
-                return;
-            }
-            if (line.type === 'give' && character.item?.type === 'box') {
-                const giveCell = moveCoordinates(parseCoordinates(character.coordinates), (line.direction as ValueDirectionType).value);
-                const giveCharacter = newCharacters.find(foundCharacter => foundCharacter.coordinates === giveCell.join('x'));
-                const giveCharacterStep = giveCharacter ? code[giveCharacter.step] : null;
-                if (giveCharacter) {
-                    if (!giveCharacter.item) {
-                        giveCharacter.item = character.item;
-                        delete character.item;
-                        gived.push(giveCharacter.name);
-                    } else if (giveCharacter.item && giveCharacterStep?.type === 'give' &&
-                    moveCoordinates(parseCoordinates(giveCharacter.coordinates), (giveCharacterStep.direction as ValueDirectionType).value).join('x') === character.coordinates
-                    ) {
-                        const tempItem = character.item;
-                        character.item = giveCharacter.item;
-                        giveCharacter.item = tempItem;
-                        gived.push(giveCharacter.name);
-                    } else {
-                        character.step--;
-                    }
-                }
-            }
-        });
-        setCharacters(newCharacters);
-        setLevel(newLevel);
-    }, [step]);
+    console.log(game);
 
     let intend = 0;
 
-    const renderLines = useMemo(() => code.map((line, key) => {
-        const lineResult = renderLine(line, key, code, setCode, intend);
-        intend = lineResult.intend;
-        return lineResult.result;
-    }), [code]);
+    const renderLines = useMemo(() => {
+        if (!game) {
+            return [];
+        }
+        return game.code.map((line, key) => {
+            const lineResult = renderLine(line, key, game, intend);
+            intend = lineResult.intend;
+            return lineResult.result;
+        });
+    }, [game?.code]);
+
+    if (!game) {
+        return null;
+    }
 
     return <Grid container>
         <Grid item md={6}>
-            <h2>{level.task}</h2>
-            <h4>{run && props.level.win(level.cells, characters) ? 'Win' : null}</h4>
+            <h2>{game.level.task}</h2>
+            <h4>{game.state === GameState.Run && game.level.winCallback(game.level.object) ? 'Win' : null}</h4>
             <Cells
-                cells={level.cells}
-                characters={characters}
-                width={level.width}
-                height={level.height}
-                run={run}
-                speed={speed}
+                game={game}
             />
         </Grid>
         <Grid item md={1}>
-            <AddPanel code={code} setCode={setCode} />
+            <AddPanel game={game} />
         </Grid>
         <Grid item md={5}>
             <div style={{ paddingLeft: 20 }}>
                 <SortableContainer onSortEnd={({ oldIndex, newIndex }, e) => {
                     if (e.ctrlKey) {
-                        const newCode = clone(code);
-                        newCode.splice(newIndex, 0, code[oldIndex]);
-                        setCode(newCode);
+                        // const newCode = clone(code);
+                        // newCode.splice(newIndex, 0, code[oldIndex]);
+                        // setCode(newCode);
                     } else {
-                        const newCode = arrayMoveImmutable(code, oldIndex, newIndex);
-                        const blocks = [];
-                        newCode.forEach(line => {
-                            if (line.type === 'if') {
-                                blocks.push(line.id);
-                            }
-                            if (line.type === 'endif' && blocks[blocks.length - 1] === line.ifId) {
-                                blocks.splice(blocks.indexOf(line.ifId), 1);
-                            }
-                            if (line.type === 'foreach') {
-                                blocks.push(line.id);
-                            }
-                            if (line.type === 'endforeach' && blocks[blocks.length - 1] === line.foreachId) {
-                                blocks.splice(blocks.indexOf(line.foreachId), 1);
-                            }
-                        });
-                        if (blocks.length) {
-                            return;
-                        }
-                        setCode(newCode);
+                        game.object.moveOperator(oldIndex, newIndex);
+                        game.object.render();
                     }
                 }}
                 >
-                    {code.map((line, key) => {
+                    {game.code.map((line, key) => {
                         const result = <SortableItem index={key} key={key}>
-                            {characters.filter(character => character.step === key).map(character => <span key={character.name}>
+                            {game.object.level.getCharacters().filter(character => character.currentLine === key).map(character => <span key={character.name}>
                                 <ManIcon fontSize="small" style={{ color: character.color }} />
                             </span>)}
                             {renderLines[key]}
@@ -406,8 +92,10 @@ Speed:
                     <TextField
                         variant="standard"
                         type="number"
-                        value={1000 / speed}
-                        onChange={e => setSpeed(1000 / (parseInt(e.target.value) || 1))}
+                        value={1000 / game.speed}
+                        onChange={e => {
+                            game.object.speed = 1000 / (parseInt(e.target.value) || 1);
+                        }}
                     />
                 </div>
                 <div style={{ display: 'flex', gap: 4 }}>
@@ -415,56 +103,19 @@ Speed:
                         <Button
                             variant="contained"
                             onClick={() => {
-                                const newLevel = clone(props.level as LevelType);
-                                if (!run) {
-                                    Object.values(newLevel.cells).forEach(cell => {
-                                        if (cell.item?.isRandom) {
-                                            cell.item.value = getRandomInt(0, 99);
-                                        }
-                                    });
-                                }
-                                setLevel(newLevel);
-                                const newCharacters = clone(props.level.characters);
-                                newCharacters.forEach(character => {
-                                    character.slots = [{
-                                        value: {
-                                            type: 'number',
-                                            value: 0,
-                                        },
-                                    },
-                                    {
-                                        value: {
-                                            type: 'number',
-                                            value: 0,
-                                        },
-                                    },
-                                    {
-                                        value: {
-                                            type: 'number',
-                                            value: 0,
-                                        },
-                                    },
-                                    {
-                                        value: {
-                                            type: 'number',
-                                            value: 0,
-                                        },
-                                    },
-                                    ];
-                                    character.loops = [];
-                                });
-                                setCharacters(newCharacters);
-                                setRun(!run);
+                                game.object.deserialize({ level: props.level });
+                                game.object.render();
+                                game.object.state === GameState.Run ? game.object.stop() : game.object.start();
                             }}
                             disabled={intend !== 0}
                         >
-                            {run ? 'Stop' : 'Run'}
+                            {game.object.state === GameState.Run ? 'Stop' : 'Run'}
                         </Button>
                     </div>
                     <div>
                         <Button
                             variant="contained"
-                            onClick={() => copy(JSON.stringify(code, null, 2))}
+                            onClick={() => copy(JSON.stringify(game.object.serialize(), null, 2))}
                         >
 Copy
                         </Button>
@@ -473,15 +124,15 @@ Copy
                         <Button
                             variant="contained"
                             onClick={() => {
-                                window.localStorage.setItem(`level${props.levelNumber}`, JSON.stringify(props.level.code));
-                                setCode(props.level.code);
+                                // window.localStorage.setItem(`level${props.levelNumber}`, JSON.stringify(props.level.code));
+                                // setCode(props.level.code);
                             }}
                         >
 Clear
                         </Button>
                     </div>
                 </div>
-                {characters.map(character => <div key={character.name}>
+                {game.object.level.getCharacters().map(character => <div key={character.name}>
                     {character.name}
                     {' '}
                     <span style={{ color: character.color }}>
@@ -489,7 +140,7 @@ Clear
                     </span>
                     {' '}
                     {character.slots?.map((slot, key) => <span key={key}>
-                        {(slot.value as ValueNumberType)?.value}
+                        {slot.getNumberValue()}
                         {' '}
                     </span>)}
                 </div>)}

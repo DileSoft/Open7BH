@@ -13,6 +13,7 @@ import {
     CellsType,
     CellType, CharacterType, CoordinatesArrayType, CoordinatesType, DirectionType, DirectionTypeWithHere,
 } from './types';
+import { Direction } from './Classes/Operators/OperatorStep';
 
 export const parseCoordinates = (cellCoordinate:CoordinatesType):CoordinatesArrayType => cellCoordinate.split('x').map(value => parseInt(value));
 
@@ -129,17 +130,17 @@ export const moveCoordinates = (coordinates:CoordinatesArrayType, direction:Dire
     return newCoordinates;
 };
 
-export const directionIcon = (direction:DirectionType) => {
+export const directionIcon = (direction:Direction) => {
     const icons = {
-        left: WestIcon,
-        right: EastIcon,
-        top: NorthIcon,
-        bottom: SouthIcon,
-        'top-left': NorthWestIcon,
-        'top-right': NorthEastIcon,
-        'bottom-left': SouthWestIcon,
-        'bottom-right': SouthEastIcon,
-        here: FiberManualRecordIcon,
+        [Direction.Left]: WestIcon,
+        [Direction.Right]: EastIcon,
+        [Direction.Up]: NorthIcon,
+        [Direction.Down]: SouthIcon,
+        [Direction.UpLeft]: NorthWestIcon,
+        [Direction.UpRight]: NorthEastIcon,
+        [Direction.DownLeft]: SouthWestIcon,
+        [Direction.DownRight]: SouthEastIcon,
+        // here: FiberManualRecordIcon,
     };
 
     const Icon = icons[direction];

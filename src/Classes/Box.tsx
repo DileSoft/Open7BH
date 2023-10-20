@@ -3,7 +3,7 @@ class Box {
 
     value = 0;
 
-    constructor(value: number, isRandom: boolean | undefined, min: number | undefined, max: number | undefined) {
+    constructor(value: number, isRandom?: boolean, min?: number, max?: number) {
         this.value = value;
         this.isRandom = isRandom;
         if (isRandom) {

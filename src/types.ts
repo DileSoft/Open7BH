@@ -1,4 +1,5 @@
 import React from 'react';
+import { GameSerialized } from './Classes/Game';
 
 export interface ItemType {
     type: 'box';
@@ -232,4 +233,4 @@ export type LineType = LineStepType | LineGotoType | LineIfType | LinePickupType
 | LineSayType | LineHearType | LineNearType | LineVariableType | LineForEachType | LineEndforeachType | LineCalcType
 | LineEndType | LineWriteType;
 
-export type RenderLineType<T, > = (line: T, lineNumber: number, code: T[], setCode: React.Dispatch<React.SetStateAction<T[]>>) => React.ReactNode
+export type RenderLineType<T, > = (line: T, lineNumber: number, game: GameSerialized) => React.ReactNode

@@ -2,6 +2,7 @@ name: Build and Deploy
 on: [push]
 jobs:
   build-and-deploy:
+    if: github.ref_name == github.event.repository.default_branch
     concurrency: ci-${{ github.ref }} # Recommended if you intend to make multiple deployments in quick succession.
     runs-on: ubuntu-latest
     steps:
