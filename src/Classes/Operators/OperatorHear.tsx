@@ -1,10 +1,31 @@
 import Character from '../Character';
-import Operator from './Operator';
+import Operator, { OperatorSerialized, OperatorType } from './Operator';
 
-class OperatorDrop extends Operator {
-    execute(character: Character) {
-        character.dropItem();
+export interface OperatorHearSerialized extends OperatorSerialized {
+    type: OperatorType.Hear,
+    hear?: string,
+    object?: OperatorHear,
+}
+
+class OperatorHear extends Operator {
+    hear?: string;
+
+    execute(character: Character): number {
+        character.hear = this.hear;
+        return character.currentLine + 1;
+    }
+
+    setHear(value: string) {
+        this.hear = value;
+    }
+
+    serialize(withObject: boolean): OperatorHearSerialized {
+        return {
+            type: OperatorType.Hear,
+            hear: this.hear,
+            object: withObject ? this : undefined,
+        };
     }
 }
 
-export default OperatorDrop;
+export default OperatorHear;

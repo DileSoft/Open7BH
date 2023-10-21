@@ -18,6 +18,7 @@ import AddPanel from './AddPanel';
 import renderLine from './renderLine';
 import Game, { GameSerialized, GameState } from './Classes/Game';
 import { LevelSerializedType } from './Classes/Level';
+import { CellType } from './Classes/Cell';
 
 const SortableItem = sortableElement(({ children }) => <div>{children}</div>);
 
@@ -30,6 +31,7 @@ function Level(props: {level: LevelSerializedType, levelNumber: number}) {
         const gameObject = new Game();
         gameObject.deserialize({ level: props.level });
         gameObject.renderCallback = setGame;
+        console.log(gameObject.level.findNear([0, 0], CellType.Printer));
         gameObject.render();
     }, [props.level]);
 

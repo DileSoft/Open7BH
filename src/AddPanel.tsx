@@ -130,17 +130,9 @@ const actions = [
     //     },
     // },
     // {
-    //     type: 'write',
-    //     add: (game:GameSerialized) => {
-    //         newCode.push({
-    //             type: 'write',
-    //             value: {
-    //                 type: 'number',
-    //                 value: 0,
-    //             },
-    //         });
-    //     },
-    // },
+    {
+        type: OperatorType.Write,
+    },
 ];
 
 function AddPanel(props: {game: GameSerialized}) {

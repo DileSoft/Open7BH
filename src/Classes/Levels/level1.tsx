@@ -5,10 +5,10 @@ const level:LevelSerializedType = {
     width: 5,
     height: 7,
     cells: Level.parseCells(
-        `box|1 box|1 empty box|1 empty
-empty empty wall box|2 empty
-empty empty wall box|3 empty
-empty empty empty box|4 empty
+        `box|1 box|1 hole box|1 hole
+empty empty hole box|2 empty
+empty empty hole box|3 empty
+empty empty hole box|4 printer
 empty empty empty box|5 empty
 hole hole
 hole hole`,
@@ -22,7 +22,7 @@ hole hole`,
         ],
     ),
     winCallback: level => Object.values(level.cells).filter(cell => cell.item).length +
-        level.getCharacters().filter(character => !character.isTerminated && character.item).length === 5,
+        level.getCharacters().filter(character => !character.isDead && character.item).length === 5,
 };
 
 export default level;

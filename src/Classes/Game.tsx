@@ -5,6 +5,7 @@ import OperatorGoto from './Operators/OperatorGoto';
 import OperatorIf from './Operators/OperatorIf';
 import OperatorPickup from './Operators/OperatorPickup';
 import OperatorStep from './Operators/OperatorStep';
+import OperatorWrite from './Operators/OperatorWrite';
 
 export enum GameState {
     Run = 'Run',
@@ -74,7 +75,7 @@ class Game {
             // do nothing
         }
         if (operator === OperatorType.Write) {
-            // do nothing
+            operatorObject = new OperatorWrite(this.level);
         }
 
         if (operatorObject) {

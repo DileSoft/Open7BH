@@ -30,6 +30,7 @@ import { OperatorStepSerialized } from '../Classes/Operators/OperatorStep';
 import { OperatorPickupSerialized } from '../Classes/Operators/OperatorPickup';
 import { OperatorGotoSerialized } from '../Classes/Operators/OperatorGoto';
 import { OperatorDropSerialized } from '../Classes/Operators/OperatorDrop';
+import { OperatorWriteSerialized } from '../Classes/Operators/OperatorWrite';
 
 function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSerialized, intend: number) {
     let result = null;
@@ -81,9 +82,9 @@ function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSeri
     // if (line.type === 'end') {
     //     result = endRenderLine(line, lineNumber, code as LineEndType[], setCode);
     // }
-    // if (line.type === 'write') {
-    //     result = writeRenderLine(line, lineNumber, code as LineWriteType[], setCode);
-    // }
+    if (line.type === 'write') {
+        result = writeRenderLine((line as OperatorWriteSerialized), lineNumber, game);
+    }
     // if (!result) {
     //     result = JSON.stringify(line);
     // }

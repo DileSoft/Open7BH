@@ -4,11 +4,12 @@ import {
     DirectionType, DirectionTypeWithHere, LineWriteType, RenderLineType, ValueDirectionType, ValueNumberType, ValueSlotType,
 } from '../types';
 import { clone, directionIcon } from '../Utils';
+import { OperatorWriteSerialized } from '../Classes/Operators/OperatorWrite';
 
-const writeRenderLine:RenderLineType<LineWriteType> = (line, lineNumber, code, setCode):React.ReactNode => <span>
+const writeRenderLine:RenderLineType<OperatorWriteSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 Write
     {' '}
-    <Select
+    {/* <Select
         IconComponent={null}
         value={line.value.type}
         onChange={e => {
@@ -31,19 +32,19 @@ Write
     >
         {['number', 'direction', 'slot', 'myitem'].map(option =>
             <MenuItem key={option} value={option}>{option}</MenuItem>)}
-    </Select>
-    {line.value.type === 'number' &&
+    </Select> */}
+    {// line.value.type === 'number' &&
         <TextField
             type="number"
-            value={line.value.value}
+            value={line.value}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code);
-                (newCode[lineNumber].value as ValueNumberType).value = parseInt(e.target.value) || 0;
-                setCode(newCode);
+                line.object.value = parseInt(e.target.value) || 0;
+                game.object.render();
             }}
-        />}
-    {line.value.type === 'direction' && <Select
+        />
+    }
+    {/* {line.value.type === 'direction' && <Select
         IconComponent={null}
         value={(line.value as ValueDirectionType).value}
         variant="standard"
@@ -69,7 +70,7 @@ Write
                 (newCode[lineNumber].value as ValueSlotType).slot = parseInt(e.target.value) || 0;
                 setCode(newCode);
             }}
-        />}
+        />} */}
 </span>;
 
 export default writeRenderLine;

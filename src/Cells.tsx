@@ -6,6 +6,7 @@ import { parseCoordinates } from './Utils';
 import { GameSerialized, GameState } from './Classes/Game';
 import Empty from './Classes/Empty';
 import Hole from './Classes/Hole';
+import Printer from './Classes/Printer';
 
 const CELL_WIDTH = 80;
 
@@ -33,9 +34,9 @@ function Cells(props: {game: GameSerialized,
         // if (cell.type === 'wall') {
         //     content = 'wall';
         // }
-        // if (cell.type === 'printer') {
-        //     content = 'printer';
-        // }
+        if (cell instanceof Printer) {
+            content = 'printer';
+        }
         // if (cell.type === 'shredder') {
         //     content = 'shredder';
         // }

@@ -2,7 +2,10 @@ import Box from './Box';
 import Cell from './Cell';
 import Hole from './Hole';
 import Level from './Level';
+import NumberSlot from './NumberSlot';
 import { Direction } from './Operators/OperatorStep';
+import Printer from './Printer';
+import Shredder from './Shredder';
 import Slot from './Slot';
 
 class Character {
@@ -22,13 +25,21 @@ class Character {
 
     currentLine = 0;
 
+    hear?: string;
+
     constructor(cell: Cell, name: string) {
         this.cell = cell;
         this.name = name;
+        for (let i = 0; i < 4; i++) {
+            this.slots.push(new NumberSlot(this));
+        }
     }
 
     update() {
         if (this.isTerminated) {
+            return;
+        }
+        if (this.hear) {
             return;
         }
         const code = this.cell.level.game.code;
@@ -51,6 +62,16 @@ class Character {
         if (newCell && newCell.character && !newCell.character.item && this.item) {
             newCell.character.setItem(this.item);
             this.item = null;
+        }
+        if (newCell && (newCell instanceof Shredder) && this.item) {
+            this.item = null;
+        }
+    }
+
+    take(direction: Direction):void {
+        const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
+        if (newCell && (newCell instanceof Printer) && !this.item) {
+            this.item = new Box(newCell.print());
         }
     }
 
@@ -84,6 +105,13 @@ class Character {
             if (newCell instanceof Hole) {
                 this.die();
             }
+        }
+    }
+
+    say(text: string, direction: Direction) {
+        const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
+        if (newCell && newCell.character && newCell.character.hear === text) {
+            newCell.character.hear = null;
         }
     }
 
