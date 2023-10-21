@@ -1,10 +1,30 @@
 import Character from '../Character';
-import Operator from './Operator';
+import Operator, { OperatorSerialized, OperatorType } from './Operator';
 
-class OperatorDrop extends Operator {
-    execute(character: Character) {
-        character.dropItem();
+export interface OperatorGotoSerialized extends OperatorSerialized {
+    type: OperatorType.Goto,
+    line: number,
+    object?: OperatorGoto,
+}
+
+class OperatorGoto extends Operator {
+    line: number = 0;
+
+    execute(character: Character): number {
+        return this.line;
+    }
+
+    setLine(line: number) {
+        this.line = line;
+    }
+
+    serialize(withObject: boolean): OperatorGotoSerialized {
+        return {
+            type: OperatorType.Goto,
+            line: this.line,
+            object: withObject ? this : undefined,
+        };
     }
 }
 
-export default OperatorDrop;
+export default OperatorGoto;

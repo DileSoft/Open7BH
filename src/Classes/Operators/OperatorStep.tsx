@@ -42,11 +42,12 @@ class OperatorStep extends Operator {
         this.directions = directions;
     }
 
-    execute(character: Character) {
+    execute(character: Character):number {
         if (this.type === StepType.Direction) {
             const direction = randomArray(this.directions);
             character.move(direction);
         }
+        return character.currentLine + 1;
     }
 
     serialize(withObject: boolean):OperatorStepSerialized {

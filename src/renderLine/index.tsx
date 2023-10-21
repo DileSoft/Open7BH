@@ -28,6 +28,8 @@ import Operator, { OperatorSerialized } from '../Classes/Operators/Operator';
 import { GameSerialized } from '../Classes/Game';
 import { OperatorStepSerialized } from '../Classes/Operators/OperatorStep';
 import { OperatorPickupSerialized } from '../Classes/Operators/OperatorPickup';
+import { OperatorGotoSerialized } from '../Classes/Operators/OperatorGoto';
+import { OperatorDropSerialized } from '../Classes/Operators/OperatorDrop';
 
 function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSerialized, intend: number) {
     let result = null;
@@ -40,9 +42,9 @@ function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSeri
     // if (line.type === 'take') {
     //     result = takeRenderLine(line, lineNumber, code as LineTakeType[], setCode);
     // }
-    // if (line.type === 'goto') {
-    //     result = gotoRenderLine(line, lineNumber, code as LineGotoType[], setCode);
-    // }
+    if (line.type === 'goto') {
+        result = gotoRenderLine((line as OperatorGotoSerialized), lineNumber, game);
+    }
     // if (line.type === 'if') {
     //     result = ifRenderLine(line, lineNumber, code as LineIfType[], setCode);
     // }
@@ -52,9 +54,9 @@ function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSeri
     if (line.type === 'pickup') {
         result = pickupRenderLine((line as OperatorPickupSerialized), lineNumber, game);
     }
-    // if (line.type === 'drop') {
-    //     result = dropRenderLine(line, lineNumber, code as LineDropType[], setCode);
-    // }
+    if (line.type === 'drop') {
+        result = dropRenderLine((line as OperatorDropSerialized), lineNumber, game);
+    }
     // if (line.type === 'near') {
     //     result = nearRenderLine(line, lineNumber, code as LineNearType[], setCode);
     // }
@@ -100,6 +102,7 @@ function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSeri
             size="small"
             onMouseDown={() => {
                 game.object.removeOperator(lineNumber);
+                game.object.render();
                 // if (deleteLine.type === 'if') {
                 //     newCode.splice(newCode.findIndex(foundLine => foundLine.type === 'endif' && foundLine.ifId === deleteLine.id), 1);
                 // }

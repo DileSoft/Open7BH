@@ -67,6 +67,9 @@ class Level {
                         isRandom: cellData[1] === 'random',
                     };
                 }
+                if (cellData[0] === 'hole') {
+                    cellObject.type = CellType.Hole;
+                }
                 const character = characters.find(_character => _character.coordinates[0] === cellIndex && _character.coordinates[1] === lineIndex);
                 if (character) {
                     cellObject.character = character;

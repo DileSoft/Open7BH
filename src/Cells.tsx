@@ -5,6 +5,7 @@ import { CellsType, CharacterType, CoordinatesType } from './types';
 import { parseCoordinates } from './Utils';
 import { GameSerialized, GameState } from './Classes/Game';
 import Empty from './Classes/Empty';
+import Hole from './Classes/Hole';
 
 const CELL_WIDTH = 80;
 
@@ -26,9 +27,9 @@ function Cells(props: {game: GameSerialized,
                 </>;
             }
         }
-        // if (cell.type === 'hole') {
-        //     content = <div style={{ width: '100%', height: '100%', backgroundColor: 'black' }}></div>;
-        // }
+        if (cell instanceof Hole) {
+            content = <div style={{ width: '100%', height: '100%', backgroundColor: 'black' }}></div>;
+        }
         // if (cell.type === 'wall') {
         //     content = 'wall';
         // }
@@ -67,7 +68,7 @@ function Cells(props: {game: GameSerialized,
             key={character.name}
             style={{
                 position: 'absolute',
-                opacity: character.isTerminated ? 0 : 1,
+                opacity: character.isDead ? 0 : 1,
                 transform: `translate(${coordinates[0] * CELL_WIDTH}px, ${coordinates[1] * CELL_WIDTH + 10}px)`,
                 transition: `all ${props.game.speed}ms ease-in`,
             }}

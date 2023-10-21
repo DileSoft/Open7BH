@@ -1,5 +1,6 @@
 import Box from './Box';
 import Cell from './Cell';
+import Hole from './Hole';
 import Level from './Level';
 import { Direction } from './Operators/OperatorStep';
 import Slot from './Slot';
@@ -14,6 +15,8 @@ class Character {
     item: Box | null = null;
 
     isTerminated = false;
+
+    isDead = false;
 
     slots: Slot[] = [];
 
@@ -33,8 +36,7 @@ class Character {
             return;
         }
         const operator = code[this.currentLine];
-        operator.execute(this);
-        this.currentLine++;
+        this.currentLine = operator.execute(this);
         if (this.currentLine >= code.length) {
             this.isTerminated = true;
         }
@@ -44,10 +46,17 @@ class Character {
         this.item = item;
     }
 
-    giveItem(character: Character) {
-        if (this.item) {
-            character.setItem(this.item);
+    giveItem(direction: Direction):void {
+        const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
+        if (newCell && newCell.character && !newCell.character.item && this.item) {
+            newCell.character.setItem(this.item);
             this.item = null;
+        }
+    }
+
+    write(value: number) {
+        if (this.item) {
+            this.item.value = value;
         }
     }
 
@@ -72,11 +81,19 @@ class Character {
         if (newCell) {
             this.cell.character = null;
             newCell.setCharacter(this);
+            if (newCell instanceof Hole) {
+                this.die();
+            }
         }
     }
 
     terminate() {
         this.isTerminated = true;
+    }
+
+    die() {
+        this.isDead = true;
+        this.terminate();
     }
 }
 

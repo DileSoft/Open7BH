@@ -22,20 +22,15 @@ const actions = [
     //         newCode.push({ type: 'take', direction: { type: 'direction', value: 'left' }, id: uuidv4() });
     //     },
     // },
-    // {
-    //     type: 'goto',
-    //     add: (game:GameSerialized) => {
-    //         newCode.push({ type: 'goto', step: 0, id: uuidv4() });
-    //     },
-    // },
+    {
+        type: OperatorType.Goto,
+    },
     {
         type: OperatorType.Pickup,
     },
-    // {
-    //     type: 'drop',
-    //     add: (game:GameSerialized) => {
-    //         newCode.push({ type: 'drop', id: uuidv4() });
-    //     },
+    {
+        type: OperatorType.Drop,
+    },
     // },
     // {
     //     type: 'if',

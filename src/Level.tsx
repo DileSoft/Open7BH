@@ -95,6 +95,7 @@ Speed:
                         value={1000 / game.speed}
                         onChange={e => {
                             game.object.speed = 1000 / (parseInt(e.target.value) || 1);
+                            game.object.render();
                         }}
                     />
                 </div>
@@ -144,6 +145,12 @@ Clear
                         {' '}
                     </span>)}
                 </div>)}
+                <pre>
+                    {JSON.stringify(Object.values(game.object.level.cells).filter(cell => cell.character)
+                        .map(cell => ({
+                            name: cell.character?.name, line: cell.character.currentLine, x: cell.x, y: cell.y,
+                        })), null, 2)}
+                </pre>
             </div>
         </Grid>
     </Grid>;

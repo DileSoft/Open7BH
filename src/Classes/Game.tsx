@@ -1,6 +1,8 @@
 import Level, { LevelSerializedType } from './Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operators/Operator';
 import OperatorDrop from './Operators/OperatorDrop';
+import OperatorGoto from './Operators/OperatorGoto';
+import OperatorIf from './Operators/OperatorIf';
 import OperatorPickup from './Operators/OperatorPickup';
 import OperatorStep from './Operators/OperatorStep';
 
@@ -50,13 +52,14 @@ class Game {
             // do nothing
         }
         if (operator === OperatorType.Goto) {
-            // do nothing
+            operatorObject = new OperatorGoto(this.level);
         }
         if (operator === OperatorType.Hear) {
             // do nothing
         }
         if (operator === OperatorType.If) {
-            // do nothing
+            operatorObject = new OperatorIf(this.level);
+            this.code.splice(position, 0, (operatorObject as OperatorIf).createEndIf());
         }
         if (operator === OperatorType.Say) {
             // do nothing

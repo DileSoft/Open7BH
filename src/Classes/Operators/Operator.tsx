@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 import Character from '../Character';
 import Level from '../Level';
 
@@ -12,7 +14,7 @@ export enum OperatorType {
     Goto = 'goto',
     Hear = 'hear',
     If = 'if',
-    EnfIf = 'endif',
+    EndIf = 'endif',
     Near = 'near',
     Say = 'say',
     Step = 'step',
@@ -28,13 +30,16 @@ export interface OperatorSerialized {
 }
 
 abstract class Operator {
+    id: string;
+
     level: Level;
 
     constructor(level: Level) {
         this.level = level;
+        this.id = uuidv4();
     }
 
-    abstract execute(character: Character): void;
+    abstract execute(character: Character): number;
 
     abstract serialize(withObject: boolean): OperatorSerialized;
 }

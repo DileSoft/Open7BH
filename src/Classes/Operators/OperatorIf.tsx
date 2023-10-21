@@ -1,16 +1,35 @@
 import Character from '../Character';
-import Operator, { OperatorType } from './Operator';
+import Operator, { OperatorSerialized, OperatorType } from './Operator';
+import OperatorEndIf from './OperatorEndIf';
 
-class OperatorDrop extends Operator {
-    execute(character: Character) {
-        character.dropItem();
+export interface OperatorIfSerialized extends OperatorSerialized {
+    type: OperatorType.If,
+    operatorEndIf: string
+    object?: OperatorIf,
+}
+
+class OperatorIf extends Operator {
+    operatorEndIf: OperatorEndIf;
+
+    execute(character: Character): number {
+        return character.currentLine + 1;
     }
 
-    serialize() {
+    createEndIf(): OperatorEndIf {
+        const operatorEndIf = new OperatorEndIf(this.level);
+        operatorEndIf.operatorIf = this;
+        this.operatorEndIf = operatorEndIf;
+
+        return operatorEndIf;
+    }
+
+    serialize(withObject: boolean): OperatorIfSerialized {
         return {
-            type: OperatorType.Drop,
+            type: OperatorType.If,
+            operatorEndIf: this.operatorEndIf.id,
+            object: withObject ? this : undefined,
         };
     }
 }
 
-export default OperatorDrop;
+export default OperatorIf;

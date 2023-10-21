@@ -9,6 +9,7 @@ export interface OperatorPickupSerialized extends OperatorSerialized {
 class OperatorPickup extends Operator {
     execute(character: Character) {
         character.pickupItem();
+        return character.currentLine + 1;
     }
 
     serialize(withObject: boolean): OperatorPickupSerialized {

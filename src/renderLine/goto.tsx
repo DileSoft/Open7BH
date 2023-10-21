@@ -4,21 +4,21 @@ import {
     LineGotoType, RenderLineType,
 } from '../types';
 import { clone } from '../Utils';
+import { OperatorGotoSerialized } from '../Classes/Operators/OperatorGoto';
 
-const gotoRenderLine:RenderLineType<LineGotoType> = (line, lineNumber, code, setCode):React.ReactNode => <span>
+const gotoRenderLine:RenderLineType<OperatorGotoSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 Goto:
     {' '}
     <Select
         IconComponent={null}
-        value={line.step}
+        value={line.line}
         variant="standard"
         onChange={e => {
-            const newCode = clone(code);
-            newCode[lineNumber].step = e.target.value as number;
-            setCode(newCode);
+            line.object.setLine(parseInt(e.target.value.toString()));
+            game.object.render();
         }}
     >
-        {Object.keys(code).map(optionLineNumber =>
+        {Object.keys(game.code).map(optionLineNumber =>
             <MenuItem key={optionLineNumber} value={optionLineNumber}>{optionLineNumber}</MenuItem>)}
     </Select>
 </span>;
