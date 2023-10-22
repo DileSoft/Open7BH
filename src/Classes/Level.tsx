@@ -25,6 +25,7 @@ export interface CellSerializedType {
     item?: {
         isRandom: boolean,
         value: number,
+        tag?: string,
     }
     object?: Cell,
 }
@@ -113,6 +114,7 @@ class Level {
                 item: cell.getItem() ? {
                     isRandom: cell.getItem().isRandom,
                     value: cell.getItem().value,
+                    tag: cell.getItem().tag,
                 } : undefined,
                 object: withObject ? cell : undefined,
             });
@@ -125,7 +127,6 @@ class Level {
         this.width = str.width;
         this.height = str.height;
         this.winCallback = str.winCallback;
-        console.log(str);
         str.cells.forEach(cell => {
             let cellObject: Cell;
             if (cell.type === CellType.Empty) {
@@ -142,6 +143,9 @@ class Level {
             }
             if (cell.item) {
                 cellObject.setItem(new Box(cell.item.value, cell.item.isRandom));
+                if (cell.item.tag) {
+                    cellObject.getItem().tag = cell.item.tag;
+                }
             }
             this.addCell(cell.x, cell.y, cellObject);
         });
@@ -149,6 +153,46 @@ class Level {
 
     addCharacter(character: Character, x: number, y: number) {
         this.getCell(x, y).setCharacter(character);
+    }
+
+    moveCharacters() {
+        const characters = this.getCharacters().filter(character => character.nextMove);
+        const notMoved = [...characters];
+        while (notMoved.length) {
+            notMoved.forEach(character => {
+                const nextMove = character.nextMove;
+                if (nextMove && !nextMove.character) {
+                    console.log(character.name, 'move to empty');
+                    character.cell.character = null;
+                    character.cell = nextMove;
+                    nextMove.character = character;
+                    notMoved.splice(notMoved.indexOf(character), 1);
+                    character.nextMove = null;
+                    return;
+                }
+                if (nextMove && nextMove.character && nextMove.character.nextMove && nextMove.character.nextMove === character.cell) {
+                    const cell1 = character.cell;
+                    const cell2 = nextMove.character.cell;
+                    const character1 = character;
+                    const character2 = nextMove.character;
+                    cell1.character = character2;
+                    cell2.character = character1;
+                    character1.cell = cell2;
+                    character2.cell = cell1;
+                    notMoved.splice(notMoved.indexOf(character), 1);
+                    notMoved.splice(notMoved.indexOf(nextMove.character), 1);
+                    character1.nextMove = null;
+                    character2.nextMove = null;
+                    return;
+                }
+                if (nextMove && nextMove.character && !nextMove.character.nextMove) {
+                    console.log(character.name, 'move to character', nextMove.character.name);
+                    notMoved.splice(notMoved.indexOf(character), 1);
+                    character.nextMove = null;
+                }
+            });
+        }
+        console.log(this.getCharacters().filter(character => character.nextMove));
     }
 
     addCell(x: number, y: number, cell: Cell) {
@@ -197,10 +241,8 @@ class Level {
             [`${from[0]}x${from[1]}`]: 0,
         };
         this.markNearRecursive(from, cellType, 1, marked, founded);
-        console.log(marked);
         if (founded.length) {
             founded.sort((a, b) => marked[a] - marked[b]);
-            console.log(founded);
             const path = this.getPathRecursive(this.cells[founded[0]], marked);
             return path;
         }

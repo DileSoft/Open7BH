@@ -39,6 +39,9 @@ abstract class Operator {
         this.id = uuidv4();
     }
 
+    prepare(character: Character) {
+    }
+
     abstract execute(character: Character): number;
 
     abstract serialize(withObject: boolean): OperatorSerialized;

@@ -31,11 +31,8 @@ function Level(props: {level: LevelSerializedType, levelNumber: number}) {
         const gameObject = new Game();
         gameObject.deserialize({ level: props.level });
         gameObject.renderCallback = setGame;
-        console.log(gameObject.level.findNear([0, 0], CellType.Printer));
         gameObject.render();
     }, [props.level]);
-
-    console.log(game);
 
     let intend = 0;
 

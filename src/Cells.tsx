@@ -63,27 +63,29 @@ function Cells(props: {game: GameSerialized,
         </div>;
     });
 
-    const characterDivs = props.game.object.level.getCharacters().map(character =>            {
-        const coordinates = [character.cell.x, character.cell.y];
-        return <div
-            key={character.name}
-            style={{
-                position: 'absolute',
-                opacity: character.isDead ? 0 : 1,
-                transform: `translate(${coordinates[0] * CELL_WIDTH}px, ${coordinates[1] * CELL_WIDTH + 10}px)`,
-                transition: `all ${props.game.speed}ms ease-in`,
-            }}
-        >
-            <ManIcon fontSize="small" style={{ color: character.color }} />
-            {character.item ? <>
+    const characterDivs = props.game.object.level.getCharacters()
+        .sort((c1, c2) => (c1.name > c2.name ? 1 : -1))
+        .map(character => {
+            const coordinates = [character.cell.x, character.cell.y];
+            return <div
+                key={character.name}
+                style={{
+                    position: 'absolute',
+                    opacity: character.isDead ? 0 : 1,
+                    transform: `translate(${coordinates[0] * CELL_WIDTH}px, ${coordinates[1] * CELL_WIDTH + 10}px)`,
+                    transition: `all ${props.game.speed}ms ease-in`,
+                }}
+            >
+                <ManIcon fontSize="small" style={{ color: character.color }} />
+                {character.item ? <>
 (
-                <AddBoxIcon fontSize="small" />
-                {' '}
-                {character.item.value}
+                    <AddBoxIcon fontSize="small" />
+                    {' '}
+                    {character.item.value}
 )
-            </> : null}
-        </div>;
-    });
+                </> : null}
+            </div>;
+        });
 
     return <div style={{ position: 'relative', width: props.game.level.width * CELL_WIDTH + CELL_WIDTH / 2, height: props.game.level.height * CELL_WIDTH + CELL_WIDTH / 2 }}>
         {cellDivs}

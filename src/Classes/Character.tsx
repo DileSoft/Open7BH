@@ -3,7 +3,7 @@ import Cell from './Cell';
 import Hole from './Hole';
 import Level from './Level';
 import NumberSlot from './NumberSlot';
-import { Direction } from './Operators/OperatorStep';
+import OperatorStep, { Direction } from './Operators/OperatorStep';
 import Printer from './Printer';
 import Shredder from './Shredder';
 import Slot from './Slot';
@@ -27,12 +27,33 @@ class Character {
 
     hear?: string;
 
+    nextMove?: Cell;
+
     constructor(cell: Cell, name: string) {
         this.cell = cell;
         this.name = name;
         for (let i = 0; i < 4; i++) {
             this.slots.push(new NumberSlot(this));
         }
+    }
+
+    prepareMove(direction: Direction) {
+        this.nextMove = this.getMoveCell(direction, true);
+    }
+
+    prepare() {
+        if (this.isTerminated) {
+            return;
+        }
+        if (this.hear) {
+            return;
+        }
+        const code = this.cell.level.game.code;
+        if (this.currentLine >= code.length) {
+            return;
+        }
+        const operator = code[this.currentLine];
+        operator.prepare(this);
     }
 
     update() {
@@ -96,22 +117,16 @@ class Character {
         }
     }
 
-    move(direction: Direction):void {
+    getMoveCell(direction: Direction, prepare = false):Cell | undefined {
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
-        console.log(newCell);
-        if (newCell) {
-            this.cell.character = null;
-            newCell.setCharacter(this);
-            if (newCell instanceof Hole) {
-                this.die();
-            }
-        }
+        return newCell && newCell.isEmpty && (prepare || !newCell.character) ? newCell : undefined;
     }
 
     say(text: string, direction: Direction) {
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (newCell && newCell.character && newCell.character.hear === text) {
             newCell.character.hear = null;
+            newCell.character.currentLine++;
         }
     }
 

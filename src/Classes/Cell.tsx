@@ -36,7 +36,10 @@ abstract class Cell {
     }
 
     setCharacter(character: Character) {
-        if (this.isEmpty && !this.character) {
+        if (this.isEmpty) {
+            if (character.cell) {
+                character.cell.character = null;
+            }
             this.character = character;
             character.cell = this;
         }

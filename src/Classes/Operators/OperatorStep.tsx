@@ -42,11 +42,12 @@ class OperatorStep extends Operator {
         this.directions = directions;
     }
 
+    prepare(character: Character) {
+        const direction = randomArray(this.directions);
+        character.prepareMove(direction);
+    }
+
     execute(character: Character):number {
-        if (this.type === StepType.Direction) {
-            const direction = randomArray(this.directions);
-            character.move(direction);
-        }
         return character.currentLine + 1;
     }
 

@@ -102,10 +102,20 @@ class Game {
     }
 
     update():void {
+        if (!this.level.getCharacters().filter(character => !character.isTerminated).length) {
+            return;
+        }
+        this.level.getCharacters().forEach(character => {
+            character.prepare();
+        });
         this.level.getCharacters().forEach(character => {
             character.update();
         });
+        this.level.moveCharacters();
         this.level.winCallback(this.level);
+        if (this.level.getCharacters().length < 2) {
+            console.log('Wrong character');
+        }
         this.render();
     }
 
@@ -138,6 +148,7 @@ class Game {
     }
 
     render() {
+        console.log('render');
         this.renderCallback(this.serialize(true));
     }
 }
