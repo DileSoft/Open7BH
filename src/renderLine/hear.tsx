@@ -2,17 +2,17 @@ import { TextField } from '@mui/material';
 import React from 'react';
 import { LineHearType, RenderLineType } from '../types';
 import { clone } from '../Utils';
+import { OperatorHearSerialized } from '../Classes/Operators/OperatorHear';
 
-const hearRenderLine:RenderLineType<LineHearType> = (line, lineNumber, code, setCode):React.ReactNode => <span>
+const hearRenderLine:RenderLineType<OperatorHearSerialized> = (line, lineNumber, game):React.ReactNode => <span>
     Hear:
     {' '}
     <TextField
-        value={line.text}
+        value={line.hear}
         variant="standard"
         onChange={e => {
-            const newCode = clone(code);
-            newCode[lineNumber].text = e.target.value;
-            setCode(newCode);
+            line.object.hear = e.target.value;
+            game.object.render();
         }}
     />
 </span>;

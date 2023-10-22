@@ -42,6 +42,10 @@ abstract class Operator {
     prepare(character: Character) {
     }
 
+    remove() {
+
+    }
+
     abstract execute(character: Character): number;
 
     abstract serialize(withObject: boolean): OperatorSerialized;

@@ -13,6 +13,8 @@ export interface OperatorGiveSerialized extends OperatorSerialized {
 class OperatorGive extends Operator {
     direction: Direction;
 
+    slot?: number;
+
     constructor(level: Level) {
         super(level);
         this.direction = Direction.Down;
@@ -31,6 +33,7 @@ class OperatorGive extends Operator {
         return {
             type: OperatorType.Give,
             direction: this.direction,
+            slot: this.slot,
             object: withObject ? this : undefined,
         };
     }

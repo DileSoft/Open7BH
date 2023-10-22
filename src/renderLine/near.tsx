@@ -4,8 +4,9 @@ import {
     LineNearType, RenderLineType,
 } from '../types';
 import { clone } from '../Utils';
+import { OperatorNearSerialized, OperatorNearType } from '../Classes/Operators/OperatorNear';
 
-const nearRenderLine:RenderLineType<LineNearType> = (line, lineNumber, code, setCode):React.ReactNode => <span>
+const nearRenderLine:RenderLineType<OperatorNearSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 Near:
     {' '}
     slot
@@ -14,23 +15,21 @@ Near:
         value={line.slot}
         variant="standard"
         onChange={e => {
-            const newCode = clone(code);
-            newCode[lineNumber].slot = parseInt(e.target.value) || 0;
-            setCode(newCode);
+            line.object.setSlot(parseInt(e.target.value) || 0);
+            game.object.render();
         }}
     />
     =
     <Select
         IconComponent={null}
-        value={line.find}
+        value={line.nearType}
         onChange={e => {
-            const newCode = clone(code);
-            newCode[lineNumber].find = e.target.value as any;
-            setCode(newCode);
+            line.object.setNearType(e.target.value as OperatorNearType);
+            game.object.render();
         }}
         variant="standard"
     >
-        {['box', 'wall', 'hole', 'character', 'printer', 'shredder'].map(option =>
+        {Object.values(OperatorNearType).map(option =>
             <MenuItem key={option} value={option}>{option}</MenuItem>)}
     </Select>
 </span>;

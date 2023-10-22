@@ -5,13 +5,13 @@ const level:LevelSerializedType = {
     width: 5,
     height: 5,
     cells: Level.parseCells(
-        //         `box|1 box|1 empty box|1 empty
-        // empty empty wall box|2 empty
-        // empty empty wall box|3 empty
-        // empty empty empty box|4 empty
-        // empty empty empty box|5 empty`,
-        `box|1 box|1
-empty empty`,
+        `box|1 box|1 empty box|1 empty
+        empty empty wall box|2 empty
+        empty empty wall box|3 empty
+        empty empty empty box|4 empty
+        empty empty empty box|5 empty`,
+        //         `box|1 box|1
+        // empty empty`,
         [
             {
                 coordinates: [0, 0], name: 'first', color: 'red',

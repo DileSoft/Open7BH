@@ -1,10 +1,18 @@
 import Level, { LevelSerializedType } from './Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operators/Operator';
 import OperatorDrop from './Operators/OperatorDrop';
+import OperatorEnd from './Operators/OperatorEnd';
+import OperatorEndIf from './Operators/OperatorEndIf';
+import OperatorForeach from './Operators/OperatorForeach';
+import OperatorGive from './Operators/OperatorGive';
 import OperatorGoto from './Operators/OperatorGoto';
+import OperatorHear from './Operators/OperatorHear';
 import OperatorIf from './Operators/OperatorIf';
 import OperatorPickup from './Operators/OperatorPickup';
+import OperatorSay from './Operators/OperatorSay';
 import OperatorStep from './Operators/OperatorStep';
+import OperatorTake from './Operators/OperatorTake';
+import OperatorVariable from './Operators/OperatorVariable';
 import OperatorWrite from './Operators/OperatorWrite';
 
 export enum GameState {
@@ -50,32 +58,39 @@ class Game {
             operatorObject = new OperatorDrop(this.level);
         }
         if (operator === OperatorType.End) {
-            // do nothing
+            operatorObject = new OperatorEnd(this.level);
         }
         if (operator === OperatorType.Goto) {
             operatorObject = new OperatorGoto(this.level);
         }
         if (operator === OperatorType.Hear) {
-            // do nothing
+            operatorObject = new OperatorHear(this.level);
         }
         if (operator === OperatorType.If) {
             operatorObject = new OperatorIf(this.level);
             this.code.splice(position, 0, (operatorObject as OperatorIf).createEndIf());
         }
         if (operator === OperatorType.Say) {
-            // do nothing
+            operatorObject = new OperatorSay(this.level);
         }
         if (operator === OperatorType.Step) {
             operatorObject = new OperatorStep(this.level);
         }
         if (operator === OperatorType.Take) {
-            // do nothing
+            operatorObject = new OperatorTake(this.level);
         }
         if (operator === OperatorType.Variable) {
-            // do nothing
+            operatorObject = new OperatorVariable(this.level);
         }
         if (operator === OperatorType.Write) {
             operatorObject = new OperatorWrite(this.level);
+        }
+        if (operator === OperatorType.Foreach) {
+            operatorObject = new OperatorForeach(this.level);
+            this.code.splice(position, 0, (operatorObject as OperatorForeach).createEndForeach());
+        }
+        if (operator === OperatorType.Give) {
+            operatorObject = new OperatorGive(this.level);
         }
 
         if (operatorObject) {
@@ -84,7 +99,9 @@ class Game {
     }
 
     removeOperator(position: number) {
+        const operator = this.code[position];
         this.code.splice(position, 1);
+        operator.remove();
     }
 
     start():void {
@@ -116,11 +133,14 @@ class Game {
         if (this.level.getCharacters().length < 2) {
             console.log('Wrong character');
         }
+        console.log(this.level.cells);
         this.render();
     }
 
     deserialize(serialized: GameSerialized) {
-        this.level = new Level(this);
+        if (!this.level) {
+            this.level = new Level(this);
+        }
         this.level.deserialize(serialized.level);
         // this.code = serialized.code.map(operator => {
         //     if (operator.type === OperatorType.Step) {
@@ -142,6 +162,9 @@ class Game {
     }
 
     moveOperator(from: number, to: number) {
+        if (!this.code[from] || !this.code[to]) {
+            return;
+        }
         const operator = this.code[from];
         this.code.splice(from, 1);
         this.code.splice(to, 0, operator);

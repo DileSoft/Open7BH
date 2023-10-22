@@ -2,7 +2,7 @@ import Cell from './Cell';
 import Slot from './Slot';
 
 class CellSlot extends Slot {
-    cellValue?: Cell
+    cellValue?: Cell;
 
     setCell(cell: Cell) {
         this.cellValue = cell;

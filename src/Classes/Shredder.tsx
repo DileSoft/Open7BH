@@ -3,7 +3,7 @@ import Cell, { CellType } from './Cell';
 class Shredder extends Cell {
     isEmpty = true;
 
-    shredded: 0;
+    shredded = 0;
 
     getType(): CellType {
         return CellType.Shredder;

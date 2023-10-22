@@ -4,20 +4,21 @@ import {
     DirectionType, LineSayType, RenderLineType, ValueDirectionType, ValueSlotType,
 } from '../types';
 import { clone, directionIcon } from '../Utils';
+import { OperatorSaySerialized } from '../Classes/Operators/OperatorSay';
+import { Direction } from '../Classes/Operators/OperatorStep';
 
-const sayRenderLine:RenderLineType<LineSayType> = (line, lineNumber, code, setCode):React.ReactNode => <span>
+const sayRenderLine:RenderLineType<OperatorSaySerialized> = (line, lineNumber, game):React.ReactNode => <span>
     Say:
     {' '}
     <TextField
-        value={line.text}
+        value={line.hear}
         variant="standard"
         onChange={e => {
-            const newCode = clone(code);
-            newCode[lineNumber].text = e.target.value;
-            setCode(newCode);
+            line.object.setSay(e.target.value);
+            game.object.render();
         }}
     />
-    <Select
+    {/* <Select
         IconComponent={null}
         value={line.target.type}
         onChange={e => {
@@ -45,24 +46,23 @@ const sayRenderLine:RenderLineType<LineSayType> = (line, lineNumber, code, setCo
     >
         {['direction', 'all', 'slot'].map(option =>
             <MenuItem key={option} value={option}>{option}</MenuItem>)}
-    </Select>
-    {line.target.type === 'direction' && <Select
+    </Select> */}
+    <Select
         IconComponent={null}
-        value={(line.target as ValueDirectionType).value}
+        value={line.direction}
         variant="standard"
         onChange={e => {
-            const newCode = clone(code);
-            (newCode[lineNumber].target as ValueDirectionType).value = e.target.value as DirectionType;
-            setCode(newCode);
+            line.object.setDirection(e.target.value as Direction);
+            game.object.render();
         }}
     >
-        {['left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((direction:DirectionType) =>
+        {Object.values(Direction).map(direction =>
             <MenuItem key={direction} value={direction}>
                 {directionIcon(direction)}
                 {direction}
             </MenuItem>)}
-    </Select>}
-    {line.target.type === 'slot' &&
+    </Select>
+    {/* {line.target.type === 'slot' &&
         <TextField
             type="number"
             value={line.target.slot}
@@ -72,7 +72,7 @@ const sayRenderLine:RenderLineType<LineSayType> = (line, lineNumber, code, setCo
                 (newCode[lineNumber].target as ValueSlotType).slot = parseInt(e.target.value) || 0;
                 setCode(newCode);
             }}
-        />}
+        />} */}
 </span>;
 
 export default sayRenderLine;

@@ -4,96 +4,88 @@ import {
     DirectionType, DirectionTypeWithHere, LineCalcType, RenderLineType, ValueDirectionType, ValueNumberType, ValueSlotType,
 } from '../types';
 import { clone, directionIcon } from '../Utils';
+import { CalcOperand, CalcOperator, OperatorCalcSerialized } from '../Classes/Operators/OperatorCalc';
+import { Direction } from '../Classes/Operators/OperatorStep';
 
-const calcRenderLine:RenderLineType<LineCalcType> = (line, lineNumber, code, setCode):React.ReactNode => <span>
+const calcRenderLine:RenderLineType<OperatorCalcSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 Calc
     {' '}
     slot
     <TextField
         type="number"
-        value={line.slot}
+        value={line.slotResult}
         variant="standard"
         onChange={e => {
-            const newCode = clone(code);
-            newCode[lineNumber].slot = parseInt(e.target.value) || 0;
-            setCode(newCode);
+            line.object.slotResult = parseInt(e.target.value) || 0;
+            game.object.render();
         }}
     />
     =
     <Select
         IconComponent={null}
-        value={line.value1.type}
+        value={line.operand1type}
         onChange={e => {
-            const newCode = clone(code);
             if (e.target.value === 'number') {
-                newCode[lineNumber].value1 = { type: 'number', value: 0 };
-            }
-            if (e.target.value === 'myitem') {
-                newCode[lineNumber].value1 = { type: 'myitem' };
+                line.object.setOperand1Number(0);
             }
             if (e.target.value === 'direction') {
-                newCode[lineNumber].value1 = { type: 'direction', value: 'left' };
+                line.object.setOperand1Direction(Direction.Up);
             }
             if (e.target.value === 'slot') {
-                newCode[lineNumber].value1 = { type: 'slot', slot: 1 };
+                line.object.setOperand1Slot(0);
             }
-            setCode(newCode);
+            game.object.render();
         }}
         variant="standard"
     >
-        {['number', 'direction', 'slot', 'myitem'].map(option =>
+        {Object.values(CalcOperator).map(option =>
             <MenuItem key={option} value={option}>{option}</MenuItem>)}
     </Select>
-    {line.value1.type === 'number' &&
+    {line.operand1type === CalcOperand.Number &&
         <TextField
             type="number"
-            value={line.value1.value}
+            value={line.operand1NumberValue}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code);
-                (newCode[lineNumber].value1 as ValueNumberType).value = parseInt(e.target.value) || 0;
-                setCode(newCode);
+                line.object.setOperand1Number(parseInt(e.target.value) || 0);
+                game.object.render();
             }}
         />}
-    {line.value1.type === 'direction' && <Select
+    {line.operand1type === CalcOperand.Direction && <Select
         IconComponent={null}
-        value={(line.value1 as ValueDirectionType).value}
+        value={line.operand1DirectionValue}
         variant="standard"
         onChange={e => {
-            const newCode = clone(code);
-            (newCode[lineNumber].value1 as ValueDirectionType).value = e.target.value as DirectionTypeWithHere;
-            setCode(newCode);
+            line.object.setOperand1Direction(e.target.value as Direction);
+            game.object.render();
         }}
     >
-        {['left', 'right', 'top', 'bottom', 'here', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((option:DirectionType) =>
+        {Object.values(Direction).map(option =>
             <MenuItem key={option} value={option}>
                 {directionIcon(option)}
                 {option}
             </MenuItem>)}
     </Select>}
-    {line.value1.type === 'slot' &&
+    {line.operand1type === CalcOperand.Slot &&
         <TextField
             type="number"
-            value={line.value1.slot}
+            value={line.operand1SlotValue}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code);
-                (newCode[lineNumber].value1 as ValueSlotType).slot = parseInt(e.target.value) || 0;
-                setCode(newCode);
+                line.object.setOperand1Slot(parseInt(e.target.value) || 0);
+                game.object.render();
             }}
         />}
 
     <Select
         IconComponent={null}
-        value={line.operation}
+        value={line.operator}
         variant="standard"
         onChange={e => {
-            const newCode = clone(code);
-            newCode[lineNumber].operation = e.target.value as any;
-            setCode(newCode);
+            line.operator = e.target.value as CalcOperator;
         }}
     >
-        {['+', '-', '*', '/'].map(option =>
+        {Object.values(CalcOperator).map(option =>
             <MenuItem key={option} value={option}>
                 {option}
             </MenuItem>)}
@@ -101,64 +93,57 @@ Calc
 
     <Select
         IconComponent={null}
-        value={line.value2.type}
+        value={line.operand2type}
         onChange={e => {
-            const newCode = clone(code);
             if (e.target.value === 'number') {
-                newCode[lineNumber].value2 = { type: 'number', value: 0 };
-            }
-            if (e.target.value === 'myitem') {
-                newCode[lineNumber].value2 = { type: 'myitem' };
+                line.object.setOperand2Number(0);
             }
             if (e.target.value === 'direction') {
-                newCode[lineNumber].value2 = { type: 'direction', value: 'left' };
+                line.object.setOperand2Direction(Direction.Up);
             }
             if (e.target.value === 'slot') {
-                newCode[lineNumber].value2 = { type: 'slot', slot: 1 };
+                line.object.setOperand2Slot(0);
             }
-            setCode(newCode);
+            game.object.render();
         }}
         variant="standard"
     >
         {['number', 'direction', 'slot', 'myitem'].map(option =>
             <MenuItem key={option} value={option}>{option}</MenuItem>)}
     </Select>
-    {line.value2.type === 'number' &&
+    {line.operand2type === CalcOperand.Number &&
         <TextField
             type="number"
-            value={line.value2.value}
+            value={line.operand2NumberValue}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code);
-                (newCode[lineNumber].value2 as ValueNumberType).value = parseInt(e.target.value) || 0;
-                setCode(newCode);
+                line.object.setOperand2Number(parseInt(e.target.value) || 0);
+                game.object.render();
             }}
         />}
-    {line.value2.type === 'direction' && <Select
+    {line.operand2type === CalcOperand.Direction && <Select
         IconComponent={null}
-        value={(line.value2 as ValueDirectionType).value}
+        value={line.operand2DirectionValue}
         variant="standard"
         onChange={e => {
-            const newCode = clone(code);
-            (newCode[lineNumber].value2 as ValueDirectionType).value = e.target.value as DirectionTypeWithHere;
-            setCode(newCode);
+            line.object.setOperand2Direction(e.target.value as Direction);
+            game.object.render();
         }}
     >
-        {['left', 'right', 'top', 'bottom', 'here', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((option:DirectionType) =>
+        {Object.values(Direction).map(option =>
             <MenuItem key={option} value={option}>
                 {directionIcon(option)}
                 {option}
             </MenuItem>)}
     </Select>}
-    {line.value2.type === 'slot' &&
+    {line.operand2type === CalcOperand.Slot &&
         <TextField
             type="number"
-            value={line.value2.slot}
+            value={line.operand2SlotValue}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code);
-                (newCode[lineNumber].value2 as ValueSlotType).slot = parseInt(e.target.value) || 0;
-                setCode(newCode);
+                line.object.setOperand2Slot(parseInt(e.target.value) || 0);
+                game.object.render();
             }}
         />}
 </span>;

@@ -8,8 +8,12 @@ import {
     DirectionType, DirectionTypeWithHere, IfOperationType, LineIfType, RenderLineType, ValueDirectionType, ValueNumberType, ValueSlotType,
 } from '../types';
 import { clone, directionIcon } from '../Utils';
+import {
+    IfCondition, OperandIfLeftType, OperandIfRightType, OperatorIfCondition, OperatorIfLogic, OperatorIfSerialized,
+} from '../Classes/Operators/OperatorIf';
+import { Direction } from '../Classes/Operators/OperatorStep';
 
-const ifRenderLine:RenderLineType<LineIfType> = (line, lineNumber, code, setCode):React.ReactNode => <span>
+const ifRenderLine:RenderLineType<OperatorIfSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 If:
     {' '}
     {line.conditions.map((condition, conditionKey) => <span key={conditionKey}>
@@ -18,157 +22,117 @@ If:
             value={condition.logic}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code) as LineIfType[];
-                newCode[lineNumber].conditions[conditionKey].logic = e.target.value as any;
-                setCode(newCode);
+                line.object.conditions[conditionKey].logic = e.target.value as OperatorIfLogic;
+                game.object.render();
             }}
         >
-            {['OR', 'AND'].map(option =>
+            {Object.values(OperatorIfLogic).map(option =>
                 <MenuItem key={option} value={option}>
                     {option}
                 </MenuItem>)}
         </Select>}
         <Select
             IconComponent={null}
-            value={condition.value1.type}
+            value={condition.leftType}
             onChange={e => {
-                const newCode = clone(code);
-                if (e.target.value === 'myitem') {
-                    newCode[lineNumber].conditions[conditionKey].value1 = { type: 'myitem' };
-                }
-                if (e.target.value === 'direction') {
-                    newCode[lineNumber].conditions[conditionKey].value1 = { type: 'direction', value: 'left' };
-                }
-                if (e.target.value === 'slot') {
-                    newCode[lineNumber].conditions[conditionKey].value1 = { type: 'slot', slot: 1 };
-                }
-                setCode(newCode);
+                line.object.conditions[conditionKey].leftType = e.target.value as OperandIfLeftType;
+                game.object.render();
             }}
             variant="standard"
         >
-            {['direction', 'myitem', 'slot'].map(option =>
+            {Object.values(OperandIfLeftType).map(option =>
                 <MenuItem key={option} value={option}>{option}</MenuItem>)}
         </Select>
-        {condition.value1.type === 'direction' && <Select
+        {condition.leftType === 'direction' && <Select
             IconComponent={null}
-            value={(condition.value1 as ValueDirectionType).value}
+            value={condition.leftDirection}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code) as LineIfType[];
-                (newCode[lineNumber].conditions[conditionKey].value1 as ValueDirectionType).value = e.target.value as DirectionTypeWithHere;
-                setCode(newCode);
+                line.object.conditions[conditionKey].leftDirection = e.target.value as Direction;
+                game.object.render();
             }}
         >
-            {['left', 'right', 'top', 'bottom', 'here', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((option:DirectionType) =>
+            {Object.values(Direction).map(option =>
                 <MenuItem key={option} value={option}>
                     {directionIcon(option)}
                     {option}
                 </MenuItem>)}
         </Select>}
-        {condition.value1.type === 'slot' &&
+        {condition.leftType === 'slot' &&
         <TextField
             type="number"
-            value={condition.value1.slot}
+            value={condition.leftSlot}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code) as LineIfType[];
-                (newCode[lineNumber].conditions[conditionKey].value1 as ValueSlotType).slot = parseInt(e.target.value) || 0;
-                setCode(newCode);
+                line.object.conditions[conditionKey].leftSlot = parseInt(e.target.value) || 0;
+                game.object.render();
             }}
         />}
         <Select
             IconComponent={null}
-            value={condition.operation}
+            value={condition.type}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code) as LineIfType[];
-                newCode[lineNumber].conditions[conditionKey].operation = e.target.value as IfOperationType;
-                setCode(newCode);
+                line.object.conditions[conditionKey].type = e.target.value as OperatorIfCondition;
+                game.object.render();
             }}
         >
-            {['==', '>', '<', '>=', '<='].map(option =>
+            {Object.values(OperatorIfCondition).map(option =>
                 <MenuItem key={option} value={option}>{option}</MenuItem>)}
         </Select>
         <Select
             IconComponent={null}
-            value={(line as LineIfType).conditions[conditionKey].value2.type}
+            value={condition.rightType}
             onChange={e => {
-                const newCode = clone(code) as LineIfType[];
-                if (e.target.value === 'number') {
-                    newCode[lineNumber].conditions[conditionKey].value2 = { type: 'number', value: 0 };
-                }
-                if (e.target.value === 'myitem') {
-                    newCode[lineNumber].conditions[conditionKey].value2 = { type: 'myitem' };
-                }
-                if (e.target.value === 'direction') {
-                    newCode[lineNumber].conditions[conditionKey].value2 = { type: 'direction', value: 'left' };
-                }
-                if (e.target.value === 'slot') {
-                    newCode[lineNumber].conditions[conditionKey].value2 = { type: 'slot', slot: 1 };
-                }
-                if (e.target.value === 'something') {
-                    newCode[lineNumber].conditions[conditionKey].value2 = { type: 'something' };
-                }
-                if (e.target.value === 'empty') {
-                    newCode[lineNumber].conditions[conditionKey].value2 = { type: 'empty' };
-                }
-                if (e.target.value === 'hole') {
-                    newCode[lineNumber].conditions[conditionKey].value2 = { type: 'hole' };
-                }
-                if (e.target.value === 'character') {
-                    newCode[lineNumber].conditions[conditionKey].value2 = { type: 'character' };
-                }
-                setCode(newCode);
+                line.object.conditions[conditionKey].rightType = e.target.value as OperandIfRightType;
+                game.object.render();
             }}
             variant="standard"
         >
-            {['number', 'direction', 'slot', 'myitem', 'something', 'empty', 'hole', 'character', 'box'].map(option =>
+            {Object.values(OperandIfLeftType).map(option =>
                 <MenuItem key={option} value={option}>{option}</MenuItem>)}
         </Select>
-        {condition.value2.type === 'number' &&
+        {condition.rightType === 'number' &&
         <TextField
             type="number"
-            value={condition.value2.value}
+            value={condition.rightNumber}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code) as LineIfType[];
-                (newCode[lineNumber].conditions[conditionKey].value2 as ValueNumberType).value = parseInt(e.target.value) || 0;
-                setCode(newCode);
+                line.object.conditions[conditionKey].rightNumber = parseInt(e.target.value) || 0;
+                game.object.render();
             }}
         />}
-        {condition.value2.type === 'direction' && <Select
+        {condition.rightType === 'direction' && <Select
             IconComponent={null}
-            value={(condition.value2 as ValueDirectionType).value}
+            value={condition.rightDirection}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code) as LineIfType[];
-                (newCode[lineNumber].conditions[conditionKey].value2 as ValueDirectionType).value = e.target.value as DirectionTypeWithHere;
-                setCode(newCode);
+                line.object.conditions[conditionKey].rightDirection = e.target.value as Direction;
+                game.object.render();
             }}
         >
-            {['left', 'right', 'top', 'bottom', 'here', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((option:DirectionType) =>
+            {Object.values(Direction).map(option =>
                 <MenuItem key={option} value={option}>
                     {directionIcon(option)}
                     {option}
                 </MenuItem>)}
         </Select>}
-        {condition.value2.type === 'slot' &&
+        {condition.rightType === 'slot' &&
         <TextField
             type="number"
-            value={condition.value2.slot}
+            value={condition.rightSlot}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code) as LineIfType[];
-                (newCode[lineNumber].conditions[conditionKey].value2 as ValueSlotType).slot = parseInt(e.target.value) || 0;
-                setCode(newCode);
+                line.object.conditions[conditionKey].rightSlot = parseInt(e.target.value) || 0;
             }}
         />}
         <IconButton
             size="small"
             onMouseDown={() => {
-                const newCode = clone(code) as LineIfType[];
-                newCode[lineNumber].conditions.splice(conditionKey, 1);
-                setCode(newCode);
+                const newCode = line.object.conditions;
+                newCode.splice(conditionKey, 1);
+                line.object.conditions = newCode;
+                game.object.render();
             }}
         >
             <ClearIcon />
@@ -177,14 +141,15 @@ If:
         <IconButton
             size="small"
             onMouseDown={() => {
-                const newCode = clone(code) as LineIfType[];
-                newCode[lineNumber].conditions.push({
-                    value1: { type: 'direction', value: 'here' },
-                    operation: '==',
-                    value2: { type: 'number', value: 0 },
-                    logic: 'OR',
+                line.object.conditions.push({
+                    logic: OperatorIfLogic.And,
+                    leftType: OperandIfLeftType.Slot,
+                    leftSlot: 0,
+                    type: OperatorIfCondition.Eq,
+                    rightType: OperandIfRightType.Number,
+                    rightSlot: 0,
                 });
-                setCode(newCode);
+                game.object.render();
             }}
         >
             <AddIcon />

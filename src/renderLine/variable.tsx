@@ -4,8 +4,9 @@ import {
     DirectionType, DirectionTypeWithHere, LineVariableType, RenderLineType, ValueDirectionType, ValueNumberType, ValueSlotType,
 } from '../types';
 import { clone, directionIcon } from '../Utils';
+import { OperatorVariableSerialized, OperatorVariableType } from '../Classes/Operators/OperatorVariable';
 
-const variableRenderLine:RenderLineType<LineVariableType> = (line, lineNumber, code, setCode):React.ReactNode => <span>
+const variableRenderLine:RenderLineType<OperatorVariableSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 Variable
     {' '}
     slot
@@ -14,48 +15,41 @@ Variable
         value={line.slot}
         variant="standard"
         onChange={e => {
-            const newCode = clone(code);
-            newCode[lineNumber].slot = parseInt(e.target.value) || 0;
-            setCode(newCode);
+            line.object.setSlot(parseInt(e.target.value) || 0);
+            game.object.render();
         }}
     />
     =
     <Select
         IconComponent={null}
-        value={line.value.type}
+        value={line.variableType}
         onChange={e => {
-            const newCode = clone(code);
             if (e.target.value === 'number') {
-                newCode[lineNumber].value = { type: 'number', value: 0 };
+                line.object.setNumberValue(0);
             }
             if (e.target.value === 'myitem') {
-                newCode[lineNumber].value = { type: 'myitem' };
-            }
-            if (e.target.value === 'direction') {
-                newCode[lineNumber].value = { type: 'direction', value: 'left' };
+                line.object.setMyItemValue();
             }
             if (e.target.value === 'slot') {
-                newCode[lineNumber].value = { type: 'slot', slot: 1 };
+                line.object.setSlotValue(0);
             }
-            setCode(newCode);
         }}
         variant="standard"
     >
-        {['number', 'direction', 'slot', 'myitem'].map(option =>
+        {Object.values(OperatorVariableType).map(option =>
             <MenuItem key={option} value={option}>{option}</MenuItem>)}
     </Select>
-    {line.value.type === 'number' &&
+    {line.variableType === 'number' &&
         <TextField
             type="number"
-            value={line.value.value}
+            value={line.numberValue}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code);
-                (newCode[lineNumber].value as ValueNumberType).value = parseInt(e.target.value) || 0;
-                setCode(newCode);
+                line.object.setNumberValue(parseInt(e.target.value) || 0);
+                game.object.render();
             }}
         />}
-    {line.value.type === 'direction' && <Select
+    {/* {line.value.type === 'direction' && <Select
         IconComponent={null}
         value={(line.value as ValueDirectionType).value}
         variant="standard"
@@ -70,16 +64,15 @@ Variable
                 {directionIcon(option)}
                 {option}
             </MenuItem>)}
-    </Select>}
-    {line.value.type === 'slot' &&
+    </Select>} */}
+    {line.variableType === 'slot' &&
         <TextField
             type="number"
-            value={line.value.slot}
+            value={line.slotValue}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code);
-                (newCode[lineNumber].value as ValueSlotType).slot = parseInt(e.target.value) || 0;
-                setCode(newCode);
+                line.object.setSlotValue(parseInt(e.target.value) || 0);
+                game.object.render();
             }}
         />}
 </span>;

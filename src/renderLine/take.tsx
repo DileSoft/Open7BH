@@ -7,15 +7,17 @@ import { clone, directionIcon } from '../Utils';
 import {
     DirectionType, LineTakeType, RenderLineType, ValueDirectionType, ValueSlotType,
 } from '../types';
+import { OperatorTakeSerialized } from '../Classes/Operators/OperatorTake';
+import { Direction } from '../Classes/Operators/OperatorStep';
 
-const takeRenderLine:RenderLineType<LineTakeType> = (line, lineNumber, code, setCode):React.ReactNode => <span>
+const takeRenderLine:RenderLineType<OperatorTakeSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 Take
     {' '}
     <ManIcon fontSize="small" />
     <WestIcon fontSize="small" />
     <CheckBoxOutlineBlankIcon fontSize="small" />
     {' '}
-    <Select
+    {/* <Select
         IconComponent={null}
         value={line.direction.type}
         onChange={e => {
@@ -38,24 +40,23 @@ Take
     >
         {['direction', 'slot'].map(option =>
             <MenuItem key={option} value={option}>{option}</MenuItem>)}
-    </Select>
+    </Select> */}
     <Select
         IconComponent={null}
-        value={(line.direction as ValueDirectionType).value}
+        value={line.direction}
         variant="standard"
         onChange={e => {
-            const newCode = clone(code);
-            (newCode[lineNumber].direction as ValueDirectionType).value = e.target.value as DirectionType;
-            setCode(newCode);
+            line.object.setDirection(e.target.value as Direction);
+            game.object.render();
         }}
     >
-        {['left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((direction:DirectionType) =>
+        {Object.values(Direction).map(direction =>
             <MenuItem key={direction} value={direction}>
                 {directionIcon(direction)}
                 {direction}
             </MenuItem>)}
     </Select>
-    {line.direction.type === 'slot' &&
+    {/* {line.direction.type === 'slot' &&
         <TextField
             type="number"
             value={line.direction.slot}
@@ -65,7 +66,7 @@ Take
                 (newCode[lineNumber].direction as ValueSlotType).slot = parseInt(e.target.value) || 0;
                 setCode(newCode);
             }}
-        />}
+        />} */}
 </span>;
 
 export default takeRenderLine;

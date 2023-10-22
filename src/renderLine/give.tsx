@@ -7,17 +7,19 @@ import {
     DirectionType, LineGiveType, RenderLineType, ValueDirectionType, ValueSlotType,
 } from '../types';
 import { clone, directionIcon } from '../Utils';
+import { OperatorGiveSerialized } from '../Classes/Operators/OperatorGive';
+import { Direction } from '../Classes/Operators/OperatorStep';
 
-const giveRenderLine:RenderLineType<LineGiveType> = (line, lineNumber, code, setCode):React.ReactNode => <span>
+const giveRenderLine:RenderLineType<OperatorGiveSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 Give:
     {' '}
     <ManIcon fontSize="small" />
     <EastIcon fontSize="small" />
     <CheckBoxOutlineBlankIcon fontSize="small" />
     {' '}
-    <Select
+    {/* <Select
         IconComponent={null}
-        value={line.direction.type}
+        value={line.direction}
         onChange={e => {
             const newCode = clone(code);
             if (e.target.value === 'direction') {
@@ -38,34 +40,32 @@ Give:
     >
         {['direction', 'slot'].map(option =>
             <MenuItem key={option} value={option}>{option}</MenuItem>)}
-    </Select>
+    </Select> */}
     <Select
         IconComponent={null}
-        value={(line.direction as ValueDirectionType).value}
+        value={line.direction}
         variant="standard"
         onChange={e => {
-            const newCode = clone(code);
-            (newCode[lineNumber].direction as ValueDirectionType).value = e.target.value as DirectionType;
-            setCode(newCode);
+            line.object.setDirection(e.target.value as Direction);
+            game.object.render();
         }}
     >
-        {['left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((direction:DirectionType) =>
+        {Object.values(Direction).map(direction =>
             <MenuItem key={direction} value={direction}>
                 {directionIcon(direction)}
                 {direction}
             </MenuItem>)}
     </Select>
-    {line.direction.type === 'slot' &&
+    {/* {line.direction.type === 'slot' &&
         <TextField
             type="number"
-            value={line.direction.slot}
+            value={line.slot}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code);
-                (newCode[lineNumber].direction as ValueSlotType).slot = parseInt(e.target.value) || 0;
-                setCode(newCode);
+                line.object.slot = parseInt(e.target.value) || 0;
+                game.object.render();
             }}
-        />}
+        />} */}
 </span>;
 
 export default giveRenderLine;

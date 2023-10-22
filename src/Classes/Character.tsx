@@ -85,6 +85,7 @@ class Character {
             this.item = null;
         }
         if (newCell && (newCell instanceof Shredder) && this.item) {
+            newCell.shred();
             this.item = null;
         }
     }

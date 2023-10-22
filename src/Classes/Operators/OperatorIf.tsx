@@ -3,8 +3,9 @@ import Level from '../Level';
 import Slot from '../Slot';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';
 import OperatorEndIf from './OperatorEndIf';
+import { Direction } from './OperatorStep';
 
-enum OperatorIfCondition {
+export enum OperatorIfCondition {
     Eq = 'eq',
     Ne = 'ne',
     Gt = 'gt',
@@ -13,24 +14,35 @@ enum OperatorIfCondition {
     Le = 'le',
 }
 
-enum OperatorIfLogic {
+export enum OperatorIfLogic {
     And = 'and',
     Or = 'or',
 }
 
-enum OperandIfType {
+export enum OperandIfLeftType {
+    Direction = 'direction',
     Number = 'number',
     Slot = 'slot',
+    MyItem = 'myItem',
 }
 
-interface IfCondition {
+export enum OperandIfRightType {
+    Direction = 'direction',
+    Number = 'number',
+    Slot = 'slot',
+    MyItem = 'myItem',
+}
+
+export interface IfCondition {
     type: OperatorIfCondition;
-    leftType: OperandIfType;
+    leftType: OperandIfLeftType;
     leftNumber?: number;
     leftSlot?: number,
-    rightType: OperandIfType;
+    leftDirection?: Direction,
+    rightType: OperandIfRightType;
     rightNumber?: number;
     rightSlot?: number,
+    rightDirection?: Direction,
     logic?: OperatorIfLogic;
 }
 
@@ -50,10 +62,10 @@ class OperatorIf extends Operator {
         super(level);
         this.conditions.push({
             type: OperatorIfCondition.Eq,
-            leftType: OperandIfType.Number,
+            leftType: OperandIfLeftType.Number,
             leftNumber: 0,
             leftSlot: null,
-            rightType: OperandIfType.Number,
+            rightType: OperandIfRightType.Number,
             rightNumber: 0,
             rightSlot: null,
             logic: OperatorIfLogic.Or,
@@ -66,15 +78,23 @@ class OperatorIf extends Operator {
             let conditionResult = false;
             let left = 0;
             let right = 0;
-            if (condition.leftType === OperandIfType.Number) {
+            if (condition.leftType === OperandIfLeftType.Number) {
                 left = condition.leftNumber;
-            } else if (condition.leftType === OperandIfType.Slot) {
+            } else if (condition.leftType === OperandIfLeftType.Slot) {
                 left = character.slots[condition.leftSlot].getNumberValue();
+            } else if (condition.leftType === OperandIfLeftType.MyItem) {
+                left = character.item?.value || 0;
+            } else if (condition.leftType === OperandIfLeftType.Direction) {
+                left = this.level.getMoveCell(character.cell.x, character.cell.y, condition.leftDirection).item?.value || 0;
             }
-            if (condition.rightType === OperandIfType.Number) {
+            if (condition.rightType === OperandIfRightType.Number) {
                 right = condition.rightNumber;
-            } else if (condition.rightType === OperandIfType.Slot) {
+            } else if (condition.rightType === OperandIfRightType.Slot) {
                 right = character.slots[condition.rightSlot].getNumberValue();
+            } else if (condition.rightType === OperandIfRightType.MyItem) {
+                right = character.item?.value || 0;
+            } else if (condition.rightType === OperandIfRightType.Direction) {
+                right = this.level.getMoveCell(character.cell.x, character.cell.y, condition.rightDirection).item?.value || 0;
             }
             switch (condition.type) {
                 case OperatorIfCondition.Eq:
@@ -105,6 +125,11 @@ class OperatorIf extends Operator {
             }
         });
         return result;
+    }
+
+    remove() {
+        const endIf = this.level.game.code.findIndex(operator => operator === this.operatorEndIf);
+        this.level.game.code.splice(endIf, 1);
     }
 
     execute(character: Character): number {

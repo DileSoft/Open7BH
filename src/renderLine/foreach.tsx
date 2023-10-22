@@ -4,8 +4,10 @@ import {
     DirectionType, LineForEachType, RenderLineType,
 } from '../types';
 import { clone, directionIcon } from '../Utils';
+import { OperatorForeachSerialized } from '../Classes/Operators/OperatorForeach';
+import { Direction } from '../Classes/Operators/OperatorStep';
 
-const foreachRenderLine:RenderLineType<LineForEachType> = (line, lineNumber, code, setCode):React.ReactNode => <span>
+const foreachRenderLine:RenderLineType<OperatorForeachSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 Foreach:
     {' '}
     <Select
@@ -14,12 +16,11 @@ Foreach:
         variant="standard"
         multiple
         onChange={e => {
-            const newCode = clone(code);
-            newCode[lineNumber].directions = e.target.value as DirectionType[];
-            setCode(newCode);
+            line.object.setDirections(e.target.value as Direction[]);
+            game.object.render();
         }}
     >
-        {['left', 'right', 'top', 'bottom', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((direction:DirectionType) =>
+        {Object.values(Direction).map(direction =>
             <MenuItem key={direction} value={direction}>
                 {directionIcon(direction)}
                 {direction}
@@ -27,12 +28,11 @@ Foreach:
     </Select>
     <TextField
         type="number"
-        value={line.slot}
+        value={line.slotNumber}
         variant="standard"
         onChange={e => {
-            const newCode = clone(code);
-            newCode[lineNumber].slot = parseInt(e.target.value) || 0;
-            setCode(newCode);
+            line.object.slotNumber = parseInt(e.target.value) || 0;
+            game.object.render();
         }}
     />
 </span>;

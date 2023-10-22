@@ -7,6 +7,7 @@ import Hole from './Hole';
 import { OperatorType } from './Operators/Operator';
 import { Direction } from './Operators/OperatorStep';
 import Printer from './Printer';
+import Shredder from './Shredder';
 
 type WinCallback = (level: Level) => boolean;
 
@@ -75,6 +76,9 @@ class Level {
                 if (cellData[0] === 'printer') {
                     cellObject.type = CellType.Printer;
                 }
+                if (cellData[0] === 'shredder') {
+                    cellObject.type = CellType.Shredder;
+                }
                 const character = characters.find(_character => _character.coordinates[0] === cellIndex && _character.coordinates[1] === lineIndex);
                 if (character) {
                     cellObject.character = character;
@@ -137,6 +141,9 @@ class Level {
             }
             if (cell.type === CellType.Printer) {
                 cellObject = new Printer(this, cell.x, cell.y);
+            }
+            if (cell.type === CellType.Shredder) {
+                cellObject = new Shredder(this, cell.x, cell.y);
             }
             if (cell.character) {
                 cellObject.setCharacter(new Character(cellObject, cell.character.name));

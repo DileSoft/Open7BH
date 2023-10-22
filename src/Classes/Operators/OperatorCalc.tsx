@@ -3,20 +3,20 @@ import NumberSlot from '../NumberSlot';
 import Operator, { OperatorType } from './Operator';
 import { Direction } from './OperatorStep';
 
-enum CalcOperator {
+export enum CalcOperator {
     Add = '+',
     Subtract = '-',
     Multiply = '*',
     Divide = '/',
 }
 
-enum CalcOperand {
+export enum CalcOperand {
     Number = 'number',
     Direction = 'direction',
     Slot = 'slot',
 }
 
-interface OperatorCalcSerialized {
+export interface OperatorCalcSerialized {
     type: OperatorType.Calc,
     operand1type: CalcOperand,
     operand1NumberValue: number,
@@ -28,6 +28,7 @@ interface OperatorCalcSerialized {
     operand2DirectionValue: Direction,
     operand2SlotValue: number,
     slotResult: number,
+    object?: OperatorCalc,
 }
 
 class OperatorCalc extends Operator {
@@ -78,7 +79,37 @@ class OperatorCalc extends Operator {
         return character.currentLine + 1;
     }
 
-    serialize(): OperatorCalcSerialized {
+    setOperand1Number(value: number) {
+        this.operand1type = CalcOperand.Number;
+        this.operand1NumberValue = value;
+    }
+
+    setOperand1Direction(value: Direction) {
+        this.operand1type = CalcOperand.Direction;
+        this.operand1DirectionValue = value;
+    }
+
+    setOperand1Slot(value: number) {
+        this.operand1type = CalcOperand.Slot;
+        this.operand1SlotValue = value;
+    }
+
+    setOperand2Number(value: number) {
+        this.operand2type = CalcOperand.Number;
+        this.operand2NumberValue = value;
+    }
+
+    setOperand2Direction(value: Direction) {
+        this.operand2type = CalcOperand.Direction;
+        this.operand2DirectionValue = value;
+    }
+
+    setOperand2Slot(value: number) {
+        this.operand2type = CalcOperand.Slot;
+        this.operand2SlotValue = value;
+    }
+
+    serialize(withObject = false): OperatorCalcSerialized {
         return {
             type: OperatorType.Calc,
             operand1type: this.operand1type,
@@ -91,6 +122,7 @@ class OperatorCalc extends Operator {
             operand2DirectionValue: this.operand2DirectionValue,
             operand2SlotValue: this.operand2SlotValue,
             slotResult: this.slotResult,
+            object: withObject ? this : undefined,
         };
     }
 }
