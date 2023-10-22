@@ -299,6 +299,29 @@ class Level {
             }
         }
     }
+
+    changeSize(width: number, height: number) {
+        for (let x = 0; x < width; x++) {
+            for (let y = 0; y < height; y++) {
+                if (!this.cells[`${x}x${y}`]) {
+                    this.cells[`${x}x${y}`] = new Empty(this, x, y);
+                }
+            }
+        }
+        this.width = width;
+        this.height = height;
+    }
+
+    crop(width: number, height: number) {
+        Object.keys(this.cells).forEach(key => {
+            const coordinates = key.split('x');
+            if (parseInt(coordinates[0]) >= width || parseInt(coordinates[1]) >= height) {
+                delete this.cells[key];
+            }
+        });
+        this.width = width;
+        this.height = height;
+    }
 }
 
 export default Level;

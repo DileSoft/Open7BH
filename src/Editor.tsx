@@ -6,109 +6,91 @@ import {
 import copy from 'copy-to-clipboard';
 import { useState } from 'react';
 import Cells from './Cells';
-import { CellTypeType, CoordinatesType, LevelType } from './types';
+import { CoordinatesType } from './types';
 import {
-    cellsStringify, clone, parseCells, parseCoordinates,
+    cellsStringify, clone, parseCoordinates,
 } from './Utils';
 import levels from './levelsList';
+import Game, { GameSerialized } from './Classes/Game';
+import { CellSerializedType } from './Classes/Level';
+import Cell, { CellType } from './Classes/Cell';
+import Box from './Classes/Box';
+import Character from './Classes/Character';
+import Empty from './Classes/Empty';
 
 function Editor(props) {
-    const [level, setLevel] = useState<LevelType>({
-        cells: parseCells('empty'),
-        code: [],
-        characters: [],
-        height: 1,
-        width: 1,
-        task: '',
-        win: (cells, characters) => false,
+    const [game, setGame] = useState<GameSerialized>(() => {
+        const newGame = new Game();
+        newGame.deserialize({ level: levels[0] });
+        newGame.renderCallback = _game => setGame(_game);
+        return newGame.serialize(true);
     });
 
     const [cellDialog, setCellDialog] = useState<CoordinatesType | boolean>(false);
-    const selectedCell = level.cells[cellDialog as CoordinatesType];
+    const selectedCell:Cell = game.object.level.cells[cellDialog as CoordinatesType];
     const [template, setTemplate] = useState(0);
 
-    const changeSize = (newWidth: number, newHeight: number) => {
-        const newLevel = clone(level);
-        for (let x = 0; x < newWidth; x++) {
-            for (let y = 0; y < newHeight; y++) {
-                if (!newLevel.cells[`${x}x${y}`]) {
-                    newLevel.cells[`${x}x${y}`] = {
-                        type: 'nothing',
-                    };
-                }
-            }
-        }
-        newLevel.width = newWidth;
-        newLevel.height = newHeight;
-        setLevel(newLevel);
-    };
-
-    const levelStringify = `{
-        task: ${JSON.stringify(level.task)},
-        code: [],
-        cells: \`${cellsStringify(level.cells)}\`,
-        characters: ${JSON.stringify(level.characters, null, 2)},
-        width: ${level.width},
-        height: ${level.height},
-        win: ${level.win?.toString() || 'null'}
-    }`;
+    const levelStringify = JSON.stringify(game.object.serialize(), null, 2);
 
     return <div>
         <div>
             <Select variant="standard" value={template} onChange={e => setTemplate(parseInt(e.target.value as string))}>
                 {levels.map((currentLevel, number) => <MenuItem key={number} value={number}>{currentLevel.task}</MenuItem>)}
             </Select>
-            <Button onClick={() => setLevel(levels[template])}>Import</Button>
+            <Button onClick={() => {
+                const _game = new Game();
+                _game.deserialize({ level: levels[template] });
+                _game.renderCallback = _game => setGame(_game);
+                _game.render();
+            }}
+            >
+Import
+            </Button>
         </div>
         <div>
             <TextField
                 label="width"
-                value={level.width}
+                value={game.level.width}
                 variant="standard"
-                onChange={e => changeSize(parseInt(e.target.value), level.height)}
+                onChange={e => {
+                    game.object.level.changeSize(parseInt(e.target.value), game.level.height);
+                    game.object.render();
+                }}
             />
             <TextField
                 label="height"
-                value={level.height}
+                value={game.level.height}
                 variant="standard"
-                onChange={e => changeSize(level.width, parseInt(e.target.value))}
+                onChange={e => {
+                    game.object.level.changeSize(game.level.width, parseInt(e.target.value));
+                    game.object.render();
+                }}
             />
             <Button onClick={() => {
-                const newLevel = clone(level);
-                Object.keys(newLevel.cells).forEach(coordinates => {
-                    const coordinatesArray = parseCoordinates(coordinates);
-                    if (coordinatesArray[0] > newLevel.width - 1 || coordinatesArray[1] > newLevel.height - 1) {
-                        delete newLevel.cells[coordinates];
-                    }
-                });
-                setLevel(newLevel);
+                game.object.level.crop(game.object.level.width, game.object.level.height);
+                game.object.render();
             }}
             >
 Crop
             </Button>
         </div>
         <Cells
-            cells={level.cells}
-            characters={level.characters}
-            width={level.width}
-            height={level.height}
-            run={false}
-            speed={0}
+            game={game}
             onClick={(coordinates => setCellDialog(coordinates))}
         />
         <div>
             <div>
-                <Button onClick={() => copy(cellsStringify(level.cells))}>Copy cells</Button>
-                <Button onClick={() => copy(JSON.stringify(level.characters, null, 2))}>Copy characters</Button>
+                <Button onClick={() => copy(cellsStringify(game.object.level.serialize(false)))}>Copy cells</Button>
+                <Button onClick={() => copy(JSON.stringify(game.object.level.getCharacters(), null, 2))}>Copy characters</Button>
                 <Button onClick={() => copy(levelStringify)}>Copy level</Button>
             </div>
             <pre>
                 <div>
                     {levelStringify}
                 </div>
-                <div>{cellsStringify(level.cells)}</div>
+                <div>{cellsStringify(game.object.level.serialize(false))}</div>
                 <div>
-                    {JSON.stringify(level, (key, val) => {
+                    {JSON.stringify(game.object.serialize(), (key, val) => {
                         if (typeof val === 'function') {
                             return `${val}`; // implicitly `toString` it
                         }
@@ -122,26 +104,25 @@ Crop
             <DialogContent>
                 <div>
                     <Select
-                        value={selectedCell?.type}
+                        value={selectedCell?.getType()}
                         onChange={e => {
-                            const newLevel = clone(level);
-                            newLevel.cells[cellDialog as CoordinatesType].type = e.target.value as CellTypeType;
-                            setLevel(newLevel);
+                            const coordinates = parseCoordinates(cellDialog as CoordinatesType);
+                            game.object.level.addCell(coordinates[0], coordinates[1], new Empty(game.object.level, coordinates[0], coordinates[1]));
+                            game.object.render();
                         }}
                     >
-                        {['nothing', 'empty', 'printer', 'shredder', 'wall'].map(option =>
+                        {Object.values(CellType).map(option =>
                             <MenuItem value={option} key={option}>{option}</MenuItem>)}
                     </Select>
                 </div>
-                {selectedCell?.type === 'empty' ? <div>
+                {selectedCell?.getType() === 'empty' ? <div>
 Item:
                     {' '}
                     <Checkbox
                         checked={!!selectedCell?.item}
                         onChange={e => {
-                            const newLevel = clone(level);
-                            newLevel.cells[cellDialog as CoordinatesType].item = e.target.checked ? { type: 'box', value: 0 } : null;
-                            setLevel(newLevel);
+                            e.target.checked ? selectedCell.setItem(new Box(0)) : selectedCell.setItem(null);
+                            game.object.render();
                         }}
                     />
                 </div> : null}
@@ -151,30 +132,26 @@ Item:
                         value={selectedCell?.item?.value}
                         variant="standard"
                         onChange={e => {
-                            const newLevel = clone(level);
-                            newLevel.cells[cellDialog as CoordinatesType].item.value = parseInt(e.target.value);
-                            setLevel(newLevel);
+                            selectedCell.item.value = parseInt(e.target.value) || 0;
+                            game.object.render();
                         }}
                     />
                 </div> : null}
-                {selectedCell?.type === 'empty' ? <div>
+                {selectedCell?.getType() === 'empty' ? <div>
 Character:
                     {' '}
                     <Checkbox
-                        checked={!!level.characters.find(character => character.coordinates === cellDialog)}
+                        checked={!!selectedCell.character}
                         onChange={e => {
-                            const newLevel = clone(level);
                             if (e.target.checked) {
-                                newLevel.characters.push({
-                                    color: 'green',
-                                    name: `${newLevel.characters.length + 1}`,
-                                    step: -1,
-                                    coordinates: cellDialog as CoordinatesType,
-                                });
+                                selectedCell.setCharacter(
+                                    new Character(selectedCell, `${game.object.level.getCharacters().length + 1}`),
+                                );
+                                selectedCell.character.color = 'green';
                             } else {
-                                newLevel.characters.splice(newLevel.characters.findIndex(character => character.coordinates === cellDialog), 1);
+                                selectedCell.character = null;
                             }
-                            setLevel(newLevel);
+                            game.object.render();
                         }}
                     />
                 </div> : null}
