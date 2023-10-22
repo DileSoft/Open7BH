@@ -1,10 +1,10 @@
 import { MenuItem, Select, TextField } from '@mui/material';
 import React from 'react';
 import {
-    DirectionType, LineStepType, RenderLineType, StepDirection, ValueSlotType,
+    RenderLineType,
 } from '../types';
-import { clone, directionIcon } from '../Utils';
-import OperatorStep, { Direction, OperatorStepSerialized, StepType } from '../Classes/Operators/OperatorStep';
+import { directionIcon } from '../Utils';
+import { Direction, OperatorStepSerialized, StepType } from '../Classes/Operators/OperatorStep';
 
 const stepRenderLine:RenderLineType<OperatorStepSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 Step:
@@ -17,12 +17,10 @@ Step:
                 line.object.setDirection([Direction.Down]);
                 game.object.render();
             }
-            // if (e.target.value === 'slot') {
-            //     newCode[lineNumber].destination = {
-            //         type: 'slot',
-            //         slot: 1,
-            //     };
-            // }
+            if (e.target.value === StepType.Slot) {
+                line.object.setSlot(0);
+                game.object.render();
+            }
         }}
         variant="standard"
     >
@@ -46,17 +44,16 @@ Step:
                 {direction}
             </MenuItem>)}
     </Select>}
-    {/* {line.object.type === StepType.Slot &&
+    {line.object.type === StepType.Slot &&
         <TextField
             type="number"
-            value={line.object.slot}
+            value={line.slot}
             variant="standard"
             onChange={e => {
-                const newCode = clone(code);
-                (newCode[lineNumber].destination as ValueSlotType).slot = parseInt(e.target.value) || 0;
-                setCode(newCode);
+                line.object.setSlot(parseInt(e.target.value) || 0);
+                game.object.render();
             }}
-        />} */}
+        />}
 </span>;
 
 export default stepRenderLine;

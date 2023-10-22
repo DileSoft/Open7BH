@@ -4,7 +4,6 @@ import Character from './Character';
 import Empty from './Empty';
 import Game from './Game';
 import Hole from './Hole';
-import { OperatorType } from './Operators/Operator';
 import { Direction } from './Operators/OperatorStep';
 import Printer from './Printer';
 import Shredder from './Shredder';
@@ -199,6 +198,11 @@ class Level {
                 }
             });
         }
+        characters.forEach(character => {
+            if (character.cell.getType() === CellType.Hole) {
+                character.die();
+            }
+        });
         console.log(this.getCharacters().filter(character => character.nextMove));
     }
 
@@ -242,15 +246,16 @@ class Level {
         return Object.values(this.cells).map(cell => cell.getCharacter()).filter(character => character !== null);
     }
 
-    findNear(from: [number, number], cellType: CellType): Cell[] {
+    findNear(from: [number, number], find: (cell:Cell)=>boolean): Cell[] {
         const founded: string[] = [];
         const marked: { [coordinates: string]: number } = {
             [`${from[0]}x${from[1]}`]: 0,
         };
-        this.markNearRecursive(from, cellType, 1, marked, founded);
+        this.markNearRecursive(from, find, 1, marked, founded);
         if (founded.length) {
             founded.sort((a, b) => marked[a] - marked[b]);
             const path = this.getPathRecursive(this.cells[founded[0]], marked);
+            path.reverse();
             return path;
         }
         return [];
@@ -271,7 +276,7 @@ class Level {
         return result;
     }
 
-    markNearRecursive(from: [number, number], cellType: CellType, distance: number, marked: { [coordinates: string]: number } = {}, founded: string[] = []): void {
+    markNearRecursive(from: [number, number], find: (cell:Cell)=>boolean, distance: number, marked: { [coordinates: string]: number } = {}, founded: string[] = []): void {
         if (this.cells[`${from[0]}x${from[1]}`]) {
             for (const k in Object.values(Direction)) {
                 const direction = Object.values(Direction)[k];
@@ -279,18 +284,18 @@ class Level {
                 if (!cell) {
                     continue;
                 }
-                if (cell.getType() !== CellType.Empty && cell.getType() !== cellType) {
+                if (cell.getType() !== CellType.Empty && !find(cell)) {
                     continue;
                 }
                 if (marked[`${cell.x}x${cell.y}`] !== undefined && marked[`${cell.x}x${cell.y}`] <= distance) {
                     continue;
                 }
                 marked[`${cell.x}x${cell.y}`] = distance;
-                if (cell && cell.getType() === cellType) {
+                if (cell && find(cell)) {
                     founded.push(`${cell.x}x${cell.y}`);
                     return;
                 }
-                this.markNearRecursive([cell.x, cell.y], cellType, distance + 1, marked, founded);
+                this.markNearRecursive([cell.x, cell.y], find, distance + 1, marked, founded);
             }
         }
     }

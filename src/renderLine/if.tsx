@@ -5,11 +5,11 @@ import React from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import ClearIcon from '@mui/icons-material/Clear';
 import {
-    DirectionType, DirectionTypeWithHere, IfOperationType, LineIfType, RenderLineType, ValueDirectionType, ValueNumberType, ValueSlotType,
+    RenderLineType,
 } from '../types';
-import { clone, directionIcon } from '../Utils';
+import { directionIcon } from '../Utils';
 import {
-    IfCondition, OperandIfLeftType, OperandIfRightType, OperatorIfCondition, OperatorIfLogic, OperatorIfSerialized,
+    OperandIfLeftType, OperandIfRightType, OperatorIfCondition, OperatorIfLogic, OperatorIfSerialized,
 } from '../Classes/Operators/OperatorIf';
 import { Direction } from '../Classes/Operators/OperatorStep';
 

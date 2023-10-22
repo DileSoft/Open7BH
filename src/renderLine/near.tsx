@@ -1,9 +1,8 @@
 import { MenuItem, Select, TextField } from '@mui/material';
 import React from 'react';
 import {
-    LineNearType, RenderLineType,
+    RenderLineType,
 } from '../types';
-import { clone } from '../Utils';
 import { OperatorNearSerialized, OperatorNearType } from '../Classes/Operators/OperatorNear';
 
 const nearRenderLine:RenderLineType<OperatorNearSerialized> = (line, lineNumber, game):React.ReactNode => <span>

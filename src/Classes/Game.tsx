@@ -2,12 +2,12 @@ import Level, { LevelSerializedType } from './Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operators/Operator';
 import OperatorDrop from './Operators/OperatorDrop';
 import OperatorEnd from './Operators/OperatorEnd';
-import OperatorEndIf from './Operators/OperatorEndIf';
 import OperatorForeach from './Operators/OperatorForeach';
 import OperatorGive from './Operators/OperatorGive';
 import OperatorGoto from './Operators/OperatorGoto';
 import OperatorHear from './Operators/OperatorHear';
 import OperatorIf from './Operators/OperatorIf';
+import OperatorNear from './Operators/OperatorNear';
 import OperatorPickup from './Operators/OperatorPickup';
 import OperatorSay from './Operators/OperatorSay';
 import OperatorStep from './Operators/OperatorStep';
@@ -91,6 +91,9 @@ class Game {
         }
         if (operator === OperatorType.Give) {
             operatorObject = new OperatorGive(this.level);
+        }
+        if (operator === OperatorType.Near) {
+            operatorObject = new OperatorNear(this.level);
         }
 
         if (operatorObject) {

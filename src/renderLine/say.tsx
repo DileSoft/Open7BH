@@ -1,9 +1,9 @@
 import { MenuItem, Select, TextField } from '@mui/material';
 import React from 'react';
 import {
-    DirectionType, LineSayType, RenderLineType, ValueDirectionType, ValueSlotType,
+    RenderLineType,
 } from '../types';
-import { clone, directionIcon } from '../Utils';
+import { directionIcon } from '../Utils';
 import { OperatorSaySerialized } from '../Classes/Operators/OperatorSay';
 import { Direction } from '../Classes/Operators/OperatorStep';
 

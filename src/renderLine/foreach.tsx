@@ -1,9 +1,9 @@
 import { MenuItem, Select, TextField } from '@mui/material';
 import React from 'react';
 import {
-    DirectionType, LineForEachType, RenderLineType,
+    RenderLineType,
 } from '../types';
-import { clone, directionIcon } from '../Utils';
+import { directionIcon } from '../Utils';
 import { OperatorForeachSerialized } from '../Classes/Operators/OperatorForeach';
 import { Direction } from '../Classes/Operators/OperatorStep';
 

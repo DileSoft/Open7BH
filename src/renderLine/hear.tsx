@@ -1,7 +1,6 @@
 import { TextField } from '@mui/material';
 import React from 'react';
-import { LineHearType, RenderLineType } from '../types';
-import { clone } from '../Utils';
+import { RenderLineType } from '../types';
 import { OperatorHearSerialized } from '../Classes/Operators/OperatorHear';
 
 const hearRenderLine:RenderLineType<OperatorHearSerialized> = (line, lineNumber, game):React.ReactNode => <span>

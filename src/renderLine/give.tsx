@@ -4,9 +4,9 @@ import ManIcon from '@mui/icons-material/Man';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import EastIcon from '@mui/icons-material/East';
 import {
-    DirectionType, LineGiveType, RenderLineType, ValueDirectionType, ValueSlotType,
+    RenderLineType,
 } from '../types';
-import { clone, directionIcon } from '../Utils';
+import { directionIcon } from '../Utils';
 import { OperatorGiveSerialized } from '../Classes/Operators/OperatorGive';
 import { Direction } from '../Classes/Operators/OperatorStep';
 

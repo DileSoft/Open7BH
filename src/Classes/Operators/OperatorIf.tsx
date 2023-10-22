@@ -1,6 +1,5 @@
 import Character from '../Character';
 import Level from '../Level';
-import Slot from '../Slot';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';
 import OperatorEndIf from './OperatorEndIf';
 import { Direction } from './OperatorStep';

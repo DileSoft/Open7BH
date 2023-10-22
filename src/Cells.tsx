@@ -1,7 +1,7 @@
 import ManIcon from '@mui/icons-material/Man';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 
-import { CellsType, CharacterType, CoordinatesType } from './types';
+import { CoordinatesType } from './types';
 import { parseCoordinates } from './Utils';
 import { GameSerialized, GameState } from './Classes/Game';
 import Empty from './Classes/Empty';

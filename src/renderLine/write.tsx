@@ -1,9 +1,8 @@
-import { MenuItem, Select, TextField } from '@mui/material';
+import { TextField } from '@mui/material';
 import React from 'react';
 import {
-    DirectionType, DirectionTypeWithHere, LineWriteType, RenderLineType, ValueDirectionType, ValueNumberType, ValueSlotType,
+    RenderLineType,
 } from '../types';
-import { clone, directionIcon } from '../Utils';
 import { OperatorWriteSerialized } from '../Classes/Operators/OperatorWrite';
 
 const writeRenderLine:RenderLineType<OperatorWriteSerialized> = (line, lineNumber, game):React.ReactNode => <span>

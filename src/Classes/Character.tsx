@@ -1,9 +1,7 @@
 import Box from './Box';
 import Cell from './Cell';
-import Hole from './Hole';
-import Level from './Level';
 import NumberSlot from './NumberSlot';
-import OperatorStep, { Direction } from './Operators/OperatorStep';
+import { Direction } from './Operators/OperatorStep';
 import Printer from './Printer';
 import Shredder from './Shredder';
 import Slot from './Slot';
@@ -138,6 +136,7 @@ class Character {
     die() {
         this.isDead = true;
         this.terminate();
+        this.cell.character = null;
     }
 }
 

@@ -4,11 +4,6 @@ import {
 import React from 'react';
 
 import DeleteIcon from '@mui/icons-material/Delete';
-import {
-    LineCalcType,
-    LineDropType, LineForEachType, LineGiveType, LineGotoType, LineHearType, LineIfType, LineNearType, LinePickupType, LineSayType, LineStepType, LineTakeType, LineType, LineVariableType,
-    LineEndType, LineWriteType,
-} from '../types';
 import stepRenderLine from './step';
 import giveRenderLine from './give';
 import takeRenderLine from './take';
@@ -24,7 +19,7 @@ import hearRenderLine from './hear';
 import foreachRenderLine from './foreach';
 import endRenderLine from './end';
 import writeRenderLine from './write';
-import Operator, { OperatorSerialized } from '../Classes/Operators/Operator';
+import { OperatorSerialized } from '../Classes/Operators/Operator';
 import { GameSerialized } from '../Classes/Game';
 import { OperatorStepSerialized } from '../Classes/Operators/OperatorStep';
 import { OperatorPickupSerialized } from '../Classes/Operators/OperatorPickup';

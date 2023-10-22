@@ -1,14 +1,14 @@
 import { CellType } from '../Cell';
 import CellSlot from '../CellSlot';
 import Character from '../Character';
-import NumberSlot from '../NumberSlot';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';
+import { Direction } from './OperatorStep';
 
 export enum OperatorNearType {
-    Printer = CellType.Printer,
-    Shredder = CellType.Shredder,
-    Hole = CellType.Hole,
-    Empty = CellType.Empty,
+    Printer = 'printer',
+    Shredder = 'shredder',
+    Hole = 'hole',
+    Empty = 'empty',
 }
 
 export interface OperatorNearSerialized extends OperatorSerialized {
@@ -28,12 +28,16 @@ class OperatorNear extends Operator {
     slotValue = 0;
 
     execute(character: Character): number {
-        const path = this.level.findNear([character.cell.x, character.cell.y], (this.nearType as CellType));
-
-        if (path[1]) {
-            character.slots[this.slot] = new CellSlot(character);
-            (character.slots[this.slot] as CellSlot).setCell(path[1]);
+        const path = this.level.findNear(
+            [character.cell.x, character.cell.y],
+            cell => cell.getType() === (this.nearType as CellType),
+        );
+        let cell = path[path.length - 1];
+        if (this.nearType === OperatorNearType.Printer || this.nearType === OperatorNearType.Shredder) {
+            cell = this.level.getMoveCell(cell.x, cell.y, Direction.Up);
         }
+        character.slots[this.slot] = new CellSlot(character);
+        (character.slots[this.slot] as CellSlot).setCell(cell);
 
         return character.currentLine + 1;
     }

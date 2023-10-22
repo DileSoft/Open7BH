@@ -1,6 +1,6 @@
-import { Checkbox, MenuItem, Select, Tabs, Tab } from '@mui/material';
+import { MenuItem, Select, Tabs, Tab } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Level from './Level';
 import Editor from './Editor';
 import levels from './levelsList';

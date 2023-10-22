@@ -2,23 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 // @ts-ignore
 import { sortableContainer, sortableElement } from 'react-sortable-hoc';
 import copy from 'copy-to-clipboard';
-import { arrayMoveImmutable } from 'array-move';
 import {
     Button, Grid, TextField,
 } from '@mui/material';
 import ManIcon from '@mui/icons-material/Man';
-import {
-    moveCoordinates, parseCoordinates, randomArray, clone, getRandomInt,
-} from './Utils';
-import {
-    CharacterType, CoordinatesType, LevelType, LineForEachType, LineType, StepDirection, ValueDirectionType, ValueNumberType, ValuePrinterType,
-} from './types';
 import Cells from './Cells';
 import AddPanel from './AddPanel';
 import renderLine from './renderLine';
 import Game, { GameSerialized, GameState } from './Classes/Game';
 import { LevelSerializedType } from './Classes/Level';
-import { CellType } from './Classes/Cell';
 
 const SortableItem = sortableElement(({ children }) => <div>{children}</div>);
 

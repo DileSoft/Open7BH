@@ -1,6 +1,7 @@
 import React from 'react';
-import { LinePickupType, RenderLineType } from '../types';
+import { RenderLineType } from '../types';
+import { OperatorPickupSerialized } from '../Classes/Operators/OperatorPickup';
 
-const pickupRenderLine:RenderLineType<LinePickupType> = ():React.ReactNode => 'Pickup';
+const pickupRenderLine:RenderLineType<OperatorPickupSerialized> = ():React.ReactNode => 'Pickup';
 
 export default pickupRenderLine;

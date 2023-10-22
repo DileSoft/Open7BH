@@ -1,9 +1,8 @@
 import { MenuItem, Select } from '@mui/material';
 import React from 'react';
 import {
-    LineGotoType, RenderLineType,
+    RenderLineType,
 } from '../types';
-import { clone } from '../Utils';
 import { OperatorGotoSerialized } from '../Classes/Operators/OperatorGoto';
 
 const gotoRenderLine:RenderLineType<OperatorGotoSerialized> = (line, lineNumber, game):React.ReactNode => <span>

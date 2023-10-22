@@ -3,9 +3,9 @@ import React from 'react';
 import ManIcon from '@mui/icons-material/Man';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import WestIcon from '@mui/icons-material/West';
-import { clone, directionIcon } from '../Utils';
+import { directionIcon } from '../Utils';
 import {
-    DirectionType, LineTakeType, RenderLineType, ValueDirectionType, ValueSlotType,
+    RenderLineType,
 } from '../types';
 import { OperatorTakeSerialized } from '../Classes/Operators/OperatorTake';
 import { Direction } from '../Classes/Operators/OperatorStep';

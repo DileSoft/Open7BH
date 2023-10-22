@@ -1,4 +1,3 @@
-import { randomArray } from '../../Utils';
 import Character from '../Character';
 import Level from '../Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';

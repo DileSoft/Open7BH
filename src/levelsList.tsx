@@ -1,5 +1,3 @@
-import { LevelType } from './types';
-
 import level1 from './Classes/Levels/level1';
 import level2 from './Classes/Levels/level2';
 import level3 from './Classes/Levels/level3';
