@@ -6,8 +6,9 @@ import level5 from './Classes/Levels/level5';
 import level6 from './Classes/Levels/level6';
 import level7 from './Classes/Levels/level7';
 import { LevelSerializedType } from './Classes/Level';
+import { GameSerialized } from './Classes/Game';
 
-const levels:LevelSerializedType[] = [level1,
+const levels:GameSerialized[] = [level1,
     level2,
     level3,
     level4,

@@ -1,19 +1,19 @@
 import Level, { LevelSerializedType } from './Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operators/Operator';
-import OperatorDrop from './Operators/OperatorDrop';
-import OperatorEnd from './Operators/OperatorEnd';
-import OperatorForeach from './Operators/OperatorForeach';
-import OperatorGive from './Operators/OperatorGive';
-import OperatorGoto from './Operators/OperatorGoto';
-import OperatorHear from './Operators/OperatorHear';
-import OperatorIf from './Operators/OperatorIf';
-import OperatorNear from './Operators/OperatorNear';
-import OperatorPickup from './Operators/OperatorPickup';
-import OperatorSay from './Operators/OperatorSay';
-import OperatorStep from './Operators/OperatorStep';
-import OperatorTake from './Operators/OperatorTake';
-import OperatorVariable from './Operators/OperatorVariable';
-import OperatorWrite from './Operators/OperatorWrite';
+import OperatorDrop, { OperatorDropSerialized } from './Operators/OperatorDrop';
+import OperatorEnd, { OperatorEndSerialized } from './Operators/OperatorEnd';
+import OperatorForeach, { OperatorForeachSerialized } from './Operators/OperatorForeach';
+import OperatorGive, { OperatorGiveSerialized } from './Operators/OperatorGive';
+import OperatorGoto, { OperatorGotoSerialized } from './Operators/OperatorGoto';
+import OperatorHear, { OperatorHearSerialized } from './Operators/OperatorHear';
+import OperatorIf, { OperatorIfSerialized } from './Operators/OperatorIf';
+import OperatorNear, { OperatorNearSerialized } from './Operators/OperatorNear';
+import OperatorPickup, { OperatorPickupSerialized } from './Operators/OperatorPickup';
+import OperatorSay, { OperatorSaySerialized } from './Operators/OperatorSay';
+import OperatorStep, { OperatorStepSerialized } from './Operators/OperatorStep';
+import OperatorTake, { OperatorTakeSerialized } from './Operators/OperatorTake';
+import OperatorVariable, { OperatorVariableSerialized } from './Operators/OperatorVariable';
+import OperatorWrite, { OperatorWriteSerialized } from './Operators/OperatorWrite';
 
 export enum GameState {
     Run = 'Run',
@@ -22,7 +22,23 @@ export enum GameState {
 
 export interface GameSerialized {
     level: LevelSerializedType;
-    code?: OperatorSerialized[];
+    code?: (
+        OperatorSerialized |
+        OperatorDropSerialized |
+        OperatorEndSerialized |
+        OperatorForeachSerialized |
+        OperatorGiveSerialized |
+        OperatorGotoSerialized |
+        OperatorHearSerialized |
+        OperatorIfSerialized |
+        OperatorNearSerialized |
+        OperatorPickupSerialized |
+        OperatorSaySerialized |
+        OperatorStepSerialized |
+        OperatorTakeSerialized |
+        OperatorVariableSerialized |
+        OperatorWriteSerialized
+    )[];
     state?: GameState;
     speed?: number;
     object?: Game;
@@ -145,13 +161,79 @@ class Game {
             this.level = new Level(this);
         }
         this.level.deserialize(serialized.level);
-        // this.code = serialized.code.map(operator => {
-        //     if (operator.type === OperatorType.Step) {
-        //         const operatorStep = new OperatorStep(this.level);
-        //         operatorStep.deserialize(operator);
-        //         return operatorStep;
-        //     }
-        // });
+        this.code = serialized.code.map(operator => {
+            if (operator.type === OperatorType.Drop) {
+                const operatorDrop = new OperatorDrop(this.level);
+                operatorDrop.deserialize(operator as OperatorDropSerialized);
+                return operatorDrop;
+            }
+            if (operator.type === OperatorType.End) {
+                const operatorEnd = new OperatorEnd(this.level);
+                operatorEnd.deserialize(operator as OperatorEndSerialized);
+                return operatorEnd;
+            }
+            if (operator.type === OperatorType.Foreach) {
+                const operatorForeach = new OperatorForeach(this.level);
+                operatorForeach.deserialize(operator as OperatorForeachSerialized);
+                return operatorForeach;
+            }
+            if (operator.type === OperatorType.Give) {
+                const operatorGive = new OperatorGive(this.level);
+                operatorGive.deserialize(operator as OperatorGiveSerialized);
+                return operatorGive;
+            }
+            if (operator.type === OperatorType.Goto) {
+                const operatorGoto = new OperatorGoto(this.level);
+                operatorGoto.deserialize(operator as OperatorGotoSerialized);
+                return operatorGoto;
+            }
+            if (operator.type === OperatorType.Hear) {
+                const operatorHear = new OperatorHear(this.level);
+                operatorHear.deserialize(operator as OperatorHearSerialized);
+                return operatorHear;
+            }
+            if (operator.type === OperatorType.If) {
+                const operatorIf = new OperatorIf(this.level);
+                operatorIf.deserialize(operator as OperatorIfSerialized);
+                return operatorIf;
+            }
+            if (operator.type === OperatorType.Near) {
+                const operatorNear = new OperatorNear(this.level);
+                operatorNear.deserialize(operator as OperatorNearSerialized);
+                return operatorNear;
+            }
+            if (operator.type === OperatorType.Pickup) {
+                const operatorPickup = new OperatorPickup(this.level);
+                operatorPickup.deserialize(operator as OperatorPickupSerialized);
+                return operatorPickup;
+            }
+            if (operator.type === OperatorType.Say) {
+                const operatorSay = new OperatorSay(this.level);
+                operatorSay.deserialize(operator as OperatorSaySerialized);
+                return operatorSay;
+            }
+            if (operator.type === OperatorType.Step) {
+                const operatorStep = new OperatorStep(this.level);
+                operatorStep.deserialize(operator as OperatorStepSerialized);
+                return operatorStep;
+            }
+            if (operator.type === OperatorType.Take) {
+                const operatorTake = new OperatorTake(this.level);
+                operatorTake.deserialize(operator as OperatorTakeSerialized);
+                return operatorTake;
+            }
+            if (operator.type === OperatorType.Variable) {
+                const operatorVariable = new OperatorVariable(this.level);
+                operatorVariable.deserialize(operator as OperatorVariableSerialized);
+                return operatorVariable;
+            }
+            if (operator.type === OperatorType.Write) {
+                const operatorWrite = new OperatorWrite(this.level);
+                operatorWrite.deserialize(operator as OperatorWriteSerialized);
+                return operatorWrite;
+            }
+            return null;
+        });
     }
 
     serialize(withObject = false): GameSerialized {

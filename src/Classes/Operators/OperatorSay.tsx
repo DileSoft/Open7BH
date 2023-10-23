@@ -34,6 +34,11 @@ class OperatorSay extends Operator {
             object: withObject ? this : undefined,
         };
     }
+
+    deserialize(operator: OperatorSaySerialized): void {
+        this.hear = operator.hear;
+        this.direction = operator.direction;
+    }
 }
 
 export default OperatorSay;

@@ -26,6 +26,10 @@ class OperatorHear extends Operator {
             object: withObject ? this : undefined,
         };
     }
+
+    deserialize(operator: OperatorHearSerialized): void {
+        this.hear = operator.hear;
+    }
 }
 
 export default OperatorHear;

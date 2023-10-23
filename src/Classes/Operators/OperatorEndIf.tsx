@@ -4,6 +4,7 @@ import OperatorIf from './OperatorIf';
 
 export interface OperatorEndIfSerialized extends OperatorSerialized {
     type: OperatorType.EndIf,
+    id: string,
     operatorIf: string
     object?: OperatorEndIf,
 }
@@ -23,9 +24,15 @@ class OperatorEndIf extends Operator {
     serialize(withObject: boolean): OperatorEndIfSerialized {
         return {
             type: OperatorType.EndIf,
+            id: this.id,
             operatorIf: this.operatorIf.id,
             object: withObject ? this : undefined,
         };
+    }
+
+    deserialize(operator: OperatorEndIfSerialized): void {
+        this.id = operator.id;
+        this.operatorIf = this.level.game.code.find(_operator => _operator.id === operator.operatorIf) as OperatorIf;
     }
 }
 

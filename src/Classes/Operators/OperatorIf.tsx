@@ -1,8 +1,10 @@
+import { CellType } from '../Cell';
+import CellSlot from '../CellSlot';
 import Character from '../Character';
 import Level from '../Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';
 import OperatorEndIf from './OperatorEndIf';
-import { Direction } from './OperatorStep';
+import { Direction, DirectionWithHere } from './OperatorStep';
 
 export enum OperatorIfCondition {
     Eq = 'eq',
@@ -30,6 +32,11 @@ export enum OperandIfRightType {
     Number = 'number',
     Slot = 'slot',
     MyItem = 'myItem',
+    Box = 'box',
+    Printer = 'printer',
+    Shredder = 'shredder',
+    Character = 'character',
+    Hole = 'hole',
 }
 
 export interface IfCondition {
@@ -37,16 +44,17 @@ export interface IfCondition {
     leftType: OperandIfLeftType;
     leftNumber?: number;
     leftSlot?: number,
-    leftDirection?: Direction,
+    leftDirection?: DirectionWithHere,
     rightType: OperandIfRightType;
     rightNumber?: number;
     rightSlot?: number,
-    rightDirection?: Direction,
+    rightDirection?: DirectionWithHere,
     logic?: OperatorIfLogic;
 }
 
 export interface OperatorIfSerialized extends OperatorSerialized {
     type: OperatorType.If,
+    id: string,
     conditions: IfCondition[],
     operatorEndIf: string
     object?: OperatorIf,
@@ -75,47 +83,88 @@ class OperatorIf extends Operator {
         let result = false;
         this.conditions.forEach(condition => {
             let conditionResult = false;
-            let left = 0;
-            let right = 0;
-            if (condition.leftType === OperandIfLeftType.Number) {
-                left = condition.leftNumber;
-            } else if (condition.leftType === OperandIfLeftType.Slot) {
-                left = character.slots[condition.leftSlot].getNumberValue();
-            } else if (condition.leftType === OperandIfLeftType.MyItem) {
-                left = character.item?.value || 0;
-            } else if (condition.leftType === OperandIfLeftType.Direction) {
-                left = this.level.getMoveCell(character.cell.x, character.cell.y, condition.leftDirection).item?.value || 0;
-            }
-            if (condition.rightType === OperandIfRightType.Number) {
-                right = condition.rightNumber;
-            } else if (condition.rightType === OperandIfRightType.Slot) {
-                right = character.slots[condition.rightSlot].getNumberValue();
-            } else if (condition.rightType === OperandIfRightType.MyItem) {
-                right = character.item?.value || 0;
-            } else if (condition.rightType === OperandIfRightType.Direction) {
-                right = this.level.getMoveCell(character.cell.x, character.cell.y, condition.rightDirection).item?.value || 0;
-            }
-            switch (condition.type) {
-                case OperatorIfCondition.Eq:
-                    conditionResult = left === right;
-                    break;
-                case OperatorIfCondition.Ne:
-                    conditionResult = left !== right;
-                    break;
-                case OperatorIfCondition.Gt:
-                    conditionResult = left > right;
-                    break;
-                case OperatorIfCondition.Ge:
-                    conditionResult = left >= right;
-                    break;
-                case OperatorIfCondition.Lt:
-                    conditionResult = left < right;
-                    break;
-                case OperatorIfCondition.Le:
-                    conditionResult = left <= right;
-                    break;
-                default:
-                    break;
+            const isEqual = condition.type === OperatorIfCondition.Eq;
+            if (condition.rightType === OperandIfRightType.Box) {
+                if (condition.leftType === OperandIfLeftType.MyItem) {
+                    conditionResult = !!character.item;
+                    if (!isEqual) {
+                        conditionResult = !conditionResult;
+                    }
+                }
+                if (condition.leftType === OperandIfLeftType.Slot) {
+                    if (character.slots[condition.leftSlot] instanceof CellSlot) {
+                        conditionResult = !!(character.slots[condition.leftSlot] as CellSlot).cellValue.item;
+                        if (!isEqual) {
+                            conditionResult = !conditionResult;
+                        }
+                    }
+                }
+                if (condition.leftType === OperandIfLeftType.Direction) {
+                    conditionResult = !!this.level.getMoveCell(character.cell.x, character.cell.y, condition.leftDirection).item;
+                    if (!isEqual) {
+                        conditionResult = !conditionResult;
+                    }
+                }
+            } else if (condition.rightType === OperandIfRightType.Printer ||
+                 condition.rightType === OperandIfRightType.Shredder ||
+                 condition.rightType === OperandIfRightType.Hole) {
+                if (condition.leftType === OperandIfLeftType.Slot) {
+                    if (character.slots[condition.leftSlot] instanceof CellSlot) {
+                        conditionResult = (character.slots[condition.leftSlot] as CellSlot).cellValue.getType() === condition.rightType as CellType;
+                        if (!isEqual) {
+                            conditionResult = !conditionResult;
+                        }
+                    }
+                }
+                if (condition.leftType === OperandIfLeftType.Direction) {
+                    conditionResult = this.level.getMoveCell(character.cell.x, character.cell.y, condition.leftDirection).getType() === condition.rightType as CellType;
+                    if (!isEqual) {
+                        conditionResult = !conditionResult;
+                    }
+                }
+            } else {
+                let left = 0;
+                let right = 0;
+                if (condition.leftType === OperandIfLeftType.Number) {
+                    left = condition.leftNumber;
+                } else if (condition.leftType === OperandIfLeftType.Slot) {
+                    left = character.slots[condition.leftSlot].getNumberValue();
+                } else if (condition.leftType === OperandIfLeftType.MyItem) {
+                    left = character.item?.value || 0;
+                } else if (condition.leftType === OperandIfLeftType.Direction) {
+                    left = this.level.getMoveCell(character.cell.x, character.cell.y, condition.leftDirection).item?.value || 0;
+                }
+                if (condition.rightType === OperandIfRightType.Number) {
+                    right = condition.rightNumber;
+                } else if (condition.rightType === OperandIfRightType.Slot) {
+                    right = character.slots[condition.rightSlot].getNumberValue();
+                } else if (condition.rightType === OperandIfRightType.MyItem) {
+                    right = character.item?.value || 0;
+                } else if (condition.rightType === OperandIfRightType.Direction) {
+                    right = this.level.getMoveCell(character.cell.x, character.cell.y, condition.rightDirection).item?.value || 0;
+                }
+                switch (condition.type) {
+                    case OperatorIfCondition.Eq:
+                        conditionResult = left === right;
+                        break;
+                    case OperatorIfCondition.Ne:
+                        conditionResult = left !== right;
+                        break;
+                    case OperatorIfCondition.Gt:
+                        conditionResult = left > right;
+                        break;
+                    case OperatorIfCondition.Ge:
+                        conditionResult = left >= right;
+                        break;
+                    case OperatorIfCondition.Lt:
+                        conditionResult = left < right;
+                        break;
+                    case OperatorIfCondition.Le:
+                        conditionResult = left <= right;
+                        break;
+                    default:
+                        break;
+                }
             }
             if (condition.logic === OperatorIfLogic.And) {
                 result = result && conditionResult;
@@ -149,10 +198,17 @@ class OperatorIf extends Operator {
     serialize(withObject: boolean): OperatorIfSerialized {
         return {
             type: OperatorType.If,
+            id: this.id,
             conditions: this.conditions,
             operatorEndIf: this.operatorEndIf.id,
             object: withObject ? this : undefined,
         };
+    }
+
+    deserialize(operator: OperatorIfSerialized): void {
+        this.id = operator.id;
+        this.operatorEndIf = this.level.game.code.find(_operator => _operator.id === operator.id) as OperatorEndIf;
+        this.conditions = operator.conditions;
     }
 }
 

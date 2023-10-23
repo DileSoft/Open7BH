@@ -19,6 +19,10 @@ class OperatorDrop extends Operator {
             object: withObject ? this : undefined,
         };
     }
+
+    deserialize(serialized: OperatorSerialized): void {
+        
+    }
 }
 
 export default OperatorDrop;

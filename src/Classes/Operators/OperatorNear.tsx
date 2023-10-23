@@ -58,6 +58,11 @@ class OperatorNear extends Operator {
             object: withObject ? this : undefined,
         };
     }
+
+    deserialize(operator: OperatorNearSerialized): void {
+        this.slot = operator.slot;
+        this.nearType = operator.nearType;
+    }
 }
 
 export default OperatorNear;

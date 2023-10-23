@@ -26,6 +26,10 @@ class OperatorWrite extends Operator {
             object: withObject ? this : undefined,
         };
     }
+
+    deserialize(operator: OperatorWriteSerialized): void {
+        this.value = operator.value;
+    }
 }
 
 export default OperatorWrite;

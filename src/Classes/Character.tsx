@@ -103,14 +103,14 @@ class Character {
 
     pickupItem() {
         const item = this.cell.getItem();
-        if (item) {
+        if (item && !this.item) {
             this.setItem(item);
             this.cell.removeItem();
         }
     }
 
     dropItem() {
-        if (this.item) {
+        if (this.item && !this.cell.getItem()) {
             this.cell.setItem(this.item);
             this.item = null;
         }

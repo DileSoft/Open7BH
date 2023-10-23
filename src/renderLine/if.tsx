@@ -11,7 +11,7 @@ import { directionIcon } from '../Utils';
 import {
     OperandIfLeftType, OperandIfRightType, OperatorIfCondition, OperatorIfLogic, OperatorIfSerialized,
 } from '../Classes/Operators/OperatorIf';
-import { Direction } from '../Classes/Operators/OperatorStep';
+import { Direction, DirectionWithHere } from '../Classes/Operators/OperatorStep';
 
 const ifRenderLine:RenderLineType<OperatorIfSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 If:
@@ -48,11 +48,11 @@ If:
             value={condition.leftDirection}
             variant="standard"
             onChange={e => {
-                line.object.conditions[conditionKey].leftDirection = e.target.value as Direction;
+                line.object.conditions[conditionKey].leftDirection = e.target.value as DirectionWithHere;
                 game.object.render();
             }}
         >
-            {Object.values(Direction).map(option =>
+            {Object.values(DirectionWithHere).map(option =>
                 <MenuItem key={option} value={option}>
                     {directionIcon(option)}
                     {option}
@@ -107,11 +107,11 @@ If:
             value={condition.rightDirection}
             variant="standard"
             onChange={e => {
-                line.object.conditions[conditionKey].rightDirection = e.target.value as Direction;
+                line.object.conditions[conditionKey].rightDirection = e.target.value as DirectionWithHere;
                 game.object.render();
             }}
         >
-            {Object.values(Direction).map(option =>
+            {Object.values(DirectionWithHere).map(option =>
                 <MenuItem key={option} value={option}>
                     {directionIcon(option)}
                     {option}

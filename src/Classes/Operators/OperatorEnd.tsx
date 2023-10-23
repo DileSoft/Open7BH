@@ -18,6 +18,10 @@ class OperatorEnd extends Operator {
             object: withObject ? this : undefined,
         };
     }
+
+    deserialize(serialized: OperatorSerialized): void {
+        
+    }
 }
 
 export default OperatorEnd;

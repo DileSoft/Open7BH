@@ -4,7 +4,7 @@ import Character from './Character';
 import Empty from './Empty';
 import Game from './Game';
 import Hole from './Hole';
-import { Direction } from './Operators/OperatorStep';
+import { Direction, DirectionWithHere } from './Operators/OperatorStep';
 import Printer from './Printer';
 import Shredder from './Shredder';
 
@@ -214,29 +214,32 @@ class Level {
         return this.cells[`${x}x${y}`];
     }
 
-    getMoveCell(x: number, y: number, direction: Direction): Cell | undefined {
-        if (direction === Direction.Up) {
+    getMoveCell(x: number, y: number, direction: Direction | DirectionWithHere): Cell | undefined {
+        if (direction === DirectionWithHere.Here) {
+            return this.getCell(x, y);
+        }
+        if (direction === DirectionWithHere.Up) {
             return this.getCell(x, y - 1);
         }
-        if (direction === Direction.Down) {
+        if (direction === DirectionWithHere.Down) {
             return this.getCell(x, y + 1);
         }
-        if (direction === Direction.Left) {
+        if (direction === DirectionWithHere.Left) {
             return this.getCell(x - 1, y);
         }
-        if (direction === Direction.Right) {
+        if (direction === DirectionWithHere.Right) {
             return this.getCell(x + 1, y);
         }
-        if (direction === Direction.UpLeft) {
+        if (direction === DirectionWithHere.UpLeft) {
             return this.getCell(x - 1, y - 1);
         }
-        if (direction === Direction.UpRight) {
+        if (direction === DirectionWithHere.UpRight) {
             return this.getCell(x + 1, y - 1);
         }
-        if (direction === Direction.DownLeft) {
+        if (direction === DirectionWithHere.DownLeft) {
             return this.getCell(x - 1, y + 1);
         }
-        if (direction === Direction.DownRight) {
+        if (direction === DirectionWithHere.DownRight) {
             return this.getCell(x + 1, y + 1);
         }
         return undefined;

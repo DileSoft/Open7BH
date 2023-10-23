@@ -5,6 +5,7 @@ import { Direction } from './OperatorStep';
 
 export interface OperatorForeachSerialized extends OperatorSerialized {
     type: OperatorType.Foreach,
+    id: string,
     operatorEndForeach: string
     directions: Direction[],
     slotNumber: number,
@@ -12,7 +13,7 @@ export interface OperatorForeachSerialized extends OperatorSerialized {
 }
 
 class OperatorForeach extends Operator {
-    operatorEndForeach: OperatorForeach;
+    operatorEndForeach: OperatorEndForeach;
 
     directions: Direction[] = [];
 
@@ -37,11 +38,19 @@ class OperatorForeach extends Operator {
     serialize(withObject: boolean): OperatorForeachSerialized {
         return {
             type: OperatorType.Foreach,
+            id: this.id,
             operatorEndForeach: this.operatorEndForeach.id,
             directions: this.directions,
             slotNumber: this.slotNumber,
             object: withObject ? this : undefined,
         };
+    }
+
+    deserialize(operator: OperatorForeachSerialized): void {
+        this.id = operator.id;
+        this.operatorEndForeach = this.level.game.code.find(_operator => _operator.id === operator.id) as OperatorEndForeach;
+        this.directions = operator.directions;
+        this.slotNumber = operator.slotNumber;
     }
 }
 

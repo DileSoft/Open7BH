@@ -62,6 +62,13 @@ class OperatorVariable extends Operator {
             object: withObject ? this : undefined,
         };
     }
+
+    deserialize(operator: OperatorVariableSerialized): void {
+        this.slot = operator.slot;
+        this.variableType = operator.variableType;
+        this.numberValue = operator.numberValue;
+        this.slotValue = operator.slotValue;
+    }
 }
 
 export default OperatorVariable;

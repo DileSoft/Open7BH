@@ -16,12 +16,12 @@ const SortableItem = sortableElement(({ children }) => <div>{children}</div>);
 
 const SortableContainer = sortableContainer(({ children }) => <div>{children}</div>);
 
-function Level(props: {level: LevelSerializedType, levelNumber: number}) {
+function Level(props: {level: GameSerialized, levelNumber: number}) {
     const [game, setGame] = useState<GameSerialized>();
 
     useEffect(() => {
         const gameObject = new Game();
-        gameObject.deserialize({ level: props.level });
+        gameObject.deserialize(props.level);
         gameObject.renderCallback = setGame;
         gameObject.render();
     }, [props.level]);
@@ -95,7 +95,7 @@ Speed:
                         <Button
                             variant="contained"
                             onClick={() => {
-                                game.object.deserialize({ level: props.level });
+                                game.object.level.deserialize(props.level.level);
                                 game.object.render();
                                 game.object.state === GameState.Run ? game.object.stop() : game.object.start();
                             }}

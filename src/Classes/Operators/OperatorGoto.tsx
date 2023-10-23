@@ -25,6 +25,10 @@ class OperatorGoto extends Operator {
             object: withObject ? this : undefined,
         };
     }
+
+    deserialize(operator: OperatorGotoSerialized): void {
+        this.line = operator.line;
+    }
 }
 
 export default OperatorGoto;

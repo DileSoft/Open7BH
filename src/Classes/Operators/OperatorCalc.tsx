@@ -125,6 +125,19 @@ class OperatorCalc extends Operator {
             object: withObject ? this : undefined,
         };
     }
+
+    deserialize(serialized: OperatorCalcSerialized) {
+        this.operand1type = serialized.operand1type;
+        this.operand1NumberValue = serialized.operand1NumberValue;
+        this.operand1DirectionValue = serialized.operand1DirectionValue;
+        this.operand1SlotValue = serialized.operand1SlotValue;
+        this.operator = serialized.operator;
+        this.operand2type = serialized.operand2type;
+        this.operand2NumberValue = serialized.operand2NumberValue;
+        this.operand2DirectionValue = serialized.operand2DirectionValue;
+        this.operand2SlotValue = serialized.operand2SlotValue;
+        this.slotResult = serialized.slotResult;
+    }
 }
 
 export default OperatorCalc;

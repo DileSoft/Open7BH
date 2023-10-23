@@ -49,6 +49,8 @@ abstract class Operator {
     abstract execute(character: Character): number;
 
     abstract serialize(withObject: boolean): OperatorSerialized;
+
+    abstract deserialize(serialized: OperatorSerialized): void;
 }
 
 export default Operator;

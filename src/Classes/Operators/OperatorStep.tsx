@@ -15,6 +15,18 @@ export enum Direction {
     DownRight = 'DownRight',
 }
 
+export enum DirectionWithHere {
+    Up = 'Up',
+    Down = 'Down',
+    Left = 'Left',
+    Right = 'Right',
+    UpLeft = 'UpLeft',
+    UpRight = 'UpRight',
+    DownLeft = 'DownLeft',
+    DownRight = 'DownRight',
+    Here = 'Here',
+}
+
 export enum StepType {
     Direction = 'Direction',
     Slot = 'Slot',
@@ -22,6 +34,7 @@ export enum StepType {
 }
 
 export interface OperatorStepSerialized extends OperatorSerialized {
+    type: OperatorType.Step;
     stepType: StepType;
     directions?: Direction[];
     slot?: number;
@@ -83,6 +96,12 @@ class OperatorStep extends Operator {
             slot: this.slot,
             object: withObject ? this : undefined,
         };
+    }
+
+    deserialize(operator: OperatorStepSerialized): void {
+        this.type = operator.stepType;
+        this.directions = operator.directions;
+        this.slot = operator.slot;
     }
 }
 

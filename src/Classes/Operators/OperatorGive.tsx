@@ -4,6 +4,7 @@ import Operator, { OperatorSerialized, OperatorType } from './Operator';
 import { Direction } from './OperatorStep';
 
 export interface OperatorGiveSerialized extends OperatorSerialized {
+    type: OperatorType.Give;
     direction: Direction;
     slot?: number;
     object?: OperatorGive;
@@ -35,6 +36,11 @@ class OperatorGive extends Operator {
             slot: this.slot,
             object: withObject ? this : undefined,
         };
+    }
+
+    deserialize(operator: OperatorGiveSerialized): void {
+        this.direction = operator.direction;
+        this.slot = operator.slot;
     }
 }
 

@@ -4,7 +4,8 @@ import OperatorForeach from './OperatorForeach';
 
 export interface OperatorEndForeachSerialized extends OperatorSerialized {
     type: OperatorType.EndForeach,
-    operatorEndForeach: string
+    id: string,
+    operatorForeach: string
     object?: OperatorEndForeach,
 }
 
@@ -18,9 +19,15 @@ class OperatorEndForeach extends Operator {
     serialize(withObject: boolean): OperatorEndForeachSerialized {
         return {
             type: OperatorType.EndForeach,
-            operatorEndForeach: this.operatorForeach.id,
+            id: this.id,
+            operatorForeach: this.operatorForeach.id,
             object: withObject ? this : undefined,
         };
+    }
+
+    deserialize(operator: OperatorEndForeachSerialized): void {
+        this.id = operator.id;
+        this.operatorForeach = this.level.game.code.find(_operator => _operator.id === operator.operatorForeach) as OperatorForeach;
     }
 }
 
