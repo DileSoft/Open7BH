@@ -7,6 +7,7 @@ import Hole from './Hole';
 import { Direction, DirectionWithHere } from './Operators/OperatorStep';
 import Printer from './Printer';
 import Shredder from './Shredder';
+import Wall from './Wall';
 
 type WinCallback = (level: Level) => boolean;
 
@@ -71,6 +72,9 @@ class Level {
                 }
                 if (cellData[0] === 'hole') {
                     cellObject.type = CellType.Hole;
+                }
+                if (cellData[0] === 'wall') {
+                    cellObject.type = CellType.Wall;
                 }
                 if (cellData[0] === 'printer') {
                     cellObject.type = CellType.Printer;
@@ -143,6 +147,9 @@ class Level {
             }
             if (cell.type === CellType.Shredder) {
                 cellObject = new Shredder(this, cell.x, cell.y);
+            }
+            if (cell.type === CellType.Wall) {
+                cellObject = new Wall(this, cell.x, cell.y);
             }
             if (cell.character) {
                 cellObject.setCharacter(new Character(cellObject, cell.character.name));

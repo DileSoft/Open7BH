@@ -1,5 +1,6 @@
 import Level, { LevelSerializedType } from './Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operators/Operator';
+import OperatorCalc from './Operators/OperatorCalc';
 import OperatorDrop, { OperatorDropSerialized } from './Operators/OperatorDrop';
 import OperatorEnd, { OperatorEndSerialized } from './Operators/OperatorEnd';
 import OperatorForeach, { OperatorForeachSerialized } from './Operators/OperatorForeach';
@@ -110,6 +111,9 @@ class Game {
         }
         if (operator === OperatorType.Near) {
             operatorObject = new OperatorNear(this.level);
+        }
+        if (operator === OperatorType.Calc) {
+            operatorObject = new OperatorCalc(this.level);
         }
 
         if (operatorObject) {

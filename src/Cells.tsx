@@ -8,6 +8,7 @@ import Empty from './Classes/Empty';
 import Hole from './Classes/Hole';
 import Printer from './Classes/Printer';
 import Shredder from './Classes/Shredder';
+import Wall from './Classes/Wall';
 
 const CELL_WIDTH = 80;
 
@@ -32,9 +33,9 @@ function Cells(props: {game: GameSerialized,
         if (cell instanceof Hole) {
             content = <div style={{ width: '100%', height: '100%', backgroundColor: 'black' }}></div>;
         }
-        // if (cell.type === 'wall') {
-        //     content = 'wall';
-        // }
+        if (cell instanceof Wall) {
+            content = 'wall';
+        }
         if (cell instanceof Printer) {
             content = 'printer';
         }

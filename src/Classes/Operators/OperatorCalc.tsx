@@ -1,7 +1,7 @@
 import Character from '../Character';
 import NumberSlot from '../NumberSlot';
 import Operator, { OperatorType } from './Operator';
-import { Direction } from './OperatorStep';
+import { DirectionWithHere } from './OperatorStep';
 
 export enum CalcOperator {
     Add = '+',
@@ -20,12 +20,12 @@ export interface OperatorCalcSerialized {
     type: OperatorType.Calc,
     operand1type: CalcOperand,
     operand1NumberValue: number,
-    operand1DirectionValue: Direction,
+    operand1DirectionValue: DirectionWithHere,
     operand1SlotValue: number,
     operator: CalcOperator,
     operand2type: CalcOperand,
     operand2NumberValue: number,
-    operand2DirectionValue: Direction,
+    operand2DirectionValue: DirectionWithHere,
     operand2SlotValue: number,
     slotResult: number,
     object?: OperatorCalc,
@@ -36,7 +36,7 @@ class OperatorCalc extends Operator {
 
     operand1NumberValue = 0;
 
-    operand1DirectionValue: Direction = Direction.Up;
+    operand1DirectionValue: DirectionWithHere = DirectionWithHere.Up;
 
     operand1SlotValue = 0;
 
@@ -46,7 +46,7 @@ class OperatorCalc extends Operator {
 
     operand2NumberValue = 0;
 
-    operand2DirectionValue: Direction = Direction.Up;
+    operand2DirectionValue: DirectionWithHere = DirectionWithHere.Up;
 
     operand2SlotValue = 0;
 
@@ -59,8 +59,14 @@ class OperatorCalc extends Operator {
         if (this.operand1type === CalcOperand.Number) {
             value1 = this.operand1NumberValue;
         }
+        if (this.operand1type === CalcOperand.Direction) {
+            value1 = this.level.getMoveCell(character.cell.x, character.cell.y, this.operand1DirectionValue)?.item?.value || 0;
+        }
         if (this.operand2type === CalcOperand.Number) {
             value2 = this.operand2NumberValue;
+        }
+        if (this.operand2type === CalcOperand.Direction) {
+            value2 = this.level.getMoveCell(character.cell.x, character.cell.y, this.operand2DirectionValue)?.item?.value || 0;
         }
 
         if (this.operator === CalcOperator.Add) {
@@ -84,7 +90,7 @@ class OperatorCalc extends Operator {
         this.operand1NumberValue = value;
     }
 
-    setOperand1Direction(value: Direction) {
+    setOperand1Direction(value: DirectionWithHere) {
         this.operand1type = CalcOperand.Direction;
         this.operand1DirectionValue = value;
     }
@@ -99,7 +105,7 @@ class OperatorCalc extends Operator {
         this.operand2NumberValue = value;
     }
 
-    setOperand2Direction(value: Direction) {
+    setOperand2Direction(value: DirectionWithHere) {
         this.operand2type = CalcOperand.Direction;
         this.operand2DirectionValue = value;
     }

@@ -5,7 +5,7 @@ import {
 } from '../types';
 import { directionIcon } from '../Utils';
 import { CalcOperand, CalcOperator, OperatorCalcSerialized } from '../Classes/Operators/OperatorCalc';
-import { Direction } from '../Classes/Operators/OperatorStep';
+import { DirectionWithHere } from '../Classes/Operators/OperatorStep';
 
 const calcRenderLine:RenderLineType<OperatorCalcSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 Calc
@@ -29,7 +29,7 @@ Calc
                 line.object.setOperand1Number(0);
             }
             if (e.target.value === 'direction') {
-                line.object.setOperand1Direction(Direction.Up);
+                line.object.setOperand1Direction(DirectionWithHere.Up);
             }
             if (e.target.value === 'slot') {
                 line.object.setOperand1Slot(0);
@@ -38,7 +38,7 @@ Calc
         }}
         variant="standard"
     >
-        {Object.values(CalcOperator).map(option =>
+        {Object.values(CalcOperand).map(option =>
             <MenuItem key={option} value={option}>{option}</MenuItem>)}
     </Select>
     {line.operand1type === CalcOperand.Number &&
@@ -56,11 +56,11 @@ Calc
         value={line.operand1DirectionValue}
         variant="standard"
         onChange={e => {
-            line.object.setOperand1Direction(e.target.value as Direction);
+            line.object.setOperand1Direction(e.target.value as DirectionWithHere);
             game.object.render();
         }}
     >
-        {Object.values(Direction).map(option =>
+        {Object.values(DirectionWithHere).map(option =>
             <MenuItem key={option} value={option}>
                 {directionIcon(option)}
                 {option}
@@ -99,7 +99,7 @@ Calc
                 line.object.setOperand2Number(0);
             }
             if (e.target.value === 'direction') {
-                line.object.setOperand2Direction(Direction.Up);
+                line.object.setOperand2Direction(DirectionWithHere.Up);
             }
             if (e.target.value === 'slot') {
                 line.object.setOperand2Slot(0);
@@ -108,7 +108,7 @@ Calc
         }}
         variant="standard"
     >
-        {['number', 'direction', 'slot', 'myitem'].map(option =>
+        {Object.values(CalcOperand).map(option =>
             <MenuItem key={option} value={option}>{option}</MenuItem>)}
     </Select>
     {line.operand2type === CalcOperand.Number &&
@@ -126,11 +126,11 @@ Calc
         value={line.operand2DirectionValue}
         variant="standard"
         onChange={e => {
-            line.object.setOperand2Direction(e.target.value as Direction);
+            line.object.setOperand2Direction(e.target.value as DirectionWithHere);
             game.object.render();
         }}
     >
-        {Object.values(Direction).map(option =>
+        {Object.values(DirectionWithHere).map(option =>
             <MenuItem key={option} value={option}>
                 {directionIcon(option)}
                 {option}

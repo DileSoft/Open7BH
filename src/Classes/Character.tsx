@@ -27,6 +27,8 @@ class Character {
 
     nextMove?: Cell;
 
+    operationDone = false;
+
     constructor(cell: Cell, name: string) {
         this.cell = cell;
         this.name = name;
@@ -58,6 +60,10 @@ class Character {
         if (this.isTerminated) {
             return;
         }
+        if (this.operationDone) {
+            this.operationDone = false;
+            return;
+        }
         if (this.hear) {
             return;
         }
@@ -70,6 +76,7 @@ class Character {
         if (this.currentLine >= code.length) {
             this.isTerminated = true;
         }
+        this.operationDone = false;
     }
 
     setItem(item: Box) {
@@ -80,6 +87,7 @@ class Character {
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (newCell && newCell.character && !newCell.character.item && this.item) {
             newCell.character.setItem(this.item);
+            newCell.character.operationDone = true;
             this.item = null;
         }
         if (newCell && (newCell instanceof Shredder) && this.item) {

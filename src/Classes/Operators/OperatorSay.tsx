@@ -11,6 +11,7 @@ export interface OperatorSaySerialized extends OperatorSerialized {
 
 class OperatorSay extends Operator {
     hear?: string;
+
     direction: Direction;
 
     execute(character: Character): number {
