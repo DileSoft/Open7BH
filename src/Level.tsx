@@ -23,8 +23,13 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
         const gameObject = new Game();
         gameObject.deserialize(props.level);
         gameObject.renderCallback = setGame;
+        gameObject.deserializeCode((JSON.parse(window.localStorage.getItem(`level${props.levelNumber}`)) || []) as GameSerialized['code']);
         gameObject.render();
     }, [props.level]);
+
+    if (game) {
+        window.localStorage.setItem(`level${props.levelNumber}`, JSON.stringify(game.object.serialize().code));
+    }
 
     let intend = 0;
 
@@ -68,7 +73,7 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
                 }}
                 >
                     {game.code.map((line, key) => {
-                        const result = <SortableItem index={key} key={key}>
+                        const result = <SortableItem index={key} key={line.object.id}>
                             {game.object.level.getCharacters().filter(character => character.currentLine === key).map(character => <span key={character.name}>
                                 <ManIcon fontSize="small" style={{ color: character.color }} />
                             </span>)}
@@ -116,8 +121,8 @@ Copy
                         <Button
                             variant="contained"
                             onClick={() => {
-                                // window.localStorage.setItem(`level${props.levelNumber}`, JSON.stringify(props.level.code));
-                                // setCode(props.level.code);
+                                game.object.deserializeCode(props.level.code);
+                                game.object.render();
                             }}
                         >
 Clear

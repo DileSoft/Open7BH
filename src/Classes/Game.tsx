@@ -1,8 +1,10 @@
 import Level, { LevelSerializedType } from './Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operators/Operator';
-import OperatorCalc from './Operators/OperatorCalc';
+import OperatorCalc, { OperatorCalcSerialized } from './Operators/OperatorCalc';
 import OperatorDrop, { OperatorDropSerialized } from './Operators/OperatorDrop';
 import OperatorEnd, { OperatorEndSerialized } from './Operators/OperatorEnd';
+import OperatorEndForeach, { OperatorEndForeachSerialized } from './Operators/OperatorEndForeach';
+import OperatorEndIf, { OperatorEndIfSerialized } from './Operators/OperatorEndIf';
 import OperatorForeach, { OperatorForeachSerialized } from './Operators/OperatorForeach';
 import OperatorGive, { OperatorGiveSerialized } from './Operators/OperatorGive';
 import OperatorGoto, { OperatorGotoSerialized } from './Operators/OperatorGoto';
@@ -160,12 +162,8 @@ class Game {
         this.render();
     }
 
-    deserialize(serialized: GameSerialized) {
-        if (!this.level) {
-            this.level = new Level(this);
-        }
-        this.level.deserialize(serialized.level);
-        this.code = serialized.code.map(operator => {
+    deserializeCode(code: GameSerialized['code']) {
+        this.code = code.map(operator => {
             if (operator.type === OperatorType.Drop) {
                 const operatorDrop = new OperatorDrop(this.level);
                 operatorDrop.deserialize(operator as OperatorDropSerialized);
@@ -180,6 +178,11 @@ class Game {
                 const operatorForeach = new OperatorForeach(this.level);
                 operatorForeach.deserialize(operator as OperatorForeachSerialized);
                 return operatorForeach;
+            }
+            if (operator.type === OperatorType.EndForeach) {
+                const operatorEndForeach = new OperatorEndForeach(this.level);
+                operatorEndForeach.deserialize(operator as OperatorEndForeachSerialized);
+                return operatorEndForeach;
             }
             if (operator.type === OperatorType.Give) {
                 const operatorGive = new OperatorGive(this.level);
@@ -200,6 +203,16 @@ class Game {
                 const operatorIf = new OperatorIf(this.level);
                 operatorIf.deserialize(operator as OperatorIfSerialized);
                 return operatorIf;
+            }
+            if (operator.type === OperatorType.EndIf) {
+                const operatorEndIf = new OperatorEndIf(this.level);
+                operatorEndIf.deserialize(operator as OperatorEndIfSerialized);
+                return operatorEndIf;
+            }
+            if (operator.type === OperatorType.Calc) {
+                const operatorCalc = new OperatorCalc(this.level);
+                operatorCalc.deserialize(operator as OperatorCalcSerialized);
+                return operatorCalc;
             }
             if (operator.type === OperatorType.Near) {
                 const operatorNear = new OperatorNear(this.level);
@@ -236,8 +249,18 @@ class Game {
                 operatorWrite.deserialize(operator as OperatorWriteSerialized);
                 return operatorWrite;
             }
+            console.error('Unknown operator type', operator.type);
             return null;
         });
+        this.code.forEach(operator => operator.postDeserialize());
+    }
+
+    deserialize(serialized: GameSerialized) {
+        if (!this.level) {
+            this.level = new Level(this);
+        }
+        this.level.deserialize(serialized.level);
+        this.deserializeCode(serialized.code);
     }
 
     serialize(withObject = false): GameSerialized {

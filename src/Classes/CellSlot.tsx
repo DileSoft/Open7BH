@@ -11,6 +11,10 @@ class CellSlot extends Slot {
     getCellValue(): Cell | undefined {
         return this.cellValue;
     }
+
+    getNumberValue(): number {
+        return this.cellValue?.item?.value || 0;
+    }
 }
 
 export default CellSlot;

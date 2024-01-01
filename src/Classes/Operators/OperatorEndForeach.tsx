@@ -10,10 +10,20 @@ export interface OperatorEndForeachSerialized extends OperatorSerialized {
 }
 
 class OperatorEndForeach extends Operator {
+    operatorForeachId: string;
+
     operatorForeach: OperatorForeach;
 
     execute(character: Character): number {
-        return character.currentLine + 1;
+        const foreachOperator:OperatorForeach = this.level.game.code.find(_operator => _operator.id === this.operatorForeach.id) as OperatorForeach;
+        const directions = foreachOperator.directions;
+        const direction = character.foreachLoops[this.operatorForeach.id];
+        const index = directions.indexOf(direction);
+        if (index === directions.length - 1) {
+            character.foreachLoops[this.operatorForeach.id] = undefined;
+            return character.currentLine + 1;
+        }
+        return this.level.game.code.findIndex(operator => operator === foreachOperator);
     }
 
     serialize(withObject: boolean): OperatorEndForeachSerialized {
@@ -27,7 +37,11 @@ class OperatorEndForeach extends Operator {
 
     deserialize(operator: OperatorEndForeachSerialized): void {
         this.id = operator.id;
-        this.operatorForeach = this.level.game.code.find(_operator => _operator.id === operator.operatorForeach) as OperatorForeach;
+        this.operatorForeachId = operator.operatorForeach;
+    }
+
+    postDeserialize() {
+        this.operatorForeach = this.level.game.code.find(_operator => _operator.id === this.operatorForeachId) as OperatorForeach;
     }
 }
 

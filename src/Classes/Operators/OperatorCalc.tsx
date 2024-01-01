@@ -62,11 +62,18 @@ class OperatorCalc extends Operator {
         if (this.operand1type === CalcOperand.Direction) {
             value1 = this.level.getMoveCell(character.cell.x, character.cell.y, this.operand1DirectionValue)?.item?.value || 0;
         }
+        if (this.operand1type === CalcOperand.Slot) {
+            value1 = character.slots[this.operand1SlotValue].getNumberValue();
+        }
+
         if (this.operand2type === CalcOperand.Number) {
             value2 = this.operand2NumberValue;
         }
         if (this.operand2type === CalcOperand.Direction) {
             value2 = this.level.getMoveCell(character.cell.x, character.cell.y, this.operand2DirectionValue)?.item?.value || 0;
+        }
+        if (this.operand2type === CalcOperand.Slot) {
+            value2 = character.slots[this.operand2SlotValue].getNumberValue();
         }
 
         if (this.operator === CalcOperator.Add) {

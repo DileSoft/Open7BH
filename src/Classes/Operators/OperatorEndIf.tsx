@@ -10,6 +10,8 @@ export interface OperatorEndIfSerialized extends OperatorSerialized {
 }
 
 class OperatorEndIf extends Operator {
+    operatorIfId: string;
+
     operatorIf: OperatorIf;
 
     remove() {
@@ -32,7 +34,11 @@ class OperatorEndIf extends Operator {
 
     deserialize(operator: OperatorEndIfSerialized): void {
         this.id = operator.id;
-        this.operatorIf = this.level.game.code.find(_operator => _operator.id === operator.operatorIf) as OperatorIf;
+        this.operatorIfId = operator.operatorIf;
+    }
+
+    postDeserialize() {
+        this.operatorIf = this.level.game.code.find(_operator => _operator.id === this.operatorIfId) as OperatorIf;
     }
 }
 

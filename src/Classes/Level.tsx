@@ -68,6 +68,7 @@ class Level {
                     cellObject.item = {
                         value: parseInt(cellData[1]),
                         isRandom: cellData[1] === 'random',
+                        tag: cellData[2],
                     };
                 }
                 if (cellData[0] === 'hole') {

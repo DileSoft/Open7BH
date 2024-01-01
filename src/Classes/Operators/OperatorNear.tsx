@@ -30,7 +30,7 @@ class OperatorNear extends Operator {
     execute(character: Character): number {
         const path = this.level.findNear(
             [character.cell.x, character.cell.y],
-            cell => cell.getType() === (this.nearType as CellType),
+            cell => cell.getType() === (this.nearType as string),
         );
         let cell = path[path.length - 1];
         if (this.nearType === OperatorNearType.Printer || this.nearType === OperatorNearType.Shredder) {

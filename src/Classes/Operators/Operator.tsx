@@ -51,6 +51,9 @@ abstract class Operator {
     abstract serialize(withObject: boolean): OperatorSerialized;
 
     abstract deserialize(serialized: OperatorSerialized): void;
+
+    postDeserialize() {
+    }
 }
 
 export default Operator;

@@ -16,6 +16,10 @@ import Cell, { CellType } from './Classes/Cell';
 import Box from './Classes/Box';
 import Character from './Classes/Character';
 import Empty from './Classes/Empty';
+import Wall from './Classes/Wall';
+import Hole from './Classes/Hole';
+import Printer from './Classes/Printer';
+import Shredder from './Classes/Shredder';
 
 function Editor(props) {
     const [game, setGame] = useState<GameSerialized>(() => {
@@ -87,15 +91,15 @@ Crop
                 <div>
                     {levelStringify}
                 </div>
-                <div>{JSON.stringify(game.object.level.serialize(false), null, 2)}</div>
-                <div>
+                {/* <div>{JSON.stringify(game.object.level.serialize(false), null, 2)}</div> */}
+                {/* <div>
                     {JSON.stringify(game.object.serialize(), (key, val) => {
                         if (typeof val === 'function') {
                             return `${val}`; // implicitly `toString` it
                         }
                         return val;
                     }, 2)}
-                </div>
+                </div> */}
             </pre>
         </div>
         <Dialog open={cellDialog !== false} onClose={() => setCellDialog(false)}>
@@ -106,7 +110,28 @@ Crop
                         value={selectedCell?.getType()}
                         onChange={e => {
                             const coordinates = parseCoordinates(cellDialog as CoordinatesType);
-                            game.object.level.addCell(coordinates[0], coordinates[1], new Empty(game.object.level, coordinates[0], coordinates[1]));
+                            let cell:Cell;
+                            if (e.target.value === CellType.Empty) {
+                                cell = new Empty(game.object.level, coordinates[0], coordinates[1]);
+                            }
+                            if (e.target.value === CellType.Wall) {
+                                cell = new Wall(game.object.level, coordinates[0], coordinates[1]);
+                            }
+                            if (e.target.value === CellType.Hole) {
+                                cell = new Hole(game.object.level, coordinates[0], coordinates[1]);
+                                cell.isEmpty = true;
+                            }
+                            if (e.target.value === CellType.Printer) {
+                                cell = new Printer(game.object.level, coordinates[0], coordinates[1]);
+                                cell.isEmpty = true;
+                            }
+                            if (e.target.value === CellType.Shredder) {
+                                cell = new Shredder(game.object.level, coordinates[0], coordinates[1]);
+                                cell.isEmpty = true;
+                            }
+                            if (cell) {
+                                game.object.level.addCell(coordinates[0], coordinates[1], cell);
+                            }
                             game.object.render();
                         }}
                     >

@@ -61,6 +61,8 @@ export interface OperatorIfSerialized extends OperatorSerialized {
 }
 
 class OperatorIf extends Operator {
+    operatorEndIfId: string;
+
     operatorEndIf: OperatorEndIf;
 
     conditions: IfCondition[] = [];
@@ -110,14 +112,14 @@ class OperatorIf extends Operator {
                  condition.rightType === OperandIfRightType.Hole) {
                 if (condition.leftType === OperandIfLeftType.Slot) {
                     if (character.slots[condition.leftSlot] instanceof CellSlot) {
-                        conditionResult = (character.slots[condition.leftSlot] as CellSlot).cellValue.getType() === condition.rightType as CellType;
+                        conditionResult = (character.slots[condition.leftSlot] as CellSlot).cellValue.getType() === condition.rightType as string;
                         if (!isEqual) {
                             conditionResult = !conditionResult;
                         }
                     }
                 }
                 if (condition.leftType === OperandIfLeftType.Direction) {
-                    conditionResult = this.level.getMoveCell(character.cell.x, character.cell.y, condition.leftDirection).getType() === condition.rightType as CellType;
+                    conditionResult = this.level.getMoveCell(character.cell.x, character.cell.y, condition.leftDirection).getType() === condition.rightType as string;
                     if (!isEqual) {
                         conditionResult = !conditionResult;
                     }
@@ -207,8 +209,12 @@ class OperatorIf extends Operator {
 
     deserialize(operator: OperatorIfSerialized): void {
         this.id = operator.id;
-        this.operatorEndIf = this.level.game.code.find(_operator => _operator.id === operator.id) as OperatorEndIf;
+        this.operatorEndIfId = operator.operatorEndIf;
         this.conditions = operator.conditions;
+    }
+
+    postDeserialize() {
+        this.operatorEndIf = this.level.game.code.find(_operator => _operator.id === this.operatorEndIfId) as OperatorEndIf;
     }
 }
 

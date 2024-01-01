@@ -29,6 +29,10 @@ class Character {
 
     operationDone = false;
 
+    foreachLoops: {
+        [id: string]: Direction,
+    }[] = [];
+
     constructor(cell: Cell, name: string) {
         this.cell = cell;
         this.name = name;
