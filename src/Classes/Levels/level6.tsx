@@ -3,6 +3,7 @@ import Level, { LevelSerializedType } from '../Level';
 import Shredder from '../Shredder';
 
 const level:GameSerialized = {
+    name: 'Print and shred',
     level: {
         task: 'Print and shred 10 boxes',
         width: 5,

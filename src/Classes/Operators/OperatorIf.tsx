@@ -69,16 +69,26 @@ class OperatorIf extends Operator {
 
     constructor(level: Level) {
         super(level);
+        this.addCondition();
+    }
+
+    addCondition() {
         this.conditions.push({
             type: OperatorIfCondition.Eq,
             leftType: OperandIfLeftType.Number,
+            leftDirection: DirectionWithHere.Down,
             leftNumber: 0,
-            leftSlot: null,
+            leftSlot: 0,
             rightType: OperandIfRightType.Number,
+            rightDirection: DirectionWithHere.Down,
             rightNumber: 0,
-            rightSlot: null,
+            rightSlot: 0,
             logic: OperatorIfLogic.Or,
         });
+    }
+
+    removeCondition(conditionKey: number) {
+        this.conditions.splice(conditionKey, 1);
     }
 
     checkCondition(character: Character): boolean {

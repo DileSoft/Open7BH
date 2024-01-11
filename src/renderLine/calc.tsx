@@ -34,6 +34,9 @@ Calc
             if (e.target.value === 'slot') {
                 line.object.setOperand1Slot(0);
             }
+            if (e.target.value === 'myItem') {
+                line.object.setOperand1MyItem();
+            }
             game.object.render();
         }}
         variant="standard"
@@ -103,6 +106,9 @@ Calc
             }
             if (e.target.value === 'slot') {
                 line.object.setOperand2Slot(0);
+            }
+            if (e.target.value === 'myItem') {
+                line.object.setOperand2MyItem();
             }
             game.object.render();
         }}

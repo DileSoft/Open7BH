@@ -1,5 +1,5 @@
 import Box from './Box';
-import Cell from './Cell';
+import Cell, { CellType } from './Cell';
 import NumberSlot from './NumberSlot';
 import { Direction } from './Operators/OperatorStep';
 import Printer from './Printer';
@@ -130,7 +130,9 @@ class Character {
 
     getMoveCell(direction: Direction, prepare = false):Cell | undefined {
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
-        return newCell && newCell.isEmpty && (prepare || !newCell.character) ? newCell : undefined;
+        return newCell && newCell.isEmpty 
+        && (newCell.getType() === CellType.Empty || newCell.getType() === CellType.Hole)
+        && (prepare || !newCell.character) ? newCell : undefined;
     }
 
     say(text: string, direction: Direction) {

@@ -43,6 +43,16 @@ If:
             {Object.values(OperandIfLeftType).map(option =>
                 <MenuItem key={option} value={option}>{option}</MenuItem>)}
         </Select>
+        {condition.leftType === 'number' &&
+        <TextField
+            type="number"
+            value={condition.leftNumber}
+            variant="standard"
+            onChange={e => {
+                line.object.conditions[conditionKey].leftNumber = parseInt(e.target.value) || 0;
+                game.object.render();
+            }}
+        />}
         {condition.leftType === 'direction' && <Select
             IconComponent={null}
             value={condition.leftDirection}
@@ -89,7 +99,7 @@ If:
             }}
             variant="standard"
         >
-            {Object.values(OperandIfLeftType).map(option =>
+            {Object.values(OperandIfRightType).map(option =>
                 <MenuItem key={option} value={option}>{option}</MenuItem>)}
         </Select>
         {condition.rightType === 'number' &&
@@ -126,29 +136,20 @@ If:
                 line.object.conditions[conditionKey].rightSlot = parseInt(e.target.value) || 0;
             }}
         />}
-        <IconButton
+        {line.conditions.length > 1 && <IconButton
             size="small"
             onMouseDown={() => {
-                const newCode = line.object.conditions;
-                newCode.splice(conditionKey, 1);
-                line.object.conditions = newCode;
+                line.object.removeCondition(conditionKey);
                 game.object.render();
             }}
         >
             <ClearIcon />
-        </IconButton>
+        </IconButton>}
         {conditionKey === line.conditions.length - 1 &&
         <IconButton
             size="small"
             onMouseDown={() => {
-                line.object.conditions.push({
-                    logic: OperatorIfLogic.And,
-                    leftType: OperandIfLeftType.Slot,
-                    leftSlot: 0,
-                    type: OperatorIfCondition.Eq,
-                    rightType: OperandIfRightType.Number,
-                    rightSlot: 0,
-                });
+                line.object.addCondition();
                 game.object.render();
             }}
         >

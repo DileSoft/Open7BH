@@ -30,7 +30,6 @@ export enum DirectionWithHere {
 export enum StepType {
     Direction = 'Direction',
     Slot = 'Slot',
-    Near = 'Near',
 }
 
 export interface OperatorStepSerialized extends OperatorSerialized {

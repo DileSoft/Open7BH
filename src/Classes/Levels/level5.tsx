@@ -2,6 +2,7 @@ import { GameSerialized } from '../Game';
 import Level, { LevelSerializedType } from '../Level';
 
 const level:GameSerialized = {
+    name: 'Sort numbers',
     level: {
         task: 'Sort numbers',
         width: 5,

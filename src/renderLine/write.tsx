@@ -1,9 +1,9 @@
-import { TextField } from '@mui/material';
+import { MenuItem, Select, TextField } from '@mui/material';
 import React from 'react';
 import {
     RenderLineType,
 } from '../types';
-import { OperatorWriteSerialized } from '../Classes/Operators/OperatorWrite';
+import { OperatorWriteSerialized, WriteType } from '../Classes/Operators/OperatorWrite';
 
 const writeRenderLine:RenderLineType<OperatorWriteSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 Write
@@ -32,7 +32,30 @@ Write
         {['number', 'direction', 'slot', 'myitem'].map(option =>
             <MenuItem key={option} value={option}>{option}</MenuItem>)}
     </Select> */}
-    {// line.value.type === 'number' &&
+    <Select
+        IconComponent={null}
+        value={line.writeType}
+        onChange={e => {
+            if (e.target.value === 'number') {
+                // line.object.setOperand1Number(0);
+            }
+            // if (e.target.value === 'direction') {
+            //     line.object.setOperand1Direction(DirectionWithHere.Up);
+            // }
+            // if (e.target.value === 'slot') {
+            //     line.object.setOperand1Slot(0);
+            // }
+            if (e.target.value === 'myItem') {
+                // line.object.setOperand1MyItem();
+            }
+            game.object.render();
+        }}
+        variant="standard"
+    >
+        {Object.values(WriteType).map(option =>
+            <MenuItem key={option} value={option}>{option}</MenuItem>)}
+    </Select>
+    {line.writeType === WriteType.Number &&
         <TextField
             type="number"
             value={line.value}

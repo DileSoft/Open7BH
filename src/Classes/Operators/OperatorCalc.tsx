@@ -14,6 +14,7 @@ export enum CalcOperand {
     Number = 'number',
     Direction = 'direction',
     Slot = 'slot',
+    MyItem = 'myItem',
 }
 
 export interface OperatorCalcSerialized {
@@ -65,6 +66,9 @@ class OperatorCalc extends Operator {
         if (this.operand1type === CalcOperand.Slot) {
             value1 = character.slots[this.operand1SlotValue].getNumberValue();
         }
+        if (this.operand1type === CalcOperand.MyItem) {
+            value1 = character.item?.value || 0;
+        }
 
         if (this.operand2type === CalcOperand.Number) {
             value2 = this.operand2NumberValue;
@@ -74,6 +78,9 @@ class OperatorCalc extends Operator {
         }
         if (this.operand2type === CalcOperand.Slot) {
             value2 = character.slots[this.operand2SlotValue].getNumberValue();
+        }
+        if (this.operand2type === CalcOperand.MyItem) {
+            value2 = character.item?.value || 0;
         }
 
         if (this.operator === CalcOperator.Add) {
@@ -92,6 +99,10 @@ class OperatorCalc extends Operator {
         return character.currentLine + 1;
     }
 
+    setOperand1MyItem() {
+        this.operand1type = CalcOperand.MyItem;
+    }
+
     setOperand1Number(value: number) {
         this.operand1type = CalcOperand.Number;
         this.operand1NumberValue = value;
@@ -105,6 +116,10 @@ class OperatorCalc extends Operator {
     setOperand1Slot(value: number) {
         this.operand1type = CalcOperand.Slot;
         this.operand1SlotValue = value;
+    }
+
+    setOperand2MyItem() {
+        this.operand2type = CalcOperand.MyItem;
     }
 
     setOperand2Number(value: number) {

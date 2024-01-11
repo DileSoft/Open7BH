@@ -2,6 +2,7 @@ import { GameSerialized } from '../Game';
 import Level, { LevelSerializedType } from '../Level';
 
 const level:GameSerialized = {
+    name: 'Diagonal boxes',
     level: {
         task: 'Diagonal boxes',
         width: 5,

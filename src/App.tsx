@@ -1,9 +1,11 @@
-import { MenuItem, Select, Tabs, Tab } from '@mui/material';
+import {
+    MenuItem, Select, Tabs, Tab,
+} from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useState } from 'react';
 import Level from './Level';
 import Editor from './Editor';
-import levels from './levelsList';
+import Levels from './Classes/Levels';
 import './App.css';
 
 const theme = createTheme({
@@ -26,9 +28,13 @@ const theme = createTheme({
     },
 });
 
+Levels.preloadLevels();
+
 function App() {
     const [level, setLevel] = useState(0);
     const [editor, setEditor] = useState(false);
+    const [levels, setLevels] = useState(Levels.getLevels());
+    const reloadLevels = () => setLevels(Levels.getLevels());
     return (
         <ThemeProvider theme={theme}>
             <div className="App">
@@ -37,7 +43,7 @@ function App() {
                     <Tab label="Game" />
                     <Tab label="Editor" />
                 </Tabs>
-                {editor ? <Editor /> :
+                {editor ? <Editor levels={levels} reloadLevels={reloadLevels} /> :
                     <>
                         <div>
                             <Select variant="standard" value={level} onChange={e => setLevel(parseInt(e.target.value as string))}>

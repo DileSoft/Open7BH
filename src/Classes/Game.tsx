@@ -25,6 +25,7 @@ export enum GameState {
 
 export interface GameSerialized {
     level: LevelSerializedType;
+    name: string;
     code?: (
         OperatorSerialized |
         OperatorDropSerialized |
@@ -49,6 +50,8 @@ export interface GameSerialized {
 
 class Game {
     level: Level;
+
+    name = '';
 
     code: Operator[] = [];
 
@@ -259,6 +262,7 @@ class Game {
         if (!this.level) {
             this.level = new Level(this);
         }
+        this.name = serialized.name;
         this.level.deserialize(serialized.level);
         this.deserializeCode(serialized.code);
     }
@@ -266,6 +270,7 @@ class Game {
     serialize(withObject = false): GameSerialized {
         return {
             level: this.level.serialize(withObject),
+            name: this.name,
             code: this.code.map(operator => operator.serialize(withObject)),
             state: this.state,
             speed: this.speed,

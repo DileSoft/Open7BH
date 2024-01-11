@@ -10,7 +10,7 @@ import { CoordinatesType } from './types';
 import {
     parseCoordinates,
 } from './Utils';
-import levels from './levelsList';
+import Levels from './Classes/Levels';
 import Game, { GameSerialized } from './Classes/Game';
 import Cell, { CellType } from './Classes/Cell';
 import Box from './Classes/Box';
@@ -21,10 +21,10 @@ import Hole from './Classes/Hole';
 import Printer from './Classes/Printer';
 import Shredder from './Classes/Shredder';
 
-function Editor(props) {
+function Editor(props: {levels: GameSerialized[], reloadLevels: () => void}) {
     const [game, setGame] = useState<GameSerialized>(() => {
         const newGame = new Game();
-        newGame.deserialize(levels[0]);
+        newGame.deserialize(Levels.load(0));
         newGame.renderCallback = _game => setGame(_game);
         return newGame.serialize(true);
     });
@@ -38,16 +38,26 @@ function Editor(props) {
     return <div>
         <div>
             <Select variant="standard" value={template} onChange={e => setTemplate(parseInt(e.target.value as string))}>
-                {levels.map((currentLevel, number) => <MenuItem key={number} value={number}>{currentLevel.level.task}</MenuItem>)}
+                {props.levels.map((currentLevel, number) => <MenuItem key={number} value={number}>{currentLevel.level.task}</MenuItem>)}
             </Select>
             <Button onClick={() => {
                 const _game = new Game();
-                _game.deserialize(levels[template]);
+                _game.deserialize(Levels.load(template));
                 _game.renderCallback = _game => setGame(_game);
                 _game.render();
             }}
             >
 Import
+            </Button>
+            <Button onClick={() => copy(JSON.stringify(game.object.level.serialize(false), null, 2))}>Copy cells</Button>
+            <Button onClick={() => copy(JSON.stringify(game.object.level.getCharacters(), null, 2))}>Copy characters</Button>
+            <Button onClick={() => copy(levelStringify)}>Copy level</Button>
+            <Button onClick={() => {
+                Levels.save(game.name, game.object.serialize());
+                props.reloadLevels();
+            }}
+            >
+Save
             </Button>
         </div>
         <div>
@@ -82,11 +92,6 @@ Crop
             onClick={(coordinates => setCellDialog(coordinates))}
         />
         <div>
-            <div>
-                <Button onClick={() => copy(JSON.stringify(game.object.level.serialize(false), null, 2))}>Copy cells</Button>
-                <Button onClick={() => copy(JSON.stringify(game.object.level.getCharacters(), null, 2))}>Copy characters</Button>
-                <Button onClick={() => copy(levelStringify)}>Copy level</Button>
-            </div>
             <pre>
                 <div>
                     {levelStringify}

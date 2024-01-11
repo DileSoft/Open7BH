@@ -4,6 +4,7 @@ import { OperatorType } from '../Operators/Operator';
 import { Direction, StepType } from '../Operators/OperatorStep';
 
 const level:GameSerialized = {
+    name: 'Move boxes',
     level: {
         task: 'Move boxes',
         width: 5,

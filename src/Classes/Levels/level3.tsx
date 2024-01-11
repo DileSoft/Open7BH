@@ -2,6 +2,7 @@ import { GameSerialized } from '../Game';
 import Level, { LevelSerializedType } from '../Level';
 
 const level:GameSerialized = {
+    name: 'Remove only box with 2',
     level: {
         task: 'Remove only box with 2',
         width: 5,
