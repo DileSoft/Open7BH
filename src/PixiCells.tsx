@@ -26,12 +26,15 @@ function PixiCells(props: { game: GameSerialized }) {
     }, []);
 
     useEffect(() => {
-        if (props.game) {
-            try {
-                PixiRenderer.getInstance().render(props.game);
-            } catch (e) {
-                console.error('Pixi render error:', e);
+        if (props.game && canvasRef.current) {
+            async function renderFrame() {
+                const renderer = PixiRenderer.getInstance();
+                if (canvasRef.current && (!renderer.app || renderer.app.canvas !== canvasRef.current)) {
+                    await renderer.init(canvasRef.current);
+                }
+                renderer.render(props.game);
             }
+            renderFrame();
         }
     }, [props.game]); // Restore simple dependency for verification
 

@@ -37,9 +37,19 @@ export class PixiRenderer {
 
     async init(canvas: HTMLCanvasElement) {
         if (this.initialized && this.app) {
-            return;
+            if (this.app.canvas !== canvas) {
+                console.log('Canvas changed, re-initializing PixiRenderer');
+                this.app.destroy(true, { children: true, texture: true });
+                this.cellGraphics.clear();
+                this.characterSprites.clear();
+                this.itemContainers.clear();
+                this.initialized = false;
+            } else {
+                return;
+            }
         }
 
+        console.log('Initializing PixiRenderer with canvas', canvas);
         this.app = new PIXI.Application();
         await this.app.init({
             canvas,
@@ -102,6 +112,12 @@ export class PixiRenderer {
     render(game: GameSerialized) {
         if (!game || !game.object || !this.app || !this.app.renderer || !this.container) return;
 
+        console.log('PixiRenderer rendering...', { 
+            width: game.object.level.width, 
+            height: game.object.level.height,
+            canvas: this.app.canvas.isConnected
+        });
+
         const level = game.object.level;
         if (!level) return;
         const cells = level.cells;
@@ -112,7 +128,17 @@ export class PixiRenderer {
         );
 
         // Simple static render for now
-        Object.keys(cells).forEach(cellCoordinate => {
+        const cellCoordinates = Object.keys(cells);
+        
+        // Remove old graphics if they are no longer in the level
+        this.cellGraphics.forEach((graphics, coord) => {
+            if (!cells[coord]) {
+                graphics.destroy();
+                this.cellGraphics.delete(coord);
+            }
+        });
+
+        cellCoordinates.forEach(cellCoordinate => {
             const coordinates = parseCoordinates(cellCoordinate);
             const cell = cells[cellCoordinate];
 
