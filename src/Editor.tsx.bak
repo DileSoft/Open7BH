@@ -99,7 +99,6 @@ Crop
                 <h3>Cells (Old)</h3>
                 <Cells
                     game={game}
-                    onClick={(coordinates => setCellDialog(coordinates))}
                 />
             </div>
         </div>

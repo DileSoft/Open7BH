@@ -148,6 +148,7 @@ class Game {
 
     update():void {
         if (!this.level.getCharacters().filter(character => !character.isTerminated).length) {
+            this.render();
             return;
         }
         this.level.getCharacters().forEach(character => {
@@ -288,7 +289,7 @@ class Game {
     }
 
     render() {
-        console.log('render');
+        // console.log('render');
         this.renderCallback(this.serialize(true));
     }
 }

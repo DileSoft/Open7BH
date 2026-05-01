@@ -1,3 +1,4 @@
+/* eslint-disable import/prefer-default-export */
 import * as PIXI from 'pixi.js';
 import { GameSerialized, GameState } from './Classes/Game';
 import Empty from './Classes/Empty';
@@ -8,6 +9,7 @@ import Wall from './Classes/Wall';
 import { parseCoordinates } from './Utils';
 
 const CELL_WIDTH = 80;
+const ANIMATION_SPEED = 0.1;
 
 export class PixiRenderer {
     private static instance: PixiRenderer | null = null;
@@ -18,9 +20,9 @@ export class PixiRenderer {
 
     cellGraphics: Map<string, PIXI.Graphics> = new Map();
 
-    characterSprites: Map<string, PIXI.Container> = new Map();
+    characterSprites: Map<string, PIXI.Container & { targetX?: number; targetY?: number; isDead?: boolean; holeScale?: number }> = new Map();
 
-    itemContainers: Map<string, PIXI.Container> = new Map();
+    itemContainers: Map<string, PIXI.Container & { targetX?: number; targetY?: number }> = new Map();
 
     private initialized = false;
 
@@ -49,11 +51,55 @@ export class PixiRenderer {
 
         this.container = new PIXI.Container();
         this.app.stage.addChild(this.container);
+
+        this.app.ticker.add(() => {
+            this.updateAnimations();
+        });
+
         this.initialized = true;
     }
 
+    private updateAnimations() {
+        this.characterSprites.forEach(sprite => {
+            const { targetX, targetY } = sprite;
+            if (targetX !== undefined) {
+                sprite.x += (targetX - sprite.x) * ANIMATION_SPEED;
+                if (Math.abs(sprite.x - targetX) < 1) sprite.x = targetX;
+            }
+            if (targetY !== undefined) {
+                sprite.y += (targetY - sprite.y) * ANIMATION_SPEED;
+                if (Math.abs(sprite.y - targetY) < 1) sprite.y = targetY;
+            }
+
+            // Fall into hole animation (scale down and fade out)
+            const holeScale = sprite.holeScale ?? 1;
+            const isDead = sprite.isDead === true;
+            if (isDead) {
+                const newScale = Math.max(0, holeScale - 0.05);
+                sprite.holeScale = newScale;
+                sprite.scale.set(newScale);
+                sprite.alpha = newScale;
+                if (newScale === 0) sprite.visible = false;
+            } else {
+                sprite.holeScale = 1;
+                sprite.scale.set(1);
+            }
+        });
+
+        this.itemContainers.forEach(container => {
+            const { targetX, targetY } = container;
+            if (targetX !== undefined) {
+                container.x += (targetX - container.x) * ANIMATION_SPEED;
+                if (Math.abs(container.x - targetX) < 1) container.x = targetX;
+            }
+            if (targetY !== undefined) {
+                container.y += (targetY - container.y) * ANIMATION_SPEED;
+                if (Math.abs(container.y - targetY) < 1) container.y = targetY;
+            }
+        });
+    }
+
     render(game: GameSerialized) {
-        console.log('Rendering game with PixiRenderer');
         if (!game || !game.object || !this.app || !this.app.renderer || !this.container) return;
 
         const level = game.object.level;
@@ -93,6 +139,20 @@ export class PixiRenderer {
             );
             graphics.fill(fillColor);
             graphics.stroke({ width: 1, color: 0x000000 });
+        });
+
+        // Clean up items that are no longer in cells
+        const currentItemKeys = new Set(Object.keys(cells).map(coord => `cell_${coord}`));
+        this.itemContainers.forEach((container, key) => {
+            if (!currentItemKeys.has(key)) {
+                container.destroy({ children: true });
+                this.itemContainers.delete(key);
+            }
+        });
+
+        Object.keys(cells).forEach(cellCoordinate => {
+            const coordinates = parseCoordinates(cellCoordinate);
+            const cell = cells[cellCoordinate];
 
             // Handle items in cells
             const itemKey = `cell_${cellCoordinate}`;
@@ -116,8 +176,13 @@ export class PixiRenderer {
                         this.itemContainers.set(itemKey, itemContainer);
                     }
 
-                    itemContainer.x = coordinates[0] * CELL_WIDTH + CELL_WIDTH / 2;
-                    itemContainer.y = coordinates[1] * CELL_WIDTH + CELL_WIDTH / 2;
+                    itemContainer.targetX = coordinates[0] * CELL_WIDTH + CELL_WIDTH / 2;
+                    itemContainer.targetY = coordinates[1] * CELL_WIDTH + CELL_WIDTH / 2;
+
+                    if (itemContainer.x === 0 && itemContainer.y === 0) {
+                        itemContainer.x = itemContainer.targetX;
+                        itemContainer.y = itemContainer.targetY;
+                    }
 
                     const text = itemContainer.getChildAt(1) as PIXI.Text;
                     text.text = (item.isRandom && game.state !== GameState.Run) ? '?' : item.value.toString();
@@ -134,16 +199,51 @@ export class PixiRenderer {
 
         // Render Characters
         const characters = game.object.level.getCharacters();
+        
+        // Remove characters that are no longer in the level
+        const currentCharacterNames = new Set(characters.map(c => c.name));
+        this.characterSprites.forEach((sprite, name) => {
+            if (!currentCharacterNames.has(name)) {
+                sprite.destroy({ children: true });
+                this.characterSprites.delete(name);
+            }
+        });
+
         characters.forEach(character => {
             let charContainer = this.characterSprites.get(character.name);
             if (!charContainer) {
                 charContainer = new PIXI.Container();
 
                 const charGraphics = new PIXI.Graphics();
-                charGraphics.circle(0, -10, 15); // Head
-                charGraphics.rect(-5, 5, 10, 20); // Body
-                charGraphics.fill(0xffffff);
-                charGraphics.stroke({ width: 2, color: PixiRenderer.colorToHex(character.color) });
+                // Голова
+                charGraphics.circle(0, -15, 12); 
+                charGraphics.fill(0xffc0cb); // Розовый (Pink)
+                
+                // Глаза
+                charGraphics.circle(-4, -17, 1.5);
+                charGraphics.circle(4, -17, 1.5);
+                charGraphics.fill(0x000000);
+
+                // Тело
+                charGraphics.roundRect(-8, -3, 16, 22, 4); 
+                charGraphics.fill(0x808080); // Серый (Gray)
+
+                // Руки
+                charGraphics.moveTo(-8, 2);
+                charGraphics.lineTo(-14, 12);
+                charGraphics.moveTo(8, 2);
+                charGraphics.lineTo(14, 12);
+
+                // Ноги
+                charGraphics.moveTo(-4, 19);
+                charGraphics.lineTo(-6, 28);
+                charGraphics.moveTo(4, 19);
+                charGraphics.lineTo(6, 28);
+
+                charGraphics.stroke({ 
+                    width: 2, 
+                    color: PixiRenderer.colorToHex(character.color) 
+                });
 
                 charContainer.addChild(charGraphics);
 
@@ -162,10 +262,56 @@ export class PixiRenderer {
                 this.characterSprites.set(character.name, charContainer);
             }
 
-            charContainer.x = character.cell.x * CELL_WIDTH + CELL_WIDTH / 2;
-            charContainer.y = character.cell.y * CELL_WIDTH + CELL_WIDTH / 2;
+            charContainer.targetX = character.cell.x * CELL_WIDTH + CELL_WIDTH / 2;
+            charContainer.targetY = character.cell.y * CELL_WIDTH + CELL_WIDTH / 2;
+            
+            if (character.isDead && !charContainer.isDead) {
+                console.log(`Character ${character.name} died!`);
+            }
+            charContainer.isDead = character.isDead;
+
+            const charGraphics = charContainer.getChildAt(0) as PIXI.Graphics;
+            charGraphics.clear();
+            
+            const mainColor = character.isDead ? 0xff0000 : PixiRenderer.colorToHex(character.color);
+
+            // Голова
+            charGraphics.circle(0, -15, 12); 
+            charGraphics.fill(0xffc0cb); // Розовый (Pink)
+
+            // Глаза
+            charGraphics.circle(-4, -17, 1.5);
+            charGraphics.circle(4, -17, 1.5);
+            charGraphics.fill(0x000000);
+
+            // Тело
+            charGraphics.roundRect(-8, -3, 16, 22, 4); 
+            charGraphics.fill(0x808080); // Серый (Gray)
+
+            // Руки
+            charGraphics.moveTo(-8, 2);
+            charGraphics.lineTo(-14, 12);
+            charGraphics.moveTo(8, 2);
+            charGraphics.lineTo(14, 12);
+
+            // Ноги
+            charGraphics.moveTo(-4, 19);
+            charGraphics.lineTo(-6, 28);
+            charGraphics.moveTo(4, 19);
+            charGraphics.lineTo(6, 28);
+
+            charGraphics.stroke({
+                width: 2,
+                color: mainColor,
+            });
+
+            if (charContainer.x === 0 && charContainer.y === 0) {
+                charContainer.x = charContainer.targetX;
+                charContainer.y = charContainer.targetY;
+            }
+
             charContainer.alpha = character.isDead ? 0.5 : 1;
-            charContainer.visible = !character.isTerminated;
+            charContainer.visible = !character.isTerminated || character.isDead;
 
             const itemGraphic = charContainer.getChildAt(1) as PIXI.Graphics;
             const itemText = charContainer.getChildAt(2) as PIXI.Text;
@@ -196,18 +342,5 @@ export class PixiRenderer {
             white: 0xffffff,
         };
         return colors[color.toLowerCase()] || 0x000000;
-    }
-
-    async destroy() {
-        if (this.app) {
-            try {
-                this.app.destroy(true, { children: true, texture: true });
-            } catch (e) {
-                console.warn('Pixi app destroy error:', e);
-            }
-            this.app = null;
-            this.container = null;
-            this.initialized = false;
-        }
     }
 }

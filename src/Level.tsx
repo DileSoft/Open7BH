@@ -53,19 +53,25 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
         <Grid item md={6}>
             <h2>{game.level.task}</h2>
             <h4>{game.state === GameState.Run && game.level.winCallback(game.level.object) ? 'Win' : null}</h4>
-            <Cells
-                game={game}
-            />
-            <hr />
-            <h3>PixiJS Rendering:</h3>
-            <PixiCells
-                game={game}
-            />
+            <div style={{ display: 'flex', gap: '20px' }}>
+                <div>
+                    <h3>Cells (Old)</h3>
+                    <Cells
+                        game={game}
+                    />
+                </div>
+                <div>
+                    <h3>PixiJS (New)</h3>
+                    <PixiCells
+                        game={game}
+                    />
+                </div>
+            </div>
         </Grid>
         <Grid item md={1}>
             <AddPanel game={game} />
         </Grid>
-        <Grid item md={5}>
+        <Grid item md={3}>
             <div style={{ paddingLeft: 20 }}>
                 <SortableContainer onSortEnd={({ oldIndex, newIndex }, e) => {
                     if (e.ctrlKey) {
