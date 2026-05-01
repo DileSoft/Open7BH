@@ -11,6 +11,7 @@ import AddPanel from './AddPanel';
 import renderLine from './renderLine';
 import Game, { GameSerialized, GameState } from './Classes/Game';
 import { LevelSerializedType } from './Classes/Level';
+import PixiCells from './PixiCells';
 
 const SortableItem = sortableElement(({ children }) => <div>{children}</div>);
 
@@ -53,6 +54,11 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
             <h2>{game.level.task}</h2>
             <h4>{game.state === GameState.Run && game.level.winCallback(game.level.object) ? 'Win' : null}</h4>
             <Cells
+                game={game}
+            />
+            <hr />
+            <h3>PixiJS Rendering:</h3>
+            <PixiCells
                 game={game}
             />
         </Grid>

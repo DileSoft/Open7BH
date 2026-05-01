@@ -5,7 +5,7 @@ import {
 } from '@mui/material';
 import copy from 'copy-to-clipboard';
 import { useState } from 'react';
-import Cells from './Cells';
+import PixiCells from './PixiCells';
 import { CoordinatesType } from './types';
 import {
     parseCoordinates,
@@ -87,9 +87,8 @@ Save
 Crop
             </Button>
         </div>
-        <Cells
+        <PixiCells
             game={game}
-            onClick={(coordinates => setCellDialog(coordinates))}
         />
         <div>
             <pre>
