@@ -63,9 +63,9 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
                 </div>
                 <div>
                     <h3>PixiJS (New)</h3>
-                    <PixiCells
+                    {game && <PixiCells
                         game={game}
-                    />
+                    />}
                 </div>
             </div>
         </Grid>
