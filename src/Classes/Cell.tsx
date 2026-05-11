@@ -10,7 +10,18 @@ export enum CellType {
     Shredder = 'shredder',
 }
 
+export interface IRenderer {
+    registerCell(cell: any): void;
+    updateItem(cell: any): void;
+    updateCharacter(character: any): void;
+    registerCharacter(character: any): void;
+    clearScene(): void;
+    resize(width: number, height: number): void;
+}
+
 abstract class Cell {
+    static renderer: IRenderer | null = null;
+
     x: number;
 
     y: number;
@@ -29,6 +40,7 @@ abstract class Cell {
         this.level = level;
         this.x = x;
         this.y = y;
+        Cell.renderer?.registerCell(this);
     }
 
     getCharacter(): Character | null {
@@ -42,6 +54,7 @@ abstract class Cell {
             }
             this.character = character;
             character.cell = this;
+            Cell.renderer?.updateCharacter(character);
         }
     }
 
@@ -51,10 +64,12 @@ abstract class Cell {
 
     setItem(item: Box) {
         this.item = item;
+        Cell.renderer?.updateItem(this);
     }
 
     removeItem() {
         this.item = null;
+        Cell.renderer?.updateItem(this);
     }
 }
 

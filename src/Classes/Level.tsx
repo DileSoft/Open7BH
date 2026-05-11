@@ -131,10 +131,12 @@ class Level {
     }
 
     deserialize(str: LevelSerializedType) {
+        Cell.renderer?.clearScene();
         this.task = str.task;
         this.width = str.width;
         this.height = str.height;
         this.winCallback = str.winCallback;
+        Cell.renderer?.resize(this.width, this.height);
         str.cells.forEach(cell => {
             let cellObject: Cell;
             if (cell.type === CellType.Empty) {
@@ -180,6 +182,7 @@ class Level {
                     character.cell.character = null;
                     character.cell = nextMove;
                     nextMove.character = character;
+                    Cell.renderer?.updateCharacter(character);
                     notMoved.splice(notMoved.indexOf(character), 1);
                     character.nextMove = null;
                     return;
@@ -193,6 +196,8 @@ class Level {
                     cell2.character = character1;
                     character1.cell = cell2;
                     character2.cell = cell1;
+                    Cell.renderer?.updateCharacter(character1);
+                    Cell.renderer?.updateCharacter(character2);
                     notMoved.splice(notMoved.indexOf(character), 1);
                     notMoved.splice(notMoved.indexOf(nextMove.character), 1);
                     character1.nextMove = null;

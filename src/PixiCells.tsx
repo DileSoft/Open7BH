@@ -12,8 +12,17 @@ function PixiCells(props: { game: GameSerialized }) {
             if (canvasRef.current) {
                 const renderer = PixiRenderer.getInstance();
                 await renderer.init(canvasRef.current);
-                if (isMounted) {
-                    renderer.render(props.game);
+                // After init, if we have a game, we might need to "kick off" first registration
+                // though logic objects should have registered themselves during deserialization.
+                // However, PixiRenderer might have been cleared if reused.
+                if (isMounted && props.game.object?.level) {
+                   const level = props.game.object.level;
+                   renderer.resize(level.width, level.height);
+                   Object.values(level.cells).forEach(cell => {
+                       renderer.registerCell(cell);
+                       const char = cell.getCharacter();
+                       if (char) renderer.registerCharacter(char);
+                   });
                 }
             }
         }
@@ -24,19 +33,6 @@ function PixiCells(props: { game: GameSerialized }) {
             isMounted = false;
         };
     }, []);
-
-    useEffect(() => {
-        if (props.game && canvasRef.current) {
-            async function renderFrame() {
-                const renderer = PixiRenderer.getInstance();
-                if (canvasRef.current && (!renderer.app || renderer.app.canvas !== canvasRef.current)) {
-                    await renderer.init(canvasRef.current);
-                }
-                renderer.render(props.game);
-            }
-            renderFrame();
-        }
-    }, [props.game]); // Restore simple dependency for verification
 
     return (
         <div style={{ border: '2px solid red', display: 'inline-block', marginTop: 20 }}>

@@ -17,7 +17,16 @@ class Character {
 
     isTerminated = false;
 
-    isDead = false;
+    _isDead = false;
+
+    get isDead() {
+        return this._isDead;
+    }
+
+    set isDead(value: boolean) {
+        this._isDead = value;
+        Cell.renderer?.updateCharacter(this);
+    }
 
     slots: Slot[] = [];
 
@@ -39,6 +48,7 @@ class Character {
         for (let i = 0; i < 4; i++) {
             this.slots.push(new NumberSlot(this));
         }
+        Cell.renderer?.registerCharacter(this);
     }
 
     prepareMove(direction: Direction) {
@@ -83,8 +93,9 @@ class Character {
         this.operationDone = false;
     }
 
-    setItem(item: Box) {
+    setItem(item: Box | undefined) {
         this.item = item;
+        Cell.renderer?.updateCharacter(this);
     }
 
     giveItem(direction: Direction):void {
@@ -138,7 +149,7 @@ class Character {
     say(text: string, direction: Direction) {
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (newCell && newCell.character && newCell.character.hear === text) {
-            newCell.character.hear = null;
+            newCell.character.hear = undefined;
             newCell.character.currentLine++;
         }
     }
