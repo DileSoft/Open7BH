@@ -87,27 +87,24 @@ class Character {
         operator.prepare(this);
     }
 
+    private lastActionTime: number = 0;
+
     update() {
         if (this.isTerminated || this.state === CharacterState.Dead) {
             return;
         }
 
-        // State Machine processing
-        switch (this.state) {
-            case CharacterState.Idle:
+        // Only process next command if we are idle AND enough time has passed based on game speed
+        if (this.state === CharacterState.Idle) {
+            const now = Date.now();
+            const speed = (this.cell.level.game.speed || 1000);
+            
+            // If movement was the last action, we MUST ensure the renderer has actually 
+            // finished moving the character before we start a new command.
+            if (now - this.lastActionTime >= speed - 1) {
+                this.lastActionTime = now;
                 this.processNextCommand();
-                break;
-            case CharacterState.Moving:
-                // Logic for moving state (waiting for renderer to signal completion or via timer)
-                break;
-            case CharacterState.Taking:
-            case CharacterState.Dropping:
-            case CharacterState.Giving:
-                // These act as "durational" states. 
-                // They can be cleared by the renderer or a fixed logic tick.
-                break;
-            default:
-                break;
+            }
         }
     }
 
@@ -160,15 +157,25 @@ class Character {
             newCell.character.setItem(this.item);
             newCell.character.operationDone = true;
             this.item = null;
-            // For now, switch back to Idle manually after logic
-            // In a real animation system, we'd wait for animation end
-            setTimeout(() => this.setState(CharacterState.Idle), 500);
+            
+            const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
+            setTimeout(() => {
+                if (this.state === CharacterState.Giving) {
+                    this.setState(CharacterState.Idle);
+                }
+            }, duration);
         }
         if (newCell && (newCell instanceof Shredder) && this.item) {
             this.setState(CharacterState.Giving);
             newCell.shred();
             this.item = null;
-            setTimeout(() => this.setState(CharacterState.Idle), 500);
+            
+            const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
+            setTimeout(() => {
+                if (this.state === CharacterState.Giving) {
+                    this.setState(CharacterState.Idle);
+                }
+            }, duration);
         }
     }
 
@@ -177,7 +184,13 @@ class Character {
         if (newCell && (newCell instanceof Printer) && !this.item) {
             this.setState(CharacterState.Taking);
             this.item = new Box(newCell.print());
-            setTimeout(() => this.setState(CharacterState.Idle), 500);
+            
+            const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
+            setTimeout(() => {
+                if (this.state === CharacterState.Taking) {
+                    this.setState(CharacterState.Idle);
+                }
+            }, duration);
         }
     }
 
@@ -193,7 +206,14 @@ class Character {
             this.setState(CharacterState.PickingUp);
             this.setItem(item);
             this.cell.removeItem();
-            setTimeout(() => this.setState(CharacterState.Idle), 500);
+            
+            // Fixed duration that scales with game speed but is not shorter than logic tick
+            const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
+            setTimeout(() => {
+                if (this.state === CharacterState.PickingUp) {
+                    this.setState(CharacterState.Idle);
+                }
+            }, duration);
         }
     }
 
@@ -202,7 +222,13 @@ class Character {
             this.setState(CharacterState.Dropping);
             this.cell.setItem(this.item);
             this.item = null;
-            setTimeout(() => this.setState(CharacterState.Idle), 500);
+            
+            const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
+            setTimeout(() => {
+                if (this.state === CharacterState.Dropping) {
+                    this.setState(CharacterState.Idle);
+                }
+            }, duration);
         }
     }
 

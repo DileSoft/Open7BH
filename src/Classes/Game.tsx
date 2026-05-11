@@ -138,7 +138,7 @@ class Game {
             if (this.state === GameState.Run) {
                 this.update();
             }
-        }, this.speed);
+        }, 16); // ~60 FPS
     }
 
     stop():void {

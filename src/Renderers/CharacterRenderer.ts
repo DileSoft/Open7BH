@@ -49,19 +49,35 @@ export class CharacterRenderer implements IRenderer {
         this.updateHeldItem();
         this.applyStateAnimations(animationSpeed);
         
-        // Smooth movement
+        // Smooth movement with fixed step to prevent overshoot and infinite loops
         const dx = this.targetX - this.container.x;
         const dy = this.targetY - this.container.y;
         
-        if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
-            this.container.x += dx * animationSpeed;
-            this.container.y += dy * animationSpeed;
+        // Minimum distance to consider "arrived"
+        const threshold = 1.0;
+        
+        if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
+            // Use a constant-ish interpolation that respects animationSpeed 
+            // but also ensures we actually close the gap.
+            // If animationSpeed is high (e.g. 1.0+), it might jump too far.
+            // We clamp the movement to not overshoot the target.
+            const moveX = dx * Math.min(1.0, animationSpeed);
+            const moveY = dy * Math.min(1.0, animationSpeed);
+            
+            this.container.x += moveX;
+            this.container.y += moveY;
             
             this.charGraphics.rotation = 0;
+            // Force state to Moving if we are still far from target
+            if (this.character.state === CharacterState.Idle) {
+                this.character.setState(CharacterState.Moving);
+            }
         } else {
+            // Snap to exact target to avoid floating point drift
             this.container.x = this.targetX;
             this.container.y = this.targetY;
             this.charGraphics.rotation = 0;
+            
             // If we arrived at target and were moving, go back to idle
             if (this.character.state === CharacterState.Moving) {
                 this.character.setState(CharacterState.Idle);

@@ -104,7 +104,9 @@ Speed:
                         type="number"
                         value={1000 / game.speed}
                         onChange={e => {
-                            game.object.speed = 1000 / (parseInt(e.target.value) || 1);
+                            const val = parseInt(e.target.value) || 1;
+                            const clampedVal = Math.min(Math.max(val, 1), 60); // Clamp speed between 1 and 60
+                            game.object.speed = 1000 / clampedVal;
                             game.object.render();
                         }}
                     />
