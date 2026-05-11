@@ -62,7 +62,7 @@ abstract class Cell {
         return this.item;
     }
 
-    setItem(item: Box) {
+    setItem(item: Box | null) {
         this.item = item;
         Cell.renderer?.updateItem(this);
     }

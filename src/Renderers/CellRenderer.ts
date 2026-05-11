@@ -15,7 +15,7 @@ export class CellRenderer implements IRenderer {
         this.cell = cell;
         this.container = new PIXI.Graphics();
         parent.addChild(this.container);
-        this.update();
+        this.update(0);
     }
 
     update(animationSpeed: number) {

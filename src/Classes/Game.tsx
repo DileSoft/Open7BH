@@ -49,7 +49,7 @@ export interface GameSerialized {
 }
 
 class Game {
-    level: Level;
+    level!: Level;
 
     name = '';
 
@@ -59,7 +59,7 @@ class Game {
 
     speed = 1000;
 
-    renderCallback: (game: GameSerialized) => void;
+    renderCallback!: (game: GameSerialized) => void;
 
     interval: number | undefined;
 
@@ -164,6 +164,7 @@ class Game {
     }
 
     deserializeCode(code: GameSerialized['code']) {
+        if (!code) return;
         this.code = code.map(operator => {
             if (operator.type === OperatorType.Drop) {
                 const operatorDrop = new OperatorDrop(this.level);
@@ -252,7 +253,7 @@ class Game {
             }
             console.error('Unknown operator type', operator.type);
             return null;
-        });
+        }).filter(operator => operator !== null) as Operator[];
         this.code.forEach(operator => operator.postDeserialize());
     }
 

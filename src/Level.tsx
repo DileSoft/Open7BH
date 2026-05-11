@@ -14,9 +14,9 @@ import { LevelSerializedType } from './Classes/Level';
 import PixiCells from './PixiCells';
 import PixiCodeEditor from './PixiCodeEditor';
 
-const SortableItem = sortableElement(({ children }) => <div>{children}</div>);
+const SortableItem = sortableElement(({ children }: { children: React.ReactNode }) => <div>{children}</div>);
 
-const SortableContainer = sortableContainer(({ children }) => <div>{children}</div>);
+const SortableContainer = sortableContainer(({ children }: { children: React.ReactNode }) => <div>{children}</div>);
 
 function Level(props: {level: GameSerialized, levelNumber: number}) {
     const [game, setGame] = useState<GameSerialized>();
@@ -25,26 +25,30 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
         const gameObject = new Game();
         gameObject.deserialize(props.level);
         gameObject.renderCallback = setGame;
-        gameObject.deserializeCode((JSON.parse(window.localStorage.getItem(`level${props.levelNumber}`)) || []) as GameSerialized['code']);
+        const storedCode = window.localStorage.getItem(`level${props.levelNumber}`);
+        gameObject.deserializeCode((storedCode ? JSON.parse(storedCode) : []) as GameSerialized['code']);
         gameObject.render();
     }, [props.level]);
 
-    if (game) {
-        window.localStorage.setItem(`level${props.levelNumber}`, JSON.stringify(game.object.serialize().code));
-    }
+    useEffect(() => {
+        if (game?.object) {
+            window.localStorage.setItem(`level${props.levelNumber}`, JSON.stringify(game.object.serialize().code));
+        }
+    }, [game, props.levelNumber]);
 
     let intend = 0;
 
     const renderLines = useMemo(() => {
-        if (!game) {
+        if (!game || !game.code) {
             return [];
         }
+        let currentIntend = 0;
         return game.code.map((line, key) => {
-            const lineResult = renderLine(line, key, game, intend);
-            intend = lineResult.intend;
+            const lineResult = renderLine(line, key, game, currentIntend);
+            currentIntend = lineResult.intend;
             return lineResult.result;
         });
-    }, [game?.code]);
+    }, [game]);
 
     if (!game) {
         return null;
@@ -52,8 +56,8 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
 
     return <Grid container>
         <Grid item md={6}>
-            <h2>{game.level.task}</h2>
-            <h4>{game.state === GameState.Run && game.level.winCallback(game.level.object) ? 'Win' : null}</h4>
+            <h2>{game.level?.task}</h2>
+            <h4>{game.state === GameState.Run && game.level && game.level.winCallback(game.level.object as any) ? 'Win' : null}</h4>
             <div style={{ display: 'flex', gap: '20px' }}>
                 <div>
                     <h3>Cells (Old)</h3>
@@ -75,20 +79,20 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
         <Grid item md={3}>
             <div style={{ paddingLeft: 20 }}>
                 <h3>Code (Old)</h3>
-                <SortableContainer onSortEnd={({ oldIndex, newIndex }, e) => {
+                <SortableContainer onSortEnd={({ oldIndex, newIndex }: { oldIndex: number, newIndex: number }, e: any) => {
                     if (e.ctrlKey) {
                         // const newCode = clone(code);
                         // newCode.splice(newIndex, 0, code[oldIndex]);
                         // setCode(newCode);
-                    } else {
+                    } else if (game.object) {
                         game.object.moveOperator(oldIndex, newIndex);
                         game.object.render();
                     }
                 }}
                 >
-                    {game.code.map((line, key) => {
-                        const result = <SortableItem index={key} key={line.object.id}>
-                            {game.object.level.getCharacters().filter(character => character.currentLine === key).map(character => <span key={character.name}>
+                    {(game.code || []).map((line, key) => {
+                        const result = <SortableItem index={key} key={line.object?.id}>
+                            {game.object?.level.getCharacters().filter(character => character.currentLine === key).map(character => <span key={character.name}>
                                 <ManIcon fontSize="small" style={{ color: character.color }} />
                             </span>)}
                             {renderLines[key]}
@@ -102,12 +106,14 @@ Speed:
                     <TextField
                         variant="standard"
                         type="number"
-                        value={1000 / game.speed}
+                        value={game.speed ? 1000 / game.speed : 0}
                         onChange={e => {
                             const val = parseInt(e.target.value) || 1;
                             const clampedVal = Math.min(Math.max(val, 1), 60); // Clamp speed between 1 and 60
-                            game.object.speed = 1000 / clampedVal;
-                            game.object.render();
+                            if (game.object) {
+                                game.object.speed = 1000 / clampedVal;
+                                game.object.render();
+                            }
                         }}
                     />
                 </div>
@@ -116,19 +122,21 @@ Speed:
                         <Button
                             variant="contained"
                             onClick={() => {
-                                game.object.level.deserialize(props.level.level);
-                                game.object.render();
-                                game.object.state === GameState.Run ? game.object.stop() : game.object.start();
+                                if (game.object && props.level.level) {
+                                    game.object.level.deserialize(props.level.level);
+                                    game.object.render();
+                                    game.object.state === GameState.Run ? game.object.stop() : game.object.start();
+                                }
                             }}
                             disabled={intend !== 0}
                         >
-                            {game.object.state === GameState.Run ? 'Stop' : 'Run'}
+                            {game.object?.state === GameState.Run ? 'Stop' : 'Run'}
                         </Button>
                     </div>
                     <div>
                         <Button
                             variant="contained"
-                            onClick={() => copy(JSON.stringify(game.object.serialize(), null, 2))}
+                            onClick={() => game.object && copy(JSON.stringify(game.object.serialize(), null, 2))}
                         >
 Copy
                         </Button>
@@ -137,15 +145,17 @@ Copy
                         <Button
                             variant="contained"
                             onClick={() => {
-                                game.object.deserializeCode(props.level.code);
-                                game.object.render();
+                                if (game.object && props.level.code) {
+                                    game.object.deserializeCode(props.level.code);
+                                    game.object.render();
+                                }
                             }}
                         >
 Clear
                         </Button>
                     </div>
                 </div>
-                {game.object.level.getCharacters().map(character => <div key={character.name}>
+                {game.object?.level.getCharacters().map(character => <div key={character.name}>
                     {character.name}
                     {' '}
                     <span style={{ color: character.color }}>
@@ -158,9 +168,9 @@ Clear
                     </span>)}
                 </div>)}
                 <pre>
-                    {JSON.stringify(Object.values(game.object.level.cells).filter(cell => cell.character)
+                    {game.object && JSON.stringify(Object.values(game.object.level.cells).filter(cell => cell.character)
                         .map(cell => ({
-                            name: cell.character?.name, line: cell.character.currentLine, x: cell.x, y: cell.y,
+                            name: cell.character?.name, line: cell.character?.currentLine, x: cell.x, y: cell.y,
                         })), null, 2)}
                 </pre>
             </div>

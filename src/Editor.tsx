@@ -32,10 +32,10 @@ function Editor(props: {levels: GameSerialized[], reloadLevels: () => void}) {
     });
 
     const [cellDialog, setCellDialog] = useState<CoordinatesType | boolean>(false);
-    const selectedCell:Cell = game.object.level.cells[cellDialog as CoordinatesType];
+    const selectedCell: Cell | undefined = game.object ? game.object.level.cells[cellDialog as CoordinatesType] : undefined;
     const [template, setTemplate] = useState(0);
 
-    const levelStringify = JSON.stringify(game.object.serialize(), null, 2);
+    const levelStringify = game.object ? JSON.stringify(game.object.serialize(), null, 2) : '';
 
     return <div>
         <div>
@@ -51,12 +51,14 @@ function Editor(props: {levels: GameSerialized[], reloadLevels: () => void}) {
             >
 Import
             </Button>
-            <Button onClick={() => copy(JSON.stringify(game.object.level.serialize(false), null, 2))}>Copy cells</Button>
-            <Button onClick={() => copy(JSON.stringify(game.object.level.getCharacters(), null, 2))}>Copy characters</Button>
+            <Button onClick={() => game.object && copy(JSON.stringify(game.object.level.serialize(false), null, 2))}>Copy cells</Button>
+            <Button onClick={() => game.object && copy(JSON.stringify(game.object.level.getCharacters(), null, 2))}>Copy characters</Button>
             <Button onClick={() => copy(levelStringify)}>Copy level</Button>
             <Button onClick={() => {
-                Levels.save(game.name, game.object.serialize());
-                props.reloadLevels();
+                if (game.object && game.name) {
+                    Levels.save(game.name, game.object.serialize());
+                    props.reloadLevels();
+                }
             }}
             >
 Save
@@ -65,25 +67,31 @@ Save
         <div>
             <TextField
                 label="width"
-                value={game.level.width}
+                value={game.level?.width}
                 variant="standard"
                 onChange={e => {
-                    game.object.level.changeSize(parseInt(e.target.value), game.level.height);
-                    game.object.render();
+                    if (game.object && game.level) {
+                        game.object.level.changeSize(parseInt(e.target.value), game.level.height);
+                        game.object.render();
+                    }
                 }}
             />
             <TextField
                 label="height"
-                value={game.level.height}
+                value={game.level?.height}
                 variant="standard"
                 onChange={e => {
-                    game.object.level.changeSize(game.level.width, parseInt(e.target.value));
-                    game.object.render();
+                    if (game.object && game.level) {
+                        game.object.level.changeSize(game.level.width, parseInt(e.target.value));
+                        game.object.render();
+                    }
                 }}
             />
             <Button onClick={() => {
-                game.object.level.crop(game.object.level.width, game.object.level.height);
-                game.object.render();
+                if (game.object) {
+                    game.object.level.crop(game.object.level.width, game.object.level.height);
+                    game.object.render();
+                }
             }}
             >
 Crop
@@ -133,8 +141,9 @@ Crop
                     <Select
                         value={selectedCell?.getType()}
                         onChange={e => {
+                            if (!game.object) return;
                             const coordinates = parseCoordinates(cellDialog as CoordinatesType);
-                            let cell:Cell;
+                            let cell: Cell | undefined;
                             if (e.target.value === CellType.Empty) {
                                 cell = new Empty(game.object.level, coordinates[0], coordinates[1]);
                             }
@@ -169,8 +178,12 @@ Item:
                     <Checkbox
                         checked={!!selectedCell?.item}
                         onChange={e => {
-                            e.target.checked ? selectedCell.setItem(new Box(0)) : selectedCell.setItem(null);
-                            game.object.render();
+                            if (e.target.checked) {
+                                selectedCell.setItem(new Box(0));
+                            } else {
+                                selectedCell.setItem(null);
+                            }
+                            game.object?.render();
                         }}
                     />
                 </div> : null}
@@ -180,8 +193,10 @@ Item:
                         value={selectedCell?.item?.value}
                         variant="standard"
                         onChange={e => {
-                            selectedCell.item.value = parseInt(e.target.value) || 0;
-                            game.object.render();
+                            if (selectedCell.item) {
+                                selectedCell.item.value = parseInt(e.target.value) || 0;
+                                game.object?.render();
+                            }
                         }}
                     />
                 </div> : null}
@@ -191,15 +206,17 @@ Character:
                     <Checkbox
                         checked={!!selectedCell.character}
                         onChange={e => {
-                            if (e.target.checked) {
+                            if (game.object && e.target.checked) {
                                 selectedCell.setCharacter(
                                     new Character(selectedCell, `${game.object.level.getCharacters().length + 1}`),
                                 );
-                                selectedCell.character.color = 'green';
+                                if (selectedCell.character) {
+                                    selectedCell.character.color = 'green';
+                                }
                             } else {
                                 selectedCell.character = null;
                             }
-                            game.object.render();
+                            game.object?.render();
                         }}
                     />
                 </div> : null}
