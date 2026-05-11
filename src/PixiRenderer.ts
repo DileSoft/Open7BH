@@ -60,11 +60,11 @@ export class PixiRenderer {
         this.app.stage.addChild(this.container);
 
         this.cellsLayer = new PIXI.Container();
-        this.itemsLayer = new PIXI.Container();
         this.charactersLayer = new PIXI.Container();
+        this.itemsLayer = new PIXI.Container();
         this.container.addChild(this.cellsLayer);
-        this.container.addChild(this.itemsLayer);
         this.container.addChild(this.charactersLayer);
+        this.container.addChild(this.itemsLayer);
 
         this.app.ticker.add(() => {
             this.updateAnimations();
