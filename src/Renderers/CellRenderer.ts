@@ -18,7 +18,7 @@ export class CellRenderer implements IRenderer {
         this.update();
     }
 
-    update() {
+    update(animationSpeed: number) {
         this.container.clear();
         let fillColor = 0xffffff;
         if (this.cell instanceof Hole) fillColor = 0x000000;

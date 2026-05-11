@@ -103,7 +103,7 @@ export class PixiRenderer {
     public updateItem(cell: Cell) {
         const renderer = this.itemRenderers.get(cell);
         if (renderer) {
-            renderer.update();
+            renderer.update(ANIMATION_SPEED);
         }
     }
 
@@ -118,21 +118,17 @@ export class PixiRenderer {
     public updateCharacter(character: Character) {
         const renderer = this.characterRenderers.get(character);
         if (renderer) {
-            renderer.update();
+            renderer.update(ANIMATION_SPEED);
         }
     }
 
     private updateAnimations() {
         this.characterRenderers.forEach(renderer => {
-            renderer.update(); // Update held items, etc.
-            renderer.container.x += (renderer.targetX - renderer.container.x) * ANIMATION_SPEED;
-            renderer.container.y += (renderer.targetY - renderer.container.y) * ANIMATION_SPEED;
+            renderer.update(ANIMATION_SPEED);
         });
 
         this.itemRenderers.forEach(renderer => {
-            renderer.update(); // Update item visibility/text
-            renderer.container.x += (renderer.targetX - renderer.container.x) * ANIMATION_SPEED;
-            renderer.container.y += (renderer.targetY - renderer.container.y) * ANIMATION_SPEED;
+            renderer.update(ANIMATION_SPEED);
         });
     }
 

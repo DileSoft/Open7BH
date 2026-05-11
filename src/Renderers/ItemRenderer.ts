@@ -29,7 +29,7 @@ export class ItemRenderer implements IRenderer {
         this.update();
     }
 
-    update() {
+    update(animationSpeed: number) {
         const item = this.cell.getItem();
         if (item) {
             this.container.visible = true;
@@ -41,6 +41,10 @@ export class ItemRenderer implements IRenderer {
                 this.container.x = this.targetX;
                 this.container.y = this.targetY;
             }
+
+            // Smooth movement
+            this.container.x += (this.targetX - this.container.x) * animationSpeed;
+            this.container.y += (this.targetY - this.container.y) * animationSpeed;
         } else {
             this.container.visible = false;
         }

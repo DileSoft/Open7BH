@@ -41,9 +41,14 @@ export class CharacterRenderer implements IRenderer {
         this.charGraphics.fill(this.character.color === 'green' ? 0x00ff00 : 0x0000ff);
     }
 
-    update() {
+    update(animationSpeed: number) {
         this.updatePosition();
         this.updateHeldItem();
+        
+        // Smooth movement
+        this.container.x += (this.targetX - this.container.x) * animationSpeed;
+        this.container.y += (this.targetY - this.container.y) * animationSpeed;
+
         if (this.character.isDead) {
             this.container.alpha = 0.5;
         }
