@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 // @ts-ignore
 import { sortableContainer, sortableElement } from 'react-sortable-hoc';
+import { useDrop } from 'react-dnd';
 import copy from 'copy-to-clipboard';
 import {
     Button, Grid, TextField,
@@ -13,10 +14,50 @@ import Game, { GameSerialized, GameState } from './Classes/Game';
 import { LevelSerializedType } from './Classes/Level';
 import PixiCells from './PixiCells';
 import PixiCodeEditor from './PixiCodeEditor';
+import { OperatorType } from './Classes/Operators/Operator';
 
-const SortableItem = sortableElement(({ children }: { children: React.ReactNode }) => <div>{children}</div>);
+const SortableItem = sortableElement(({ children, index }: { children: React.ReactNode, index: number }) => {
+    const [{ isOver }, drop] = useDrop(() => ({
+        accept: 'OPERATOR',
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+        }),
+    }), []);
+
+    return <div ref={drop as any} style={{ borderTop: isOver ? '2px solid green' : 'none' }}>{children}</div>;
+});
 
 const SortableContainer = sortableContainer(({ children }: { children: React.ReactNode }) => <div>{children}</div>);
+
+function CodeDropZone(props: { index: number, game: GameSerialized, isLast?: boolean }) {
+    const [{ isOver, canDrop }, drop] = useDrop(() => ({
+        accept: 'OPERATOR',
+        drop: (item: { action: OperatorType }) => {
+            if (props.game.object) {
+                props.game.object.addOperator(item.action, props.index);
+                props.game.object.render();
+            }
+        },
+        collect: (monitor) => ({
+            isOver: !!monitor.isOver(),
+            canDrop: !!monitor.canDrop(),
+        }),
+    }), [props.game, props.index]);
+
+    return (
+        <div
+            ref={drop as any}
+            style={{
+                height: isOver ? '40px' : (canDrop ? '20px' : '4px'),
+                backgroundColor: isOver ? 'rgba(0, 255, 0, 0.3)' : (canDrop ? 'rgba(0, 255, 0, 0.1)' : 'transparent'),
+                transition: 'all 0.2s',
+                width: '100%',
+                border: canDrop ? '1px dashed green' : 'none',
+                boxSizing: 'border-box',
+            }}
+        />
+    );
+}
 
 function Level(props: {level: GameSerialized, levelNumber: number}) {
     const [game, setGame] = useState<GameSerialized>();
@@ -91,14 +132,18 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
                 }}
                 >
                     {(game.code || []).map((line, key) => {
-                        const result = <SortableItem index={key} key={line.object?.id}>
-                            {game.object?.level.getCharacters().filter(character => character.currentLine === key).map(character => <span key={character.name}>
-                                <ManIcon fontSize="small" style={{ color: character.color }} />
-                            </span>)}
-                            {renderLines[key]}
-                        </SortableItem>;
+                        const result = <div key={line.object?.id}>
+                            <CodeDropZone index={key} game={game} />
+                            <SortableItem index={key}>
+                                {game.object?.level.getCharacters().filter(character => character.currentLine === key).map(character => <span key={character.name}>
+                                    <ManIcon fontSize="small" style={{ color: character.color }} />
+                                </span>)}
+                                {renderLines[key]}
+                            </SortableItem>
+                        </div>;
                         return result;
                     })}
+                    <CodeDropZone index={(game.code || []).length} game={game} isLast />
                 </SortableContainer>
                 <div style={{ paddingTop: 20 }}>
 Speed:
