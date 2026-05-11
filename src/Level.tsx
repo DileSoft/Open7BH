@@ -12,6 +12,7 @@ import renderLine from './renderLine';
 import Game, { GameSerialized, GameState } from './Classes/Game';
 import { LevelSerializedType } from './Classes/Level';
 import PixiCells from './PixiCells';
+import PixiCodeEditor from './PixiCodeEditor';
 
 const SortableItem = sortableElement(({ children }) => <div>{children}</div>);
 
@@ -73,6 +74,7 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
         </Grid>
         <Grid item md={3}>
             <div style={{ paddingLeft: 20 }}>
+                <h3>Code (Old)</h3>
                 <SortableContainer onSortEnd={({ oldIndex, newIndex }, e) => {
                     if (e.ctrlKey) {
                         // const newCode = clone(code);
@@ -161,6 +163,12 @@ Clear
                 </pre>
             </div>
         </Grid>
+        {/* <Grid item md={2}>
+            <div>
+                <h3>Code (Pixi)</h3>
+                <PixiCodeEditor game={game} />
+            </div>
+        </Grid> */}
     </Grid>;
 }
 

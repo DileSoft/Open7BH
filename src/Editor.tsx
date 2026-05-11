@@ -6,6 +6,7 @@ import {
 import copy from 'copy-to-clipboard';
 import { useState } from 'react';
 import PixiCells from './PixiCells';
+import PixiCodeEditor from './PixiCodeEditor';
 import Cells from './Cells';
 import { CoordinatesType } from './types';
 import {
@@ -90,7 +91,7 @@ Crop
         </div>
         <div style={{ display: 'flex', gap: '20px' }}>
             <div>
-                <h3>Pixi (New)</h3>
+                <h3>Pixi Cells (New)</h3>
                 <PixiCells
                     game={game}
                 />
@@ -102,6 +103,12 @@ Crop
                     onClick={(coordinates => setCellDialog(coordinates))}
                 />
             </div>
+            {/* <div>
+                <h3>Pixi Code Editor</h3>
+                <PixiCodeEditor
+                    game={game}
+                />
+            </div> */}
         </div>
         <div>
             <pre>
