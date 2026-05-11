@@ -1,6 +1,6 @@
 import Box from './Box';
 import Cell, { CellType } from './Cell';
-import Character from './Character';
+import Character, { CharacterState } from './Character';
 import Empty from './Empty';
 import Game from './Game';
 import Hole from './Hole';
@@ -172,51 +172,13 @@ class Level {
     }
 
     moveCharacters() {
-        const characters = this.getCharacters().filter(character => character.nextMove);
-        const notMoved = [...characters];
-        while (notMoved.length) {
-            notMoved.forEach(character => {
-                const nextMove = character.nextMove;
-                if (nextMove && !nextMove.character) {
-                    console.log(character.name, 'move to empty');
-                    character.cell.character = null;
-                    character.cell = nextMove;
-                    nextMove.character = character;
-                    Cell.renderer?.updateCharacter(character);
-                    notMoved.splice(notMoved.indexOf(character), 1);
-                    character.nextMove = null;
-                    return;
-                }
-                if (nextMove && nextMove.character && nextMove.character.nextMove && nextMove.character.nextMove === character.cell) {
-                    const cell1 = character.cell;
-                    const cell2 = nextMove.character.cell;
-                    const character1 = character;
-                    const character2 = nextMove.character;
-                    cell1.character = character2;
-                    cell2.character = character1;
-                    character1.cell = cell2;
-                    character2.cell = cell1;
-                    Cell.renderer?.updateCharacter(character1);
-                    Cell.renderer?.updateCharacter(character2);
-                    notMoved.splice(notMoved.indexOf(character), 1);
-                    notMoved.splice(notMoved.indexOf(nextMove.character), 1);
-                    character1.nextMove = null;
-                    character2.nextMove = null;
-                    return;
-                }
-                if (nextMove && nextMove.character && !nextMove.character.nextMove) {
-                    console.log(character.name, 'move to character', nextMove.character.name);
-                    notMoved.splice(notMoved.indexOf(character), 1);
-                    character.nextMove = null;
-                }
-            });
-        }
-        characters.forEach(character => {
+        // This method is now legacy as movement is handled by character state machine
+        // But we might still need it for resolving conflicts or hole checking
+        this.getCharacters().forEach(character => {
             if (character.cell.getType() === CellType.Hole) {
                 character.die();
             }
         });
-        console.log(this.getCharacters().filter(character => character.nextMove));
     }
 
     addCell(x: number, y: number, cell: Cell) {

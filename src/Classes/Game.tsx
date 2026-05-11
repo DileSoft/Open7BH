@@ -152,9 +152,6 @@ class Game {
             return;
         }
         this.level.getCharacters().forEach(character => {
-            character.prepare();
-        });
-        this.level.getCharacters().forEach(character => {
             character.update();
         });
         this.level.moveCharacters();

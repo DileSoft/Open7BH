@@ -5,11 +5,13 @@ import { CellRenderer } from './Renderers/CellRenderer';
 import { CharacterRenderer } from './Renderers/CharacterRenderer';
 import { ItemRenderer } from './Renderers/ItemRenderer';
 
-const ANIMATION_SPEED = 0.1;
+const BASE_ANIMATION_SPEED = 0.1;
 export const CELL_WIDTH = 80;
 
 export class PixiRenderer {
     private static instance: PixiRenderer | null = null;
+
+    private currentAnimationSpeed = BASE_ANIMATION_SPEED;
 
     app: PIXI.Application | null = null;
     container: PIXI.Container | null = null;
@@ -103,7 +105,7 @@ export class PixiRenderer {
     public updateItem(cell: Cell) {
         const renderer = this.itemRenderers.get(cell);
         if (renderer) {
-            renderer.update(ANIMATION_SPEED);
+            renderer.update(this.currentAnimationSpeed);
         }
     }
 
@@ -118,17 +120,29 @@ export class PixiRenderer {
     public updateCharacter(character: Character) {
         const renderer = this.characterRenderers.get(character);
         if (renderer) {
-            renderer.update(ANIMATION_SPEED);
+            renderer.update(this.currentAnimationSpeed);
         }
+    }
+
+    public update(game: any) {
+        // game.speed is the interval in ms.
+        // If game.speed = 1000 (1 step/sec), we want multiplier 1.
+        // If game.speed = 100 (10 steps/sec), we want multiplier 10.
+        const speedMultiplier = 1000 / (game.speed || 1000);
+        this.currentAnimationSpeed = BASE_ANIMATION_SPEED * speedMultiplier;
+
+        this.cellRenderers.forEach(r => r.update(this.currentAnimationSpeed));
+        this.itemRenderers.forEach(r => r.update(this.currentAnimationSpeed));
+        this.characterRenderers.forEach(r => r.update(this.currentAnimationSpeed));
     }
 
     private updateAnimations() {
         this.characterRenderers.forEach(renderer => {
-            renderer.update(ANIMATION_SPEED);
+            renderer.update(this.currentAnimationSpeed);
         });
 
         this.itemRenderers.forEach(renderer => {
-            renderer.update(ANIMATION_SPEED);
+            renderer.update(this.currentAnimationSpeed);
         });
     }
 

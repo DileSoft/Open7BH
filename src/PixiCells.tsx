@@ -34,6 +34,13 @@ function PixiCells(props: { game: GameSerialized }) {
         };
     }, []);
 
+    // Update renderer parameters when game state changes (like speed)
+    useEffect(() => {
+        if (props.game) {
+            PixiRenderer.getInstance().update(props.game);
+        }
+    }, [props.game]);
+
     return (
         <div style={{ border: '2px solid red', display: 'inline-block', marginTop: 20 }}>
             <canvas ref={canvasRef} />

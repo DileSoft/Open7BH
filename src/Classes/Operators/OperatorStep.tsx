@@ -81,10 +81,32 @@ class OperatorStep extends Operator {
     }
 
     execute(character: Character):number {
-        if (this.type === StepType.Slot && character.nextMove) {
-            return character.currentLine;
+        if (this.type === StepType.Direction) {
+            const direction = randomArray(this.directions);
+            character.step(direction);
+        }
+        if (this.type === StepType.Slot && character.slots[this.slot].getCellValue()) {
+             const path = this.level.findNear(
+                [character.cell.x, character.cell.y],
+                cell => cell === character.slots[this.slot].getCellValue(),
+            );
+            if (path.length > 1 && path[1]) {
+                const dx = path[1].x - character.cell.x;
+                const dy = path[1].y - character.cell.y;
+                // Simple conversion to step for now
+                character.step(this.getDirectionFromOffset(dx, dy));
+            }
         }
         return character.currentLine + 1;
+    }
+
+    private getDirectionFromOffset(dx: number, dy: number): Direction {
+        if (dx === 0 && dy === -1) return Direction.Up;
+        if (dx === 0 && dy === 1) return Direction.Down;
+        if (dx === -1 && dy === 0) return Direction.Left;
+        if (dx === 1 && dy === 0) return Direction.Right;
+        // Fallback for diagonals if needed
+        return Direction.Down;
     }
 
     serialize(withObject: boolean):OperatorStepSerialized {
