@@ -6,16 +6,21 @@ function PixiCells(props: { game: GameSerialized }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
-        let isMounted = true;
-        
         async function initRenderer() {
             if (canvasRef.current) {
                 const renderer = PixiRenderer.getInstance();
-                await renderer.init(canvasRef.current);
-                // After init, if we have a game, we might need to "kick off" first registration
-                // though logic objects should have registered themselves during deserialization.
-                // However, PixiRenderer might have been cleared if reused.
-                if (isMounted && props.game.object?.level) {
+                try {
+                    await renderer.init(canvasRef.current);
+                } catch (e) {
+                    console.error('PixiRenderer.init() failed:', e);
+                    return;
+                }
+                
+                // Register the level into the (single) renderer.
+                // Not gated on isMounted: the renderer is a singleton and registration
+                // is idempotent (registerCell dedupes by cell identity), so even if
+                // StrictMode runs this effect twice, cells are registered exactly once.
+                if (props.game.object?.level) {
                    const level = props.game.object.level;
                    renderer.resize(level.width, level.height);
                    Object.values(level.cells).forEach(cell => {
@@ -28,10 +33,6 @@ function PixiCells(props: { game: GameSerialized }) {
         }
         
         initRenderer();
-
-        return () => {
-            isMounted = false;
-        };
     }, []);
 
     // Update renderer parameters when game state changes (like speed)

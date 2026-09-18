@@ -1,6 +1,7 @@
 ﻿import * as PIXI from 'pixi.js';
 import Character from './Classes/Character';
 import Cell from './Classes/Cell';
+import type { GameSerialized } from './Classes/Game';
 import { CellRenderer } from './Renderers/CellRenderer';
 import { CharacterRenderer } from './Renderers/CharacterRenderer';
 import { ItemRenderer } from './Renderers/ItemRenderer';
@@ -14,16 +15,28 @@ export class PixiRenderer {
     private currentAnimationSpeed = BASE_ANIMATION_SPEED;
 
     app: PIXI.Application | null = null;
+
     container: PIXI.Container | null = null;
+
     cellsLayer: PIXI.Container | null = null;
+
     itemsLayer: PIXI.Container | null = null;
+
     charactersLayer: PIXI.Container | null = null;
 
     cellRenderers: Map<Cell, CellRenderer> = new Map();
+
     characterRenderers: Map<Character, CharacterRenderer> = new Map();
+
     itemRenderers: Map<Cell, ItemRenderer> = new Map();
 
     private initialized = false;
+
+    // Guard against concurrent init() calls (e.g. React StrictMode double-mount).
+    // If an init is already in progress, reuse the same promise so we never create
+    // a second PIXI.Application on the same canvas (which would orphan the
+    // registered renderers and leave the canvas blank).
+    private initPromise: Promise<void> | null = null;
 
     private constructor() {
         Cell.renderer = this;
@@ -36,10 +49,9 @@ export class PixiRenderer {
         return PixiRenderer.instance;
     }
 
-    async init(canvas: HTMLCanvasElement) {
+    async init(canvas: HTMLCanvasElement): Promise<void> {
         if (this.initialized && this.app) {
             if (this.app.canvas !== canvas) {
-                console.log('Canvas changed, re-initializing PixiRenderer');
                 this.app.destroy(true, { children: true, texture: true });
                 this.clearState();
                 this.initialized = false;
@@ -48,15 +60,35 @@ export class PixiRenderer {
             }
         }
 
-        console.log('Initializing PixiRenderer with canvas', canvas);
+        // If init is already in progress, reuse the same promise instead of
+        // creating a second PIXI.Application on the same canvas.
+        if (this.initPromise) {
+            await this.initPromise;
+            return;
+        }
+
+        this.initPromise = this.doInit(canvas);
+        try {
+            await this.initPromise;
+        } finally {
+            this.initPromise = null;
+        }
+    }
+
+    private async doInit(canvas: HTMLCanvasElement): Promise<void> {
         this.app = new PIXI.Application();
-        await this.app.init({
-            canvas,
-            width: 800,
-            height: 600,
-            backgroundColor: 0xcccccc,
-            antialias: true,
-        });
+        try {
+            await this.app.init({
+                canvas,
+                width: 800,
+                height: 600,
+                backgroundColor: 0xcccccc,
+                antialias: true,
+            });
+        } catch (e) {
+            console.error('PIXI.Application.init() failed:', e);
+            throw e;
+        }
 
         this.container = new PIXI.Container();
         this.app.stage.addChild(this.container);
@@ -89,12 +121,14 @@ export class PixiRenderer {
     }
 
     public registerCell(cell: Cell) {
-        if (!this.cellsLayer || !this.itemsLayer) return;
-        
+        if (!this.cellsLayer || !this.itemsLayer) {
+            return;
+        }
+
         if (!this.cellRenderers.has(cell)) {
             this.cellRenderers.set(cell, new CellRenderer(cell, this.cellsLayer));
         }
-        
+
         if (!this.itemRenderers.has(cell)) {
             this.itemRenderers.set(cell, new ItemRenderer(cell, this.itemsLayer));
         }
@@ -110,7 +144,9 @@ export class PixiRenderer {
     }
 
     public registerCharacter(character: Character) {
-        if (!this.charactersLayer) return;
+        if (!this.charactersLayer) {
+            return;
+        }
 
         if (!this.characterRenderers.has(character)) {
             this.characterRenderers.set(character, new CharacterRenderer(character, this.charactersLayer));
@@ -124,7 +160,7 @@ export class PixiRenderer {
         }
     }
 
-    public update(game: any) {
+    public update(game: GameSerialized) {
         // game.speed is the interval in ms.
         // If game.speed = 1000 (1 step/sec), we want multiplier 1.
         // If game.speed = 100 (10 steps/sec), we want multiplier 10.
@@ -147,7 +183,9 @@ export class PixiRenderer {
     }
 
     public resize(width: number, height: number) {
-        if (!this.app) return;
+        if (!this.app || !this.app.renderer) {
+            return;
+        }
         this.app.renderer.resize(
             width * CELL_WIDTH + 1,
             height * CELL_WIDTH + 1,
