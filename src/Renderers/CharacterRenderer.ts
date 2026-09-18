@@ -96,24 +96,29 @@ export class CharacterRenderer implements IRenderer {
         switch (this.character.state) {
             case CharacterState.Taking:
             case CharacterState.PickingUp:
-                // Smooth lift animation for taking
-                this.charGraphics.y = -Math.abs(Math.sin(this.animationTime * 5) * 4);
+                // Simple static lift: no oscillation, just hold the pose
+                this.charGraphics.y = -4;
+                this.charGraphics.scale.set(1);
                 if (this.heldItemContainer) {
-                    this.heldItemContainer.y = -10 + Math.sin(this.animationTime * 5) * 5;
+                    this.heldItemContainer.y = -10;
                 }
                 break;
             case CharacterState.Dropping:
             case CharacterState.Giving:
-                // Smooth lowering animation for giving/dropping
-                this.charGraphics.y = Math.abs(Math.sin(this.animationTime * 5) * 4);
+                // Simple static dip: no oscillation, just hold the pose
+                this.charGraphics.y = 4;
+                this.charGraphics.scale.set(1);
                 if (this.heldItemContainer) {
-                    this.heldItemContainer.y = -5 + Math.abs(Math.sin(this.animationTime * 5) * 8);
+                    this.heldItemContainer.y = 5;
                 }
                 break;
             case CharacterState.Idle:
                 // Breathing effect, slowed down by speed if speed is low
                 this.charGraphics.y = Math.sin(this.animationTime * 2) * 2;
                 this.charGraphics.scale.y = 1 + Math.sin(this.animationTime * 2) * 0.02;
+                if (this.heldItemContainer) {
+                    this.heldItemContainer.y = 5;
+                }
                 break;
             case CharacterState.Dying:
                 this.charGraphics.rotation += 0.2 * speed * 5;
@@ -121,6 +126,9 @@ export class CharacterRenderer implements IRenderer {
             default:
                 this.charGraphics.y = 0;
                 this.charGraphics.scale.set(1);
+                if (this.heldItemContainer) {
+                    this.heldItemContainer.y = 5;
+                }
                 break;
         }
     }
