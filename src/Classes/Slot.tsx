@@ -1,6 +1,8 @@
 import Cell from './Cell';
 import Character from './Character';
+import Box from './Box';
 
+/* eslint-disable class-methods-use-this */
 abstract class Slot {
     character: Character;
 
@@ -8,8 +10,16 @@ abstract class Slot {
         this.character = character;
     }
 
-    getNumberValue(): number {
+    isNothing(): boolean {
+        return false;
+    }
+
+    getNumberValue(): number | undefined {
         return 0;
+    }
+
+    getBox(): Box | undefined {
+        return undefined;
     }
 
     getCellValue(): Cell | undefined {

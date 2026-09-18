@@ -116,6 +116,16 @@ export class CharacterRenderer implements IRenderer {
                 // Breathing effect, slowed down by speed if speed is low
                 this.charGraphics.y = Math.sin(this.animationTime * 2) * 2;
                 this.charGraphics.scale.y = 1 + Math.sin(this.animationTime * 2) * 0.02;
+                this.charGraphics.rotation = 0;
+                if (this.heldItemContainer) {
+                    this.heldItemContainer.y = 5;
+                }
+                break;
+            case CharacterState.Stunned:
+                // Soft exception: shake + tilt while stunned.
+                this.charGraphics.y = 0;
+                this.charGraphics.scale.set(1);
+                this.charGraphics.rotation = Math.sin(this.animationTime * 12) * 0.25;
                 if (this.heldItemContainer) {
                     this.heldItemContainer.y = 5;
                 }

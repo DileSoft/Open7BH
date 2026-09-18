@@ -16,11 +16,14 @@ import OperatorSay, { OperatorSaySerialized } from './Operators/OperatorSay';
 import OperatorStep, { OperatorStepSerialized } from './Operators/OperatorStep';
 import OperatorTake, { OperatorTakeSerialized } from './Operators/OperatorTake';
 import OperatorVariable, { OperatorVariableSerialized } from './Operators/OperatorVariable';
+import OperatorLose, { OperatorLoseSerialized } from './Operators/OperatorLose';
 import OperatorWrite, { OperatorWriteSerialized } from './Operators/OperatorWrite';
 
 export enum GameState {
     Run = 'Run',
     Stop = 'Stop',
+    Won = 'Won',
+    Lost = 'Lost',
 }
 
 export interface GameSerialized {
@@ -41,10 +44,12 @@ export interface GameSerialized {
         OperatorStepSerialized |
         OperatorTakeSerialized |
         OperatorVariableSerialized |
-        OperatorWriteSerialized
+        OperatorWriteSerialized |
+        OperatorLoseSerialized
     )[];
     state?: GameState;
     speed?: number;
+    loseReason?: string;
     object?: Game;
 }
 
@@ -58,6 +63,8 @@ class Game {
     state = GameState.Stop;
 
     speed = 1000;
+
+    loseReason?: string;
 
     renderCallback!: (game: GameSerialized) => void;
 
@@ -120,6 +127,9 @@ class Game {
         if (operator === OperatorType.Calc) {
             operatorObject = new OperatorCalc(this.level);
         }
+        if (operator === OperatorType.Lose) {
+            operatorObject = new OperatorLose(this.level);
+        }
 
         if (operatorObject) {
             this.code.splice(position, 0, operatorObject);
@@ -146,7 +156,25 @@ class Game {
         this.state = GameState.Stop;
     }
 
+    lose(reason?: string):void {
+        if (this.state === GameState.Lost) return;
+        this.state = GameState.Lost;
+        this.loseReason = reason;
+        clearInterval(this.interval);
+        this.render();
+    }
+
+    win():void {
+        if (this.state === GameState.Won) return;
+        this.state = GameState.Won;
+        clearInterval(this.interval);
+        this.render();
+    }
+
     update():void {
+        if (this.state === GameState.Lost || this.state === GameState.Won) {
+            return;
+        }
         if (!this.level.getCharacters().filter(character => !character.isTerminated).length) {
             this.render();
             return;
@@ -155,11 +183,14 @@ class Game {
             character.update();
         });
         this.level.moveCharacters();
-        this.level.winCallback(this.level);
-        if (this.level.getCharacters().length < 2) {
-            console.log('Wrong character');
+        if ((this.state as GameState) === GameState.Lost) {
+            this.render();
+            return;
         }
-        console.log(this.level.cells);
+        if (this.level.winCallback(this.level)) {
+            this.win();
+            return;
+        }
         this.render();
     }
 
@@ -251,6 +282,11 @@ class Game {
                 operatorWrite.deserialize(operator as OperatorWriteSerialized);
                 return operatorWrite;
             }
+            if (operator.type === OperatorType.Lose) {
+                const operatorLose = new OperatorLose(this.level);
+                operatorLose.deserialize(operator as OperatorLoseSerialized);
+                return operatorLose;
+            }
             console.error('Unknown operator type', operator.type);
             return null;
         }).filter(operator => operator !== null) as Operator[];
@@ -273,6 +309,7 @@ class Game {
             code: this.code.map(operator => operator.serialize(withObject)),
             state: this.state,
             speed: this.speed,
+            loseReason: this.loseReason,
             object: withObject ? this : undefined,
         };
     }

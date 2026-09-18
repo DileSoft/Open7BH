@@ -1,10 +1,9 @@
 import { CellType } from '../Cell';
-import CellSlot from '../CellSlot';
 import Character from '../Character';
 import Level from '../Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';
 import OperatorEndIf from './OperatorEndIf';
-import { Direction, DirectionWithHere } from './OperatorStep';
+import { DirectionWithHere } from './OperatorStep';
 
 export enum OperatorIfCondition {
     Eq = 'eq',
@@ -37,6 +36,9 @@ export enum OperandIfRightType {
     Shredder = 'shredder',
     Character = 'character',
     Hole = 'hole',
+    Wall = 'wall',
+    Empty = 'empty',
+    Nothing = 'nothing',
 }
 
 export interface IfCondition {
@@ -96,86 +98,140 @@ class OperatorIf extends Operator {
         this.conditions.forEach(condition => {
             let conditionResult = false;
             const isEqual = condition.type === OperatorIfCondition.Eq;
+            const leftCell = condition.leftDirection !== undefined
+                ? this.level.getMoveCell(character.cell.x, character.cell.y, condition.leftDirection)
+                : undefined;
+            const rightCell = condition.rightDirection !== undefined
+                ? this.level.getMoveCell(character.cell.x, character.cell.y, condition.rightDirection)
+                : undefined;
+            const cellTypeOf = (cell?: ReturnType<Level['getMoveCell']>): string => {
+                if (!cell) return CellType.Wall;
+                return cell.getType();
+            };
             if (condition.rightType === OperandIfRightType.Box) {
                 if (condition.leftType === OperandIfLeftType.MyItem) {
-                    conditionResult = !!character.item;
+                    conditionResult = !!character.item && !character.item.destroyed;
                     if (!isEqual) {
                         conditionResult = !conditionResult;
                     }
                 }
                 if (condition.leftType === OperandIfLeftType.Slot) {
-                    if (character.slots[condition.leftSlot] instanceof CellSlot) {
-                        conditionResult = !!(character.slots[condition.leftSlot] as CellSlot).cellValue.item;
-                        if (!isEqual) {
-                            conditionResult = !conditionResult;
-                        }
+                    conditionResult = !!character.slots[condition.leftSlot ?? 0]?.getBox();
+                    if (!isEqual) {
+                        conditionResult = !conditionResult;
                     }
                 }
                 if (condition.leftType === OperandIfLeftType.Direction) {
-                    conditionResult = !!this.level.getMoveCell(character.cell.x, character.cell.y, condition.leftDirection).item;
+                    conditionResult = !!leftCell?.item && !leftCell.item.destroyed;
                     if (!isEqual) {
                         conditionResult = !conditionResult;
                     }
                 }
             } else if (condition.rightType === OperandIfRightType.Printer ||
                  condition.rightType === OperandIfRightType.Shredder ||
-                 condition.rightType === OperandIfRightType.Hole) {
+                 condition.rightType === OperandIfRightType.Hole ||
+                 condition.rightType === OperandIfRightType.Wall ||
+                 condition.rightType === OperandIfRightType.Empty) {
                 if (condition.leftType === OperandIfLeftType.Slot) {
-                    if (character.slots[condition.leftSlot] instanceof CellSlot) {
-                        conditionResult = (character.slots[condition.leftSlot] as CellSlot).cellValue.getType() === condition.rightType as string;
-                        if (!isEqual) {
-                            conditionResult = !conditionResult;
-                        }
+                    const cell = character.slots[condition.leftSlot ?? 0]?.getCellValue();
+                    conditionResult = !!cell && cell.getType() === (condition.rightType as string);
+                    if (!isEqual) {
+                        conditionResult = !conditionResult;
                     }
                 }
                 if (condition.leftType === OperandIfLeftType.Direction) {
-                    conditionResult = this.level.getMoveCell(character.cell.x, character.cell.y, condition.leftDirection).getType() === condition.rightType as string;
+                    conditionResult = cellTypeOf(leftCell) === (condition.rightType as string);
+                    if (!isEqual) {
+                        conditionResult = !conditionResult;
+                    }
+                }
+            } else if (condition.rightType === OperandIfRightType.Nothing) {
+                if (condition.leftType === OperandIfLeftType.Slot) {
+                    conditionResult = !!character.slots[condition.leftSlot ?? 0]?.isNothing();
+                    if (!isEqual) {
+                        conditionResult = !conditionResult;
+                    }
+                }
+                if (condition.leftType === OperandIfLeftType.MyItem) {
+                    conditionResult = !character.item || character.item.destroyed;
+                    if (!isEqual) {
+                        conditionResult = !conditionResult;
+                    }
+                }
+                if (condition.leftType === OperandIfLeftType.Direction) {
+                    const item = leftCell?.item;
+                    conditionResult = !item || item.destroyed;
+                    if (!isEqual) {
+                        conditionResult = !conditionResult;
+                    }
+                }
+            } else if (condition.rightType === OperandIfRightType.Character) {
+                if (condition.leftType === OperandIfLeftType.Direction) {
+                    conditionResult = !!leftCell?.character;
+                    if (!isEqual) {
+                        conditionResult = !conditionResult;
+                    }
+                }
+                if (condition.leftType === OperandIfLeftType.Slot) {
+                    conditionResult = !!character.slots[condition.leftSlot ?? 0]?.getCharacterValue();
                     if (!isEqual) {
                         conditionResult = !conditionResult;
                     }
                 }
             } else {
-                let left = 0;
-                let right = 0;
+                let left: number | undefined = 0;
+                let right: number | undefined = 0;
                 if (condition.leftType === OperandIfLeftType.Number) {
                     left = condition.leftNumber;
                 } else if (condition.leftType === OperandIfLeftType.Slot) {
-                    left = character.slots[condition.leftSlot].getNumberValue();
+                    left = character.slots[condition.leftSlot ?? 0]?.getNumberValue();
                 } else if (condition.leftType === OperandIfLeftType.MyItem) {
-                    left = character.item?.value || 0;
+                    left = character.item && !character.item.destroyed ? character.item.value : undefined;
                 } else if (condition.leftType === OperandIfLeftType.Direction) {
-                    left = this.level.getMoveCell(character.cell.x, character.cell.y, condition.leftDirection).item?.value || 0;
+                    const item = leftCell?.item;
+                    left = item && !item.destroyed ? item.value : undefined;
                 }
                 if (condition.rightType === OperandIfRightType.Number) {
                     right = condition.rightNumber;
                 } else if (condition.rightType === OperandIfRightType.Slot) {
-                    right = character.slots[condition.rightSlot].getNumberValue();
+                    right = character.slots[condition.rightSlot ?? 0]?.getNumberValue();
                 } else if (condition.rightType === OperandIfRightType.MyItem) {
-                    right = character.item?.value || 0;
+                    right = character.item && !character.item.destroyed ? character.item.value : undefined;
                 } else if (condition.rightType === OperandIfRightType.Direction) {
-                    right = this.level.getMoveCell(character.cell.x, character.cell.y, condition.rightDirection).item?.value || 0;
+                    const item = rightCell?.item;
+                    right = item && !item.destroyed ? item.value : undefined;
                 }
-                switch (condition.type) {
-                    case OperatorIfCondition.Eq:
+                if (left === undefined || right === undefined) {
+                    if (condition.type === OperatorIfCondition.Eq) {
                         conditionResult = left === right;
-                        break;
-                    case OperatorIfCondition.Ne:
+                    } else if (condition.type === OperatorIfCondition.Ne) {
                         conditionResult = left !== right;
-                        break;
-                    case OperatorIfCondition.Gt:
-                        conditionResult = left > right;
-                        break;
-                    case OperatorIfCondition.Ge:
-                        conditionResult = left >= right;
-                        break;
-                    case OperatorIfCondition.Lt:
-                        conditionResult = left < right;
-                        break;
-                    case OperatorIfCondition.Le:
-                        conditionResult = left <= right;
-                        break;
-                    default:
-                        break;
+                    } else {
+                        conditionResult = false;
+                    }
+                } else {
+                    switch (condition.type) {
+                        case OperatorIfCondition.Eq:
+                            conditionResult = left === right;
+                            break;
+                        case OperatorIfCondition.Ne:
+                            conditionResult = left !== right;
+                            break;
+                        case OperatorIfCondition.Gt:
+                            conditionResult = left > right;
+                            break;
+                        case OperatorIfCondition.Ge:
+                            conditionResult = left >= right;
+                            break;
+                        case OperatorIfCondition.Lt:
+                            conditionResult = left < right;
+                            break;
+                        case OperatorIfCondition.Le:
+                            conditionResult = left <= right;
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
             if (condition.logic === OperatorIfLogic.And) {

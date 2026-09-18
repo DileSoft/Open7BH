@@ -28,6 +28,11 @@ export interface CellSerializedType {
         value: number,
         tag?: string,
     }
+    printer?: {
+        min?: number,
+        max?: number,
+        fixedValue?: number,
+    }
     object?: Cell,
 }
 
@@ -56,7 +61,9 @@ class Level {
     static parseCells = (cellsStr:string, characters: CharacterSerializedType[]):CellSerializedType[] => {
         const result: CellSerializedType[] = [];
         cellsStr.split(/[\r\n]+/).forEach((line, lineIndex) => {
-            line.split(/ +/).forEach((cell, cellIndex) => {
+            const trimmed = line.trim();
+            if (!trimmed) return;
+            trimmed.split(/ +/).forEach((cell, cellIndex) => {
                 const cellData = cell.split('|');
                 const cellObject:CellSerializedType = {
                     type: CellType.Empty,
@@ -65,25 +72,39 @@ class Level {
                     character: undefined,
                 };
                 if (cellData[0] === 'box') {
+                    const rawValue = parseInt(cellData[1], 10);
                     cellObject.item = {
-                        value: parseInt(cellData[1]),
+                        value: Number.isNaN(rawValue) ? 0 : rawValue,
                         isRandom: cellData[1] === 'random',
                         tag: cellData[2],
                     };
-                }
-                if (cellData[0] === 'hole') {
+                } else if (cellData[0] === 'hole') {
                     cellObject.type = CellType.Hole;
-                }
-                if (cellData[0] === 'wall') {
+                } else if (cellData[0] === 'wall') {
                     cellObject.type = CellType.Wall;
-                }
-                if (cellData[0] === 'printer') {
+                } else if (cellData[0] === 'printer') {
                     cellObject.type = CellType.Printer;
-                }
-                if (cellData[0] === 'shredder') {
+                    // printer|min|max  or  printer|fixed  or  printer|min|max|fixed
+                    const min = cellData[1] !== undefined && cellData[1] !== '' ? parseInt(cellData[1], 10) : undefined;
+                    const max = cellData[2] !== undefined && cellData[2] !== '' ? parseInt(cellData[2], 10) : undefined;
+                    const fixed = cellData[3] !== undefined && cellData[3] !== '' ? parseInt(cellData[3], 10) : undefined;
+                    cellObject.printer = {
+                        min: min !== undefined && !Number.isNaN(min) ? min : undefined,
+                        max: max !== undefined && !Number.isNaN(max) ? max : undefined,
+                        fixedValue: fixed !== undefined && !Number.isNaN(fixed) ? fixed : undefined,
+                    };
+                    if (cellData[1] !== undefined && cellData[1] !== '' && min === undefined && max === undefined && fixed === undefined) {
+                        const single = parseInt(cellData[1], 10);
+                        if (!Number.isNaN(single)) {
+                            cellObject.printer.fixedValue = single;
+                        }
+                    }
+                } else if (cellData[0] === 'shredder') {
                     cellObject.type = CellType.Shredder;
+                } else if (cellData[0] !== 'empty' && cellData[0] !== '') {
+                    cellObject.type = CellType.Empty;
                 }
-                const character = characters.find(_character => _character.coordinates[0] === cellIndex && _character.coordinates[1] === lineIndex);
+                const character = characters.find(_character => _character.coordinates && _character.coordinates[0] === cellIndex && _character.coordinates[1] === lineIndex);
                 if (character) {
                     cellObject.character = character;
                 }
@@ -124,6 +145,11 @@ class Level {
                     value: cell.getItem().value,
                     tag: cell.getItem().tag,
                 } : undefined,
+                printer: cell instanceof Printer ? {
+                    min: cell.min,
+                    max: cell.max,
+                    fixedValue: cell.fixedValue,
+                } : undefined,
                 object: withObject ? cell : undefined,
             });
         });
@@ -136,26 +162,25 @@ class Level {
         this.width = str.width;
         this.height = str.height;
         this.winCallback = str.winCallback;
+        this.cells = {};
         Cell.renderer?.resize(this.width, this.height);
         str.cells.forEach(cell => {
             let cellObject: Cell;
-            if (cell.type === CellType.Empty) {
-                cellObject = new Empty(this, cell.x, cell.y);
-            }
             if (cell.type === CellType.Hole) {
                 cellObject = new Hole(this, cell.x, cell.y);
-            }
-            if (cell.type === CellType.Printer) {
-                cellObject = new Printer(this, cell.x, cell.y);
-            }
-            if (cell.type === CellType.Shredder) {
+            } else if (cell.type === CellType.Printer) {
+                cellObject = new Printer(this, cell.x, cell.y, cell.printer?.min, cell.printer?.max, cell.printer?.fixedValue);
+            } else if (cell.type === CellType.Shredder) {
                 cellObject = new Shredder(this, cell.x, cell.y);
-            }
-            if (cell.type === CellType.Wall) {
+            } else if (cell.type === CellType.Wall) {
                 cellObject = new Wall(this, cell.x, cell.y);
+            } else {
+                cellObject = new Empty(this, cell.x, cell.y);
             }
             if (cell.character) {
-                cellObject.setCharacter(new Character(cellObject, cell.character.name));
+                const character = new Character(cellObject, cell.character.name);
+                if (cell.character.color) character.color = cell.character.color;
+                cellObject.setCharacter(character);
             }
             if (cell.item) {
                 cellObject.setItem(new Box(cell.item.value, cell.item.isRandom));

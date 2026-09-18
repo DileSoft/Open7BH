@@ -1,4 +1,5 @@
 import Character from '../Character';
+import NothingSlot from '../NothingSlot';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';
 import OperatorForeach from './OperatorForeach';
 
@@ -16,11 +17,16 @@ class OperatorEndForeach extends Operator {
 
     execute(character: Character): number {
         const foreachOperator:OperatorForeach = this.level.game.code.find(_operator => _operator.id === this.operatorForeach.id) as OperatorForeach;
+        if (!foreachOperator) {
+            character.stun();
+            return character.currentLine + 1;
+        }
         const directions = foreachOperator.directions;
         const direction = character.foreachLoops[this.operatorForeach.id];
         const index = directions.indexOf(direction);
-        if (index === directions.length - 1) {
+        if (index === -1 || index === directions.length - 1) {
             character.foreachLoops[this.operatorForeach.id] = undefined;
+            character.slots[foreachOperator.slotNumber] = new NothingSlot(character);
             return character.currentLine + 1;
         }
         return this.level.game.code.findIndex(operator => operator === foreachOperator);

@@ -21,7 +21,7 @@ export enum OperatorType {
     Take = 'take',
     Variable = 'variable',
     Write = 'write',
-
+    Lose = 'lose',
 }
 
 export interface OperatorSerialized {

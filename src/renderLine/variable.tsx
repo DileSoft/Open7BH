@@ -4,6 +4,15 @@ import {
     RenderLineType,
 } from '../types';
 import { OperatorVariableSerialized, OperatorVariableType } from '../Classes/Operators/OperatorVariable';
+import { DirectionWithHere } from '../Classes/Operators/OperatorStep';
+import { DirectionGrid } from '../DirectionGrid';
+
+const variableOptions = [
+    OperatorVariableType.Number,
+    OperatorVariableType.Slot,
+    OperatorVariableType.MyItem,
+    OperatorVariableType.Direction,
+];
 
 const variableRenderLine:RenderLineType<OperatorVariableSerialized> = (line, lineNumber, game):React.ReactNode => <span>
 Variable
@@ -21,24 +30,28 @@ Variable
     =
     <Select
         IconComponent={null}
-        value={line.variableType}
+        value={variableOptions.includes(line.variableType) ? line.variableType : OperatorVariableType.Direction}
         onChange={e => {
-            if (e.target.value === 'number') {
+            if (e.target.value === OperatorVariableType.Number) {
                 line.object.setNumberValue(0);
             }
-            if (e.target.value === 'myitem') {
+            if (e.target.value === OperatorVariableType.MyItem) {
                 line.object.setMyItemValue();
             }
-            if (e.target.value === 'slot') {
+            if (e.target.value === OperatorVariableType.Slot) {
                 line.object.setSlotValue(0);
             }
+            if (e.target.value === OperatorVariableType.Direction) {
+                line.object.setDirectionValue(DirectionWithHere.Here);
+            }
+            game.object.render();
         }}
         variant="standard"
     >
-        {Object.values(OperatorVariableType).map(option =>
+        {variableOptions.map(option =>
             <MenuItem key={option} value={option}>{option}</MenuItem>)}
     </Select>
-    {line.variableType === 'number' &&
+    {line.variableType === OperatorVariableType.Number &&
         <TextField
             type="number"
             value={line.numberValue}
@@ -48,29 +61,25 @@ Variable
                 game.object.render();
             }}
         />}
-    {/* {line.value.type === 'direction' && <Select
-        IconComponent={null}
-        value={(line.value as ValueDirectionType).value}
-        variant="standard"
-        onChange={e => {
-            const newCode = clone(code);
-            (newCode[lineNumber].value as ValueDirectionType).value = e.target.value as DirectionTypeWithHere;
-            setCode(newCode);
-        }}
-    >
-        {['left', 'right', 'top', 'bottom', 'here', 'top-left', 'top-right', 'bottom-left', 'bottom-right'].map((option:DirectionType) =>
-            <MenuItem key={option} value={option}>
-                {directionIcon(option)}
-                {option}
-            </MenuItem>)}
-    </Select>} */}
-    {line.variableType === 'slot' &&
+    {line.variableType === OperatorVariableType.Slot &&
         <TextField
             type="number"
             value={line.slotValue}
             variant="standard"
             onChange={e => {
                 line.object.setSlotValue(parseInt(e.target.value) || 0);
+                game.object.render();
+            }}
+        />}
+    {(line.variableType === OperatorVariableType.Direction
+        || line.variableType === OperatorVariableType.Cell
+        || line.variableType === OperatorVariableType.Worker
+        || line.variableType === OperatorVariableType.Nothing) &&
+        <DirectionGrid
+            value={line.directionValue ?? DirectionWithHere.Here}
+            withHere
+            onChange={newDir => {
+                line.object.setDirectionValue(newDir as DirectionWithHere);
                 game.object.render();
             }}
         />}

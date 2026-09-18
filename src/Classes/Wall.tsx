@@ -1,7 +1,7 @@
 import Cell, { CellType } from './Cell';
 
 class Wall extends Cell {
-    isEmpty = true;
+    isEmpty = false;
 
     getType(): CellType {
         return CellType.Wall;

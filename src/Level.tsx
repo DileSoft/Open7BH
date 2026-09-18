@@ -98,7 +98,8 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
     return <Grid container>
         <Grid item md={6}>
             <h2>{game.level?.task}</h2>
-            <h4>{game.state === GameState.Run && game.level && game.level.winCallback(game.level.object as any) ? 'Win' : null}</h4>
+            <h4>{game.level && game.level.winCallback(game.level.object as any) ? 'Win' : null}</h4>
+            <h4>{game.state === GameState.Lost ? `Lost${game.loseReason ? `: ${game.loseReason}` : ''}` : null}</h4>
             <div style={{ display: 'flex', gap: '20px' }}>
                 <div>
                     <h3>Cells (Old)</h3>
@@ -207,10 +208,25 @@ Clear
                         <ManIcon fontSize="small" />
                     </span>
                     {' '}
-                    {character.slots?.map((slot, key) => <span key={key}>
-                        {slot.getNumberValue()}
-                        {' '}
-                    </span>)}
+                    {character.slots?.map((slot, key) => {
+                        const box = slot.getBox();
+                        const cell = slot.getCellValue();
+                        const worker = slot.getCharacterValue();
+                        const num = slot.getNumberValue();
+                        const label: string = slot.isNothing()
+                            ? 'nothing'
+                            : worker
+                                ? `worker:${worker.name}`
+                                : box
+                                    ? `box:${box.value}`
+                                    : cell
+                                        ? `cell:${cell.x},${cell.y}${cell.item && !cell.item.destroyed ? `=${cell.item.value}` : ''}`
+                                        : num !== undefined ? String(num) : 'nothing';
+                        return <span key={key} title={label}>
+                            {label}
+                            {' '}
+                        </span>;
+                    })}
                 </div>)}
                 <pre>
                     {game.object && JSON.stringify(Object.values(game.object.level.cells).filter(cell => cell.character)

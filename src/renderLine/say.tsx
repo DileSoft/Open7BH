@@ -1,4 +1,4 @@
-import { TextField } from '@mui/material';
+import { Checkbox, FormControlLabel, TextField } from '@mui/material';
 import React from 'react';
 import {
     RenderLineType,
@@ -12,6 +12,8 @@ const sayRenderLine:RenderLineType<OperatorSaySerialized> = (line, lineNumber, g
         return null;
     }
 
+    const isAll = line.direction === 'all';
+
     return <span>
     Say:
     {' '}
@@ -23,13 +25,32 @@ const sayRenderLine:RenderLineType<OperatorSaySerialized> = (line, lineNumber, g
             game.object?.render();
         }}
     />
-    <DirectionGrid
-        value={line.direction}
-        onChange={newDir => {
-            line.object?.setDirection(newDir as Direction);
-            game.object?.render();
-        }}
+    <FormControlLabel
+        control={
+            <Checkbox
+                checked={isAll}
+                size="small"
+                onChange={e => {
+                    if (e.target.checked) {
+                        line.object?.setDirection('all');
+                    } else {
+                        line.object?.setDirection(Direction.Down);
+                    }
+                    game.object?.render();
+                }}
+            />
+        }
+        label="all"
     />
+    {!isAll &&
+        <DirectionGrid
+            value={line.direction as Direction}
+            onChange={newDir => {
+                line.object?.setDirection(newDir as Direction);
+                game.object?.render();
+            }}
+        />
+    }
 </span>;
 };
 

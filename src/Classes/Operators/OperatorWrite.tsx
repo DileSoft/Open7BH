@@ -5,6 +5,7 @@ export interface OperatorWriteSerialized extends OperatorSerialized {
     type: OperatorType.Write,
     writeType: WriteType,
     value: number,
+    slot: number,
     object?: OperatorWrite,
 }
 
@@ -25,7 +26,12 @@ class OperatorWrite extends Operator {
             character.write(this.value);
         }
         if (this.writeType === WriteType.Slot) {
-            character.write(character.slots[this.slot].getNumberValue());
+            const value = character.slots[this.slot]?.getNumberValue();
+            if (value === undefined) {
+                character.stun();
+            } else {
+                character.write(value);
+            }
         }
         return character.currentLine + 1;
     }
@@ -34,11 +40,22 @@ class OperatorWrite extends Operator {
         this.value = value;
     }
 
+    setSlot(slot: number) {
+        this.writeType = WriteType.Slot;
+        this.slot = slot;
+    }
+
+    setValue(value: number) {
+        this.writeType = WriteType.Number;
+        this.value = value;
+    }
+
     serialize(withObject: boolean): OperatorWriteSerialized {
         return {
             type: OperatorType.Write,
             writeType: this.writeType,
             value: this.value,
+            slot: this.slot,
             object: withObject ? this : undefined,
         };
     }
@@ -46,6 +63,7 @@ class OperatorWrite extends Operator {
     deserialize(operator: OperatorWriteSerialized): void {
         this.value = operator.value;
         this.writeType = operator.writeType;
+        this.slot = operator.slot ?? 0;
     }
 }
 

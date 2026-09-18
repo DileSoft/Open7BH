@@ -54,34 +54,29 @@ class OperatorCalc extends Operator {
     slotResult = 0;
 
     execute(character: Character):number {
-        let value1 = 0;
-        let value2 = 0;
+        const readOperand = (operandType: CalcOperand, numberValue: number, directionValue: DirectionWithHere, slotValue: number): number | undefined => {
+            if (operandType === CalcOperand.Number) return numberValue;
+            if (operandType === CalcOperand.Direction) {
+                const item = this.level.getMoveCell(character.cell.x, character.cell.y, directionValue)?.item;
+                if (!item || item.destroyed) return undefined;
+                return item.value;
+            }
+            if (operandType === CalcOperand.Slot) {
+                return character.slots[slotValue]?.getNumberValue();
+            }
+            if (operandType === CalcOperand.MyItem) {
+                if (!character.item || character.item.destroyed) return undefined;
+                return character.item.value;
+            }
+            return undefined;
+        };
+        const value1 = readOperand(this.operand1type, this.operand1NumberValue, this.operand1DirectionValue, this.operand1SlotValue);
+        const value2 = readOperand(this.operand2type, this.operand2NumberValue, this.operand2DirectionValue, this.operand2SlotValue);
+        if (value1 === undefined || value2 === undefined) {
+            character.stun();
+            return character.currentLine + 1;
+        }
         let result = 0;
-        if (this.operand1type === CalcOperand.Number) {
-            value1 = this.operand1NumberValue;
-        }
-        if (this.operand1type === CalcOperand.Direction) {
-            value1 = this.level.getMoveCell(character.cell.x, character.cell.y, this.operand1DirectionValue)?.item?.value || 0;
-        }
-        if (this.operand1type === CalcOperand.Slot) {
-            value1 = character.slots[this.operand1SlotValue].getNumberValue();
-        }
-        if (this.operand1type === CalcOperand.MyItem) {
-            value1 = character.item?.value || 0;
-        }
-
-        if (this.operand2type === CalcOperand.Number) {
-            value2 = this.operand2NumberValue;
-        }
-        if (this.operand2type === CalcOperand.Direction) {
-            value2 = this.level.getMoveCell(character.cell.x, character.cell.y, this.operand2DirectionValue)?.item?.value || 0;
-        }
-        if (this.operand2type === CalcOperand.Slot) {
-            value2 = character.slots[this.operand2SlotValue].getNumberValue();
-        }
-        if (this.operand2type === CalcOperand.MyItem) {
-            value2 = character.item?.value || 0;
-        }
 
         if (this.operator === CalcOperator.Add) {
             result = value1 + value2;
@@ -90,7 +85,11 @@ class OperatorCalc extends Operator {
         } else if (this.operator === CalcOperator.Multiply) {
             result = value1 * value2;
         } else if (this.operator === CalcOperator.Divide) {
-            result = value1 / value2;
+            if (value2 === 0) {
+                character.stun();
+                return character.currentLine + 1;
+            }
+            result = Math.trunc(value1 / value2);
         }
 
         const slot = new NumberSlot(character);

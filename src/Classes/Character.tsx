@@ -1,9 +1,10 @@
-import Box from './Box';
+import Box, { clampInt32 } from './Box';
 import Cell, { CellType } from './Cell';
 import NumberSlot from './NumberSlot';
 import { Direction } from './Operators/OperatorStep';
 import Printer from './Printer';
 import Shredder from './Shredder';
+import Hole from './Hole';
 import Slot from './Slot';
 
 export enum CharacterState {
@@ -13,9 +14,12 @@ export enum CharacterState {
     PickingUp = 'pickingUp',
     Dropping = 'dropping',
     Giving = 'giving',
+    Stunned = 'stunned',
     Dying = 'dying',
     Dead = 'dead',
 }
+
+export const STUN_DURATION_MS = 1000;
 
 class Character {
     name: string;
@@ -34,6 +38,12 @@ class Character {
     stateTimer: number = 0;
     targetCell: Cell | null = null;
     actionDirection: Direction | null = null;
+
+    /** Individual execution speed multiplier (1 = normal). */
+    speedMultiplier = 1;
+
+    /** Timestamp until which the worker is stunned (soft exception). */
+    stunnedUntil = 0;
 
     get isDead() {
         return this._isDead;
@@ -89,17 +99,41 @@ class Character {
 
     private lastActionTime: number = 0;
 
+    get tickInterval(): number {
+        const base = this.cell.level.game.speed || 1000;
+        return Math.max(1, base / (this.speedMultiplier || 1));
+    }
+
+    isStunned(now = Date.now()): boolean {
+        return now < this.stunnedUntil;
+    }
+
+    /** Soft exception: stun the worker for ~1s instead of crashing the game. */
+    stun(durationMs = STUN_DURATION_MS) {
+        this.stunnedUntil = Date.now() + durationMs;
+        this.setState(CharacterState.Stunned);
+        Cell.renderer?.updateCharacter(this);
+    }
+
     update() {
         if (this.isTerminated || this.state === CharacterState.Dead) {
             return;
         }
 
+        const now = Date.now();
+        if (this.state === CharacterState.Stunned) {
+            if (!this.isStunned(now)) {
+                this.setState(CharacterState.Idle);
+            } else {
+                return;
+            }
+        }
+
         // Only process next command if we are idle AND enough time has passed based on game speed
         if (this.state === CharacterState.Idle) {
-            const now = Date.now();
-            const speed = (this.cell.level.game.speed || 1000);
-            
-            // If movement was the last action, we MUST ensure the renderer has actually 
+            const speed = this.tickInterval;
+
+            // If movement was the last action, we MUST ensure the renderer has actually
             // finished moving the character before we start a new command.
             if (now - this.lastActionTime >= speed - 1) {
                 this.lastActionTime = now;
@@ -126,22 +160,42 @@ class Character {
     }
 
     step(direction: Direction) {
+        const target = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
+        if (!target) {
+            // Edge of the room counts as a wall: soft exception.
+            this.stun();
+            return;
+        }
+        if (target.getType() === CellType.Wall) {
+            this.stun();
+            return;
+        }
+        if (target.getType() === CellType.Hole) {
+            // Stepping into a hole kills the worker and fails the level instantly.
+            this.cell.character = null;
+            this.cell = target;
+            target.character = this;
+            Cell.renderer?.updateCharacter(this);
+            this.die();
+            this.cell.level.game.lose(`Worker ${this.name} fell into a hole`);
+            return;
+        }
         const nextCell = this.getMoveCell(direction);
         if (nextCell) {
             // Initiate move sequence
             this.targetCell = nextCell;
             this.state = CharacterState.Moving;
-            
-            // Logically move immediately to reserve the cell, 
+
+            // Logically move immediately to reserve the cell,
             // but the renderer will handle the visual transition
             this.cell.character = null;
             this.cell = nextCell;
             nextCell.character = this;
-            
+
             Cell.renderer?.updateCharacter(this);
         } else {
-            // Bump animation? For now just skip
-            this.state = CharacterState.Idle;
+            // Blocked (occupied / printer / shredder): soft exception.
+            this.stun();
         }
     }
 
@@ -150,63 +204,199 @@ class Character {
         Cell.renderer?.updateCharacter(this);
     }
 
+    private resolveSlotCell(slotIndex: number): Cell | undefined {
+        const slot = this.slots[slotIndex];
+        if (!slot || slot.isNothing()) return undefined;
+        const cell = slot.getCellValue();
+        if (cell) return cell;
+        const worker = slot.getCharacterValue();
+        if (worker) return worker.cell;
+        const box = slot.getBox();
+        if (box) {
+            return Object.values(this.cell.level.cells).find(cell => cell.item === box);
+        }
+        return undefined;
+    }
+
+    giveToSlot(slotIndex: number): void {
+        const target = this.resolveSlotCell(slotIndex);
+        if (!target) {
+            this.stun();
+            return;
+        }
+        const dx = target.x - this.cell.x;
+        const dy = target.y - this.cell.y;
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1 || (dx === 0 && dy === 0)) {
+            this.stun();
+            return;
+        }
+        const direction = this.directionTo(target.x, target.y);
+        if (!direction) {
+            this.stun();
+            return;
+        }
+        this.giveItem(direction);
+    }
+
+    private directionTo(x: number, y: number): Direction | undefined {
+        const dx = x - this.cell.x;
+        const dy = y - this.cell.y;
+        if (dx === 0 && dy === -1) return Direction.Up;
+        if (dx === 0 && dy === 1) return Direction.Down;
+        if (dx === -1 && dy === 0) return Direction.Left;
+        if (dx === 1 && dy === 0) return Direction.Right;
+        if (dx === -1 && dy === -1) return Direction.UpLeft;
+        if (dx === 1 && dy === -1) return Direction.UpRight;
+        if (dx === -1 && dy === 1) return Direction.DownLeft;
+        if (dx === 1 && dy === 1) return Direction.DownRight;
+        return undefined;
+    }
+
     giveItem(direction: Direction):void {
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
-        if (newCell && newCell.character && !newCell.character.item && this.item) {
+        if (!newCell) {
+            this.stun();
+            return;
+        }
+        if (!this.item) {
+            this.stun();
+            return;
+        }
+        if (newCell.character && !newCell.character.item) {
             this.setState(CharacterState.Giving);
             newCell.character.setItem(this.item);
             newCell.character.operationDone = true;
             this.item = null;
-            
+
             const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
             setTimeout(() => {
                 if (this.state === CharacterState.Giving) {
                     this.setState(CharacterState.Idle);
                 }
             }, duration);
+            return;
         }
-        if (newCell && (newCell instanceof Shredder) && this.item) {
+        if (newCell instanceof Shredder) {
             this.setState(CharacterState.Giving);
+            this.item.destroy();
             newCell.shred();
             this.item = null;
-            
+
             const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
             setTimeout(() => {
                 if (this.state === CharacterState.Giving) {
                     this.setState(CharacterState.Idle);
                 }
             }, duration);
+            return;
         }
+        if (newCell instanceof Hole) {
+            // Dropping a cube into a hole destroys it (works like a shredder).
+            this.setState(CharacterState.Giving);
+            this.item.destroy();
+            this.item = null;
+            Cell.renderer?.updateCharacter(this);
+
+            const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
+            setTimeout(() => {
+                if (this.state === CharacterState.Giving) {
+                    this.setState(CharacterState.Idle);
+                }
+            }, duration);
+            return;
+        }
+        this.stun();
     }
 
     take(direction: Direction):void {
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
-        if (newCell && (newCell instanceof Printer) && !this.item) {
+        if (!newCell) {
+            this.stun();
+            return;
+        }
+        if (this.item) {
+            this.stun();
+            return;
+        }
+        if (newCell.character?.item) {
+            // Take a cube from a neighbouring worker (freezes the donor briefly).
             this.setState(CharacterState.Taking);
-            this.item = new Box(newCell.print());
-            
+            this.item = newCell.character.item;
+            newCell.character.item = null;
+            newCell.character.operationDone = true;
+            Cell.renderer?.updateCharacter(newCell.character);
+            Cell.renderer?.updateCharacter(this);
+
             const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
             setTimeout(() => {
                 if (this.state === CharacterState.Taking) {
                     this.setState(CharacterState.Idle);
                 }
             }, duration);
+            return;
         }
+        // Printers are handled via pickup in a direction; take is worker-to-worker.
+        this.stun();
+    }
+
+    pickupFrom(direction: Direction): boolean {
+        const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
+        if (!newCell) {
+            this.stun();
+            return false;
+        }
+        if (this.item) {
+            this.stun();
+            return false;
+        }
+        if (newCell instanceof Printer) {
+            this.setState(CharacterState.Taking);
+            this.item = newCell.printBox();
+            Cell.renderer?.updateCharacter(this);
+
+            const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
+            setTimeout(() => {
+                if (this.state === CharacterState.Taking) {
+                    this.setState(CharacterState.Idle);
+                }
+            }, duration);
+            return true;
+        }
+        const item = newCell.getItem();
+        if (item && !item.destroyed) {
+            this.setState(CharacterState.PickingUp);
+            this.setItem(item);
+            newCell.removeItem();
+            Cell.renderer?.updateItem(newCell);
+
+            const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
+            setTimeout(() => {
+                if (this.state === CharacterState.PickingUp) {
+                    this.setState(CharacterState.Idle);
+                }
+            }, duration);
+            return true;
+        }
+        this.stun();
+        return false;
     }
 
     write(value: number) {
-        if (this.item) {
-            this.item.value = value;
+        if (!this.item || this.item.destroyed) {
+            this.stun();
+            return;
         }
+        this.item.setValue(clampInt32(value));
+        Cell.renderer?.updateCharacter(this);
     }
 
     pickupItem() {
         const item = this.cell.getItem();
-        if (item && !this.item) {
+        if (!this.item && item && !item.destroyed) {
             this.setState(CharacterState.PickingUp);
             this.setItem(item);
             this.cell.removeItem();
-            
+
             // Fixed duration that scales with game speed but is not shorter than logic tick
             const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
             setTimeout(() => {
@@ -214,21 +404,44 @@ class Character {
                     this.setState(CharacterState.Idle);
                 }
             }, duration);
+        } else {
+            this.stun();
         }
     }
 
     dropItem() {
-        if (this.item && !this.cell.getItem()) {
+        if (!this.item) {
+            this.stun();
+            return;
+        }
+        if (this.cell instanceof Hole) {
+            // Cubes dropped into a hole fall down and disappear.
             this.setState(CharacterState.Dropping);
-            this.cell.setItem(this.item);
+            this.item.destroy();
             this.item = null;
-            
+            Cell.renderer?.updateCharacter(this);
+
             const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
             setTimeout(() => {
                 if (this.state === CharacterState.Dropping) {
                     this.setState(CharacterState.Idle);
                 }
             }, duration);
+            return;
+        }
+        if (!this.cell.getItem()) {
+            this.setState(CharacterState.Dropping);
+            this.cell.setItem(this.item);
+            this.item = null;
+
+            const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
+            setTimeout(() => {
+                if (this.state === CharacterState.Dropping) {
+                    this.setState(CharacterState.Idle);
+                }
+            }, duration);
+        } else {
+            this.stun();
         }
     }
 
@@ -239,9 +452,26 @@ class Character {
         && (prepare || !newCell.character) ? newCell : undefined;
     }
 
-    say(text: string, direction: Direction) {
+    say(text: string | undefined, direction: Direction | 'all') {
+        if (text === undefined) {
+            this.stun();
+            return;
+        }
+        if (direction === 'all') {
+            this.cell.level.getCharacters().forEach(other => {
+                if (other !== this && other.hear === text) {
+                    other.hear = undefined;
+                    other.currentLine++;
+                }
+            });
+            return;
+        }
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
-        if (newCell && newCell.character && newCell.character.hear === text) {
+        if (!newCell) {
+            this.stun();
+            return;
+        }
+        if (newCell.character && newCell.character.hear === text) {
             newCell.character.hear = undefined;
             newCell.character.currentLine++;
         }

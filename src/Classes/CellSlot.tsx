@@ -1,10 +1,11 @@
 import Cell from './Cell';
 import Slot from './Slot';
+import Box from './Box';
 
 class CellSlot extends Slot {
     cellValue?: Cell;
 
-    setCell(cell: Cell) {
+    setCell(cell?: Cell) {
         this.cellValue = cell;
     }
 
@@ -12,8 +13,18 @@ class CellSlot extends Slot {
         return this.cellValue;
     }
 
-    getNumberValue(): number {
-        return this.cellValue?.item?.value || 0;
+    getBox(): Box | undefined {
+        const item = this.cellValue?.item;
+        if (!item || item.destroyed) return undefined;
+        return item;
+    }
+
+    isNothing(): boolean {
+        return !this.cellValue;
+    }
+
+    getNumberValue(): number | undefined {
+        return this.getBox()?.value;
     }
 }
 

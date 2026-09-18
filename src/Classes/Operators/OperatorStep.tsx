@@ -1,5 +1,4 @@
 import { randomArray } from '../../Utils';
-import CellSlot from '../CellSlot';
 import Character from '../Character';
 import Level from '../Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';
@@ -67,15 +66,16 @@ class OperatorStep extends Operator {
             const direction = randomArray(this.directions);
             character.prepareMove(direction);
         }
-        if (this.type === StepType.Slot && character.slots[this.slot].getCellValue()) {
-            const path = this.level.findNear(
-                [character.cell.x, character.cell.y],
-                cell => cell === character.slots[this.slot].getCellValue(),
-            );
-            console.log(character.slots[this.slot].getCellValue());
-            console.log(path);
-            if (path.length > 1 && path[1]) {
-                character.nextMove = path[1];
+        if (this.type === StepType.Slot) {
+            const target = this.resolveSlotTarget(character);
+            if (target) {
+                const path = this.level.findNear(
+                    [character.cell.x, character.cell.y],
+                    cell => cell === target,
+                );
+                if (path.length > 1 && path[1]) {
+                    character.nextMove = path[1];
+                }
             }
         }
     }
@@ -85,28 +85,56 @@ class OperatorStep extends Operator {
             const direction = randomArray(this.directions);
             character.step(direction);
         }
-        if (this.type === StepType.Slot && character.slots[this.slot].getCellValue()) {
-             const path = this.level.findNear(
-                [character.cell.x, character.cell.y],
-                cell => cell === character.slots[this.slot].getCellValue(),
-            );
-            if (path.length > 1 && path[1]) {
-                const dx = path[1].x - character.cell.x;
-                const dy = path[1].y - character.cell.y;
-                // Simple conversion to step for now
-                character.step(this.getDirectionFromOffset(dx, dy));
+        if (this.type === StepType.Slot) {
+            const target = this.resolveSlotTarget(character);
+            if (!target) {
+                character.stun();
+            } else {
+                const path = this.level.findNear(
+                    [character.cell.x, character.cell.y],
+                    cell => cell === target,
+                );
+                if (path.length > 1 && path[1]) {
+                    const dx = path[1].x - character.cell.x;
+                    const dy = path[1].y - character.cell.y;
+                    const direction = this.getDirectionFromOffset(dx, dy);
+                    if (!direction) {
+                        character.stun();
+                    } else {
+                        character.step(direction);
+                    }
+                } else {
+                    character.stun();
+                }
             }
         }
         return character.currentLine + 1;
     }
 
-    private getDirectionFromOffset(dx: number, dy: number): Direction {
+    private resolveSlotTarget(character: Character) {
+        const slot = character.slots[this.slot];
+        if (!slot || slot.isNothing()) return undefined;
+        const cell = slot.getCellValue();
+        if (cell) return cell;
+        const worker = slot.getCharacterValue();
+        if (worker) return worker.cell;
+        const box = slot.getBox();
+        if (box) {
+            return Object.values(this.level.cells).find(cell => cell.item === box);
+        }
+        return undefined;
+    }
+
+    private getDirectionFromOffset(dx: number, dy: number): Direction | undefined {
         if (dx === 0 && dy === -1) return Direction.Up;
         if (dx === 0 && dy === 1) return Direction.Down;
         if (dx === -1 && dy === 0) return Direction.Left;
         if (dx === 1 && dy === 0) return Direction.Right;
-        // Fallback for diagonals if needed
-        return Direction.Down;
+        if (dx === -1 && dy === -1) return Direction.UpLeft;
+        if (dx === 1 && dy === -1) return Direction.UpRight;
+        if (dx === -1 && dy === 1) return Direction.DownLeft;
+        if (dx === 1 && dy === 1) return Direction.DownRight;
+        return undefined;
     }
 
     serialize(withObject: boolean):OperatorStepSerialized {

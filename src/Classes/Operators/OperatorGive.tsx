@@ -22,10 +22,19 @@ class OperatorGive extends Operator {
 
     setDirection(direction: Direction) {
         this.direction = direction;
+        this.slot = undefined;
+    }
+
+    setSlot(slot: number) {
+        this.slot = slot;
     }
 
     execute(character: Character):number {
-        character.giveItem(this.direction);
+        if (this.slot !== undefined) {
+            character.giveToSlot(this.slot);
+        } else {
+            character.giveItem(this.direction);
+        }
         return character.currentLine + 1;
     }
 

@@ -23,13 +23,22 @@ class OperatorForeach extends Operator {
     slotNumber = 0;
 
     execute(character: Character): number {
-        if (character.foreachLoops[this.id]) {
+        if (!this.directions.length) {
+            character.stun();
+            return character.currentLine + 1;
+        }
+        const current = character.foreachLoops[this.id] as Direction | undefined;
+        if (current) {
             const directions = this.directions;
-            const direction = character.foreachLoops[this.id];
-            const index = directions.indexOf(direction);
-            character.foreachLoops[this.id] = directions[index + 1];
+            const index = directions.indexOf(current);
+            const next = directions[index + 1];
+            if (!next) {
+                character.stun();
+                return character.currentLine + 1;
+            }
+            character.foreachLoops[this.id] = next;
             const slot = new CellSlot(character);
-            slot.setCell(this.level.getMoveCell(character.cell.x, character.cell.y, directions[index + 1]));
+            slot.setCell(this.level.getMoveCell(character.cell.x, character.cell.y, next));
             character.slots[this.slotNumber] = slot;
         } else {
             character.foreachLoops[this.id] = this.directions[0];

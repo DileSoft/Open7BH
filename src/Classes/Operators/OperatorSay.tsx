@@ -1,18 +1,24 @@
 import Character from '../Character';
+import Level from '../Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';
 import { Direction } from './OperatorStep';
 
 export interface OperatorSaySerialized extends OperatorSerialized {
     type: OperatorType.Say,
     hear?: string,
-    direction: Direction,
+    direction: Direction | 'all',
     object?: OperatorSay,
 }
 
 class OperatorSay extends Operator {
     hear?: string;
 
-    direction: Direction;
+    direction: Direction | 'all' = Direction.Down;
+
+    constructor(level: Level) {
+        super(level);
+        this.direction = Direction.Down;
+    }
 
     execute(character: Character): number {
         character.say(this.hear, this.direction);
@@ -23,7 +29,7 @@ class OperatorSay extends Operator {
         this.hear = value;
     }
 
-    setDirection(direction: Direction) {
+    setDirection(direction: Direction | 'all') {
         this.direction = direction;
     }
 
@@ -38,7 +44,7 @@ class OperatorSay extends Operator {
 
     deserialize(operator: OperatorSaySerialized): void {
         this.hear = operator.hear;
-        this.direction = operator.direction;
+        this.direction = operator.direction ?? Direction.Down;
     }
 }
 
