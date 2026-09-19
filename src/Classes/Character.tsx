@@ -194,13 +194,12 @@ class Character {
             return;
         }
         if (target.getType() === CellType.Hole) {
-            // Stepping into a hole kills the worker and fails the level instantly.
+            // Stepping into a hole kills the worker.
             this.cell.character = null;
             this.cell = target;
             target.character = this;
             Cell.renderer?.updateCharacter(this);
             this.die();
-            this.cell.level.game.lose(`Worker ${this.name} fell into a hole`);
             return;
         }
         const nextCell = this.getMoveCell(direction);

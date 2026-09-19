@@ -1,5 +1,6 @@
 import Character from '../Character';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';
+import i18n from '../../i18n';
 
 export interface OperatorLoseSerialized extends OperatorSerialized {
     type: OperatorType.Lose,
@@ -16,7 +17,7 @@ class OperatorLose extends Operator {
 
     execute(character: Character): number {
         character.terminate();
-        character.cell.level.game.lose(this.reason ?? `Worker ${character.name} gave up`);
+        character.cell.level.game.lose(this.reason ?? i18n.t('game.workerGaveUp', { name: character.name }));
         return character.currentLine + 1;
     }
 

@@ -73,7 +73,9 @@
   },
   "game": {
     "workerFell": "Рабочий {{name}} упал в дыру",
-    "workerGaveUp": "Рабочий {{name}} сдался"
+    "workerGaveUp": "Рабочий {{name}} сдался",
+    "allWorkersDead": "Все рабочие погибли",
+    "goalNotAchieved": "Цель не достигнута"
   },
   "options": {
     "stepType": {

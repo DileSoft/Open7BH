@@ -73,7 +73,9 @@
   },
   "game": {
     "workerFell": "Worker {{name}} fell into a hole",
-    "workerGaveUp": "Worker {{name}} gave up"
+    "workerGaveUp": "Worker {{name}} gave up",
+    "allWorkersDead": "All workers are dead",
+    "goalNotAchieved": "Goal not achieved"
   },
   "options": {
     "stepType": {

@@ -18,6 +18,7 @@ import OperatorTake, { OperatorTakeSerialized } from './Operators/OperatorTake';
 import OperatorVariable, { OperatorVariableSerialized } from './Operators/OperatorVariable';
 import OperatorLose, { OperatorLoseSerialized } from './Operators/OperatorLose';
 import OperatorWrite, { OperatorWriteSerialized } from './Operators/OperatorWrite';
+import i18n from '../i18n';
 
 export enum GameState {
     Run = 'Run',
@@ -54,6 +55,8 @@ export interface GameSerialized {
     )[];
     state?: GameState;
     speed?: number;
+    won?: boolean;
+    lost?: boolean;
     loseReason?: string;
     translations?: LevelTranslations;
     object?: Game;
@@ -67,6 +70,10 @@ class Game {
     code: Operator[] = [];
 
     state = GameState.Stop;
+
+    won = false;
+
+    lost = false;
 
     speed = 1000;
 
@@ -160,25 +167,26 @@ class Game {
     stop():void {
         clearInterval(this.interval);
         this.state = GameState.Stop;
+        this.won = false;
+        this.lost = false;
+        this.loseReason = undefined;
     }
 
     lose(reason?: string):void {
-        if (this.state === GameState.Lost) return;
-        this.state = GameState.Lost;
+        if (this.lost) return;
+        this.lost = true;
         this.loseReason = reason;
-        clearInterval(this.interval);
         this.render();
     }
 
     win():void {
-        if (this.state === GameState.Won) return;
-        this.state = GameState.Won;
-        clearInterval(this.interval);
+        if (this.won) return;
+        this.won = true;
         this.render();
     }
 
     update():void {
-        if (this.state === GameState.Lost || this.state === GameState.Won) {
+        if (this.won || this.lost) {
             return;
         }
         if (!this.level.getCharacters().filter(character => !character.isTerminated).length) {
@@ -189,12 +197,17 @@ class Game {
             character.update();
         });
         this.level.moveCharacters();
-        if ((this.state as GameState) === GameState.Lost) {
-            this.render();
-            return;
-        }
+        // Check win BEFORE loss — if win conditions are met, it takes priority
+        // even if a character died in the same tick (e.g. fell into a hole).
         if (this.level.winCallback(this.level)) {
             this.win();
+            return;
+        }
+        // Loss: all workers have nothing more to do but win condition is not met.
+        const allDone = this.level.getCharacters().every(c => c.isDead || c.isTerminated);
+        if (allDone) {
+            const allDead = this.level.getCharacters().every(c => c.isDead);
+            this.lose(allDead ? i18n.t('game.allWorkersDead') : i18n.t('game.goalNotAchieved'));
             return;
         }
         this.render();
@@ -315,6 +328,8 @@ class Game {
             code: this.code.map(operator => operator.serialize(withObject)),
             state: this.state,
             speed: this.speed,
+            won: this.won,
+            lost: this.lost,
             loseReason: this.loseReason,
             object: withObject ? this : undefined,
         };

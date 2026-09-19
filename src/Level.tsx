@@ -113,8 +113,8 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
     return <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', width: '100%', boxSizing: 'border-box' }}>
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
             <h2>{getLevelTask(props.level)}</h2>
-            <h4>{game.level && game.level.winCallback(game.level.object as any) ? t('level.win') : null}</h4>
-            <h4>{game.state === GameState.Lost ? `${t('level.lost')}${game.loseReason ? `: ${game.loseReason}` : ''}` : null}</h4>
+            <h4>{game.won ? t('level.win') : null}</h4>
+            <h4>{game.lost ? `${t('level.lost')}${game.loseReason ? `: ${game.loseReason}` : ''}` : null}</h4>
             <div style={{ display: 'flex', gap: '20px' }}>
                 {showLegacyCells &&
                     <div>
