@@ -124,7 +124,6 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
                         />
                     </div>}
                 <div>
-                    <h3>{t('level.pixiNew')}</h3>
                     <div>
                         <Button
                             variant="outlined"
@@ -145,7 +144,7 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
         </div>
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
             <div style={{ paddingLeft: 20 }}>
-                <h3>{t('level.codeOld')}</h3>
+                <h3>{t('level.code')}</h3>
                 <SortableContainer onSortEnd={({ oldIndex, newIndex }: { oldIndex: number, newIndex: number }, e: any) => {
                     if (e.ctrlKey) {
                         // const newCode = clone(code);
