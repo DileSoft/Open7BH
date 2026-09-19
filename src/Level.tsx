@@ -72,6 +72,7 @@ function CodeDropZone(props: { index: number, game: GameSerialized, isLast?: boo
 
 function Level(props: {level: GameSerialized, levelNumber: number}) {
     const [game, setGame] = useState<GameSerialized>();
+    const [showLegacyCells, setShowLegacyCells] = useState(false);
 
     useEffect(() => {
         const gameObject = new Game();
@@ -112,14 +113,24 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
             <h4>{game.level && game.level.winCallback(game.level.object as any) ? 'Win' : null}</h4>
             <h4>{game.state === GameState.Lost ? `Lost${game.loseReason ? `: ${game.loseReason}` : ''}` : null}</h4>
             <div style={{ display: 'flex', gap: '20px' }}>
-                <div>
-                    <h3>Cells (Old)</h3>
-                    <Cells
-                        game={game}
-                    />
-                </div>
+                {showLegacyCells &&
+                    <div>
+                        <h3>Cells (Old)</h3>
+                        <Cells
+                            game={game}
+                        />
+                    </div>}
                 <div>
                     <h3>PixiJS (New)</h3>
+                    <div>
+                        <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => setShowLegacyCells(value => !value)}
+                        >
+                            {showLegacyCells ? 'Hide old view' : 'Show old view'}
+                        </Button>
+                    </div>
                     {game && <PixiCells
                         game={game}
                     />}
