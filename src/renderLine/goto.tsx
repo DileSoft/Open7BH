@@ -4,9 +4,11 @@ import {
     RenderLineType,
 } from '../types';
 import { OperatorGotoSerialized } from '../Classes/Operators/OperatorGoto';
+import { OperatorType } from '../Classes/Operators/Operator';
+import CommandBadge from './CommandBadge';
 
 const gotoRenderLine:RenderLineType<OperatorGotoSerialized> = (line, lineNumber, game):React.ReactNode => <span>
-Goto:
+<CommandBadge type={OperatorType.Goto}>Goto</CommandBadge>
     {' '}
     <Select
         IconComponent={null}

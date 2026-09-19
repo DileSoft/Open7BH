@@ -6,6 +6,8 @@ import {
 import { OperatorForeachSerialized } from '../Classes/Operators/OperatorForeach';
 import { Direction } from '../Classes/Operators/OperatorStep';
 import { DirectionGrid } from '../DirectionGrid';
+import { OperatorType } from '../Classes/Operators/Operator';
+import CommandBadge from './CommandBadge';
 
 const foreachRenderLine:RenderLineType<OperatorForeachSerialized> = (line, lineNumber, game):React.ReactNode => {
     if (!line.object || !game.object) {
@@ -13,7 +15,7 @@ const foreachRenderLine:RenderLineType<OperatorForeachSerialized> = (line, lineN
     }
 
     return <span>
-Foreach:
+<CommandBadge type={OperatorType.Foreach}>Foreach</CommandBadge>
     {' '}
     <DirectionGrid
         value={line.directions}

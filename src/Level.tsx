@@ -4,7 +4,7 @@ import { sortableContainer, sortableElement } from 'react-sortable-hoc';
 import { useDrop } from 'react-dnd';
 import copy from 'copy-to-clipboard';
 import {
-    Button, Grid, TextField,
+    Button, TextField,
 } from '@mui/material';
 import ManIcon from '@mui/icons-material/Man';
 import Cells from './Cells';
@@ -13,7 +13,6 @@ import renderLine from './renderLine';
 import Game, { GameSerialized, GameState } from './Classes/Game';
 import { LevelSerializedType } from './Classes/Level';
 import PixiCells from './PixiCells';
-import PixiCodeEditor from './PixiCodeEditor';
 import { OperatorType } from './Classes/Operators/Operator';
 
 const SortableItem = sortableElement(({ children, index }: { children: React.ReactNode, index: number }) => {
@@ -107,8 +106,8 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
         return null;
     }
 
-    return <Grid container>
-        <Grid item md={6}>
+    return <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', width: '100%', boxSizing: 'border-box' }}>
+        <div style={{ flex: '1 1 auto', minWidth: 0 }}>
             <h2>{game.level?.task}</h2>
             <h4>{game.level && game.level.winCallback(game.level.object as any) ? 'Win' : null}</h4>
             <h4>{game.state === GameState.Lost ? `Lost${game.loseReason ? `: ${game.loseReason}` : ''}` : null}</h4>
@@ -136,11 +135,11 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
                     />}
                 </div>
             </div>
-        </Grid>
-        <Grid item md={1}>
+        </div>
+        <div style={{ flex: '0 0 280px', minWidth: 0 }}>
             <AddPanel game={game} />
-        </Grid>
-        <Grid item md={3}>
+        </div>
+        <div style={{ flex: '1 1 auto', minWidth: 0 }}>
             <div style={{ paddingLeft: 20 }}>
                 <h3>Code (Old)</h3>
                 <SortableContainer onSortEnd={({ oldIndex, newIndex }: { oldIndex: number, newIndex: number }, e: any) => {
@@ -259,14 +258,8 @@ Clear
                         })), null, 2)}
                 </pre>
             </div>
-        </Grid>
-        {/* <Grid item md={2}>
-            <div>
-                <h3>Code (Pixi)</h3>
-                <PixiCodeEditor game={game} />
-            </div>
-        </Grid> */}
-    </Grid>;
+        </div>
+    </div>;
 }
 
 export default Level;

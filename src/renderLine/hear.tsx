@@ -2,9 +2,11 @@ import { TextField } from '@mui/material';
 import React from 'react';
 import { RenderLineType } from '../types';
 import { OperatorHearSerialized } from '../Classes/Operators/OperatorHear';
+import { OperatorType } from '../Classes/Operators/Operator';
+import CommandBadge from './CommandBadge';
 
 const hearRenderLine:RenderLineType<OperatorHearSerialized> = (line, lineNumber, game):React.ReactNode => <span>
-    Hear:
+    <CommandBadge type={OperatorType.Hear}>Hear</CommandBadge>
     {' '}
     <TextField
         value={line.hear}

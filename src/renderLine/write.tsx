@@ -4,9 +4,11 @@ import {
     RenderLineType,
 } from '../types';
 import { OperatorWriteSerialized, WriteType } from '../Classes/Operators/OperatorWrite';
+import { OperatorType } from '../Classes/Operators/Operator';
+import CommandBadge from './CommandBadge';
 
 const writeRenderLine:RenderLineType<OperatorWriteSerialized> = (line, lineNumber, game):React.ReactNode => <span>
-Write
+<CommandBadge type={OperatorType.Write}>Write</CommandBadge>
     {' '}
     {/* <Select
         IconComponent={null}

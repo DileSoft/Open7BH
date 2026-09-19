@@ -6,6 +6,8 @@ import {
 import { CalcOperand, CalcOperator, OperatorCalcSerialized } from "../Classes/Operators/OperatorCalc";
 import { DirectionWithHere } from "../Classes/Operators/OperatorStep";
 import { DirectionGrid } from "../DirectionGrid";
+import { OperatorType } from "../Classes/Operators/Operator";
+import CommandBadge from "./CommandBadge";
 
 const calcRenderLine:RenderLineType<OperatorCalcSerialized> = (line, lineNumber, game):React.ReactNode => {
     if (!line.object || !game.object) {
@@ -13,7 +15,7 @@ const calcRenderLine:RenderLineType<OperatorCalcSerialized> = (line, lineNumber,
     }
 
     return <span>
-Calc
+<CommandBadge type={OperatorType.Calc}>Calc</CommandBadge>
     {" "}
     slot
     <TextField

@@ -19,7 +19,9 @@ import hearRenderLine from './hear';
 import foreachRenderLine from './foreach';
 import endRenderLine from './end';
 import writeRenderLine from './write';
-import { OperatorSerialized } from '../Classes/Operators/Operator';
+import loseRenderLine from './lose';
+import CommandBadge from './CommandBadge';
+import { OperatorSerialized, OperatorType } from '../Classes/Operators/Operator';
 import { GameSerialized } from '../Classes/Game';
 import { OperatorStepSerialized } from '../Classes/Operators/OperatorStep';
 import { OperatorPickupSerialized } from '../Classes/Operators/OperatorPickup';
@@ -36,6 +38,7 @@ import { OperatorCalcSerialized } from '../Classes/Operators/OperatorCalc';
 import { OperatorSaySerialized } from '../Classes/Operators/OperatorSay';
 import { OperatorHearSerialized } from '../Classes/Operators/OperatorHear';
 import { OperatorForeachSerialized } from '../Classes/Operators/OperatorForeach';
+import { OperatorLoseSerialized } from '../Classes/Operators/OperatorLose';
 
 function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSerialized, intend: number) {
     let result = null;
@@ -55,7 +58,7 @@ function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSeri
         result = ifRenderLine((line as OperatorIfSerialized), lineNumber, game);
     }
     if (line.type === 'endif') {
-        result = 'Endif';
+        result = <CommandBadge type={OperatorType.EndIf}>Endif</CommandBadge>;
     }
     if (line.type === 'pickup') {
         result = pickupRenderLine((line as OperatorPickupSerialized), lineNumber, game);
@@ -82,13 +85,16 @@ function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSeri
         result = foreachRenderLine((line as OperatorForeachSerialized), lineNumber, game);
     }
     if (line.type === 'endforeach') {
-        result = 'Endforeach';
+        result = <CommandBadge type={OperatorType.EndForeach}>Endforeach</CommandBadge>;
     }
     if (line.type === 'end') {
         result = endRenderLine(line as OperatorEndSerialized, lineNumber, game);
     }
     if (line.type === 'write') {
         result = writeRenderLine((line as OperatorWriteSerialized), lineNumber, game);
+    }
+    if (line.type === 'lose') {
+        result = loseRenderLine((line as OperatorLoseSerialized), lineNumber, game);
     }
     // if (!result) {
     //     result = JSON.stringify(line);

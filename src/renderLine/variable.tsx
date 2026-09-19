@@ -6,6 +6,8 @@ import {
 import { OperatorVariableSerialized, OperatorVariableType } from '../Classes/Operators/OperatorVariable';
 import { DirectionWithHere } from '../Classes/Operators/OperatorStep';
 import { DirectionGrid } from '../DirectionGrid';
+import { OperatorType } from '../Classes/Operators/Operator';
+import CommandBadge from './CommandBadge';
 
 const variableOptions = [
     OperatorVariableType.Number,
@@ -15,7 +17,7 @@ const variableOptions = [
 ];
 
 const variableRenderLine:RenderLineType<OperatorVariableSerialized> = (line, lineNumber, game):React.ReactNode => <span>
-Variable
+<CommandBadge type={OperatorType.Variable}>Variable</CommandBadge>
     {' '}
     slot
     <TextField

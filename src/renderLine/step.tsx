@@ -5,6 +5,8 @@ import {
 } from '../types';
 import { Direction, OperatorStepSerialized, StepType } from '../Classes/Operators/OperatorStep';
 import { DirectionGrid } from '../DirectionGrid';
+import { OperatorType } from '../Classes/Operators/Operator';
+import CommandBadge from './CommandBadge';
 
 const stepRenderLine:RenderLineType<OperatorStepSerialized> = (line, lineNumber, game):React.ReactNode => {
     if (!line.object || !game.object) {
@@ -12,7 +14,7 @@ const stepRenderLine:RenderLineType<OperatorStepSerialized> = (line, lineNumber,
     }
 
     return <span>
-Step:
+<CommandBadge type={OperatorType.Step}>Step</CommandBadge>
     {' '}
     <Select
         value={line.object.type}

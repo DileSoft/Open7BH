@@ -6,6 +6,8 @@ import {
 import { OperatorSaySerialized } from '../Classes/Operators/OperatorSay';
 import { Direction } from '../Classes/Operators/OperatorStep';
 import { DirectionGrid } from '../DirectionGrid';
+import { OperatorType } from '../Classes/Operators/Operator';
+import CommandBadge from './CommandBadge';
 
 const sayRenderLine:RenderLineType<OperatorSaySerialized> = (line, lineNumber, game):React.ReactNode => {
     if (!line.object || !game.object) {
@@ -15,7 +17,7 @@ const sayRenderLine:RenderLineType<OperatorSaySerialized> = (line, lineNumber, g
     const isAll = line.direction === 'all';
 
     return <span>
-    Say:
+    <CommandBadge type={OperatorType.Say}>Say</CommandBadge>
     {' '}
     <TextField
         value={line.hear}

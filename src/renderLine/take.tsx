@@ -8,6 +8,8 @@ import {
 import { OperatorTakeSerialized } from '../Classes/Operators/OperatorTake';
 import { Direction } from '../Classes/Operators/OperatorStep';
 import { DirectionGrid } from '../DirectionGrid';
+import { OperatorType } from '../Classes/Operators/Operator';
+import CommandBadge from './CommandBadge';
 
 const takeRenderLine:RenderLineType<OperatorTakeSerialized> = (line, lineNumber, game):React.ReactNode => {
     if (!line.object || !game.object) {
@@ -15,7 +17,7 @@ const takeRenderLine:RenderLineType<OperatorTakeSerialized> = (line, lineNumber,
     }
 
     return <span>
-Take
+<CommandBadge type={OperatorType.Take}>Take</CommandBadge>
     {' '}
     <ManIcon fontSize="small" />
     <WestIcon fontSize="small" />

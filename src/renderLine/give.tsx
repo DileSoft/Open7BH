@@ -9,6 +9,8 @@ import {
 import { OperatorGiveSerialized } from '../Classes/Operators/OperatorGive';
 import { Direction } from '../Classes/Operators/OperatorStep';
 import { DirectionGrid } from '../DirectionGrid';
+import { OperatorType } from '../Classes/Operators/Operator';
+import CommandBadge from './CommandBadge';
 
 const giveRenderLine:RenderLineType<OperatorGiveSerialized> = (line, lineNumber, game):React.ReactNode => {
     if (!line.object || !game.object) {
@@ -16,7 +18,7 @@ const giveRenderLine:RenderLineType<OperatorGiveSerialized> = (line, lineNumber,
     }
 
     return <span>
-Give:
+<CommandBadge type={OperatorType.Give}>Give</CommandBadge>
     {' '}
     <ManIcon fontSize="small" />
     <EastIcon fontSize="small" />

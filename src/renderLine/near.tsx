@@ -4,9 +4,11 @@ import {
     RenderLineType,
 } from '../types';
 import { OperatorNearSerialized, OperatorNearType } from '../Classes/Operators/OperatorNear';
+import { OperatorType } from '../Classes/Operators/Operator';
+import CommandBadge from './CommandBadge';
 
 const nearRenderLine:RenderLineType<OperatorNearSerialized> = (line, lineNumber, game):React.ReactNode => <span>
-Near:
+<CommandBadge type={OperatorType.Near}>Near</CommandBadge>
     {' '}
     slot
     <TextField

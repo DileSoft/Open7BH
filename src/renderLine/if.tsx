@@ -12,6 +12,8 @@ import {
 } from "../Classes/Operators/OperatorIf";
 import { Direction, DirectionWithHere } from "../Classes/Operators/OperatorStep";
 import { DirectionGrid } from "../DirectionGrid";
+import { OperatorType } from "../Classes/Operators/Operator";
+import CommandBadge from "./CommandBadge";
 
 const ifRenderLine:RenderLineType<OperatorIfSerialized> = (line, lineNumber, game):React.ReactNode => {
     if (!line.object || !game.object) {
@@ -19,7 +21,7 @@ const ifRenderLine:RenderLineType<OperatorIfSerialized> = (line, lineNumber, gam
     }
 
     return <span>
-If:
+<CommandBadge type={OperatorType.If}>If</CommandBadge>
     {" "}
     {line.conditions.map((condition, conditionKey) => <span key={conditionKey}>
         {!!conditionKey && <Select
