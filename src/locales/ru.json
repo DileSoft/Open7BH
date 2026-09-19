@@ -138,5 +138,21 @@
       "printer": "принтер",
       "shredder": "шредер"
     }
+  },
+  "stun": {
+    "wall": "Стена",
+    "blocked": "Занято",
+    "noTarget": "Нет цели",
+    "noPath": "Нет пути",
+    "tooFar": "Слишком далеко",
+    "noDirection": "Нет направления",
+    "nothingToGive": "Нечего отдать",
+    "cantGive": "Нельзя отдать",
+    "alreadyHolding": "Уже держит",
+    "nothingToTake": "Нечего взять",
+    "nothingHere": "Ничего нет",
+    "noBox": "Нет ящика",
+    "cellOccupied": "Клетка занята",
+    "noMessage": "Нет сообщения"
   }
 }

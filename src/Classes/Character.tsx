@@ -6,6 +6,7 @@ import Printer from './Printer';
 import Shredder from './Shredder';
 import Hole from './Hole';
 import Slot from './Slot';
+import i18n from '../i18n';
 
 export enum CharacterState {
     Idle = 'idle',
@@ -123,9 +124,13 @@ class Character {
     }
 
     /** Soft exception: stun the worker for ~1s instead of crashing the game. */
-    stun(durationMs = STUN_DURATION_MS) {
+    stun(durationMs = STUN_DURATION_MS, reason?: string) {
         this.stunnedUntil = Date.now() + durationMs;
         this.setState(CharacterState.Stunned);
+        if (reason) {
+            this.lastSaidText = reason;
+            this.lastSaidUntil = Date.now() + durationMs;
+        }
         Cell.renderer?.updateCharacter(this);
     }
 
@@ -181,11 +186,11 @@ class Character {
         const target = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (!target) {
             // Edge of the room counts as a wall: soft exception.
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.wall'));
             return;
         }
         if (target.getType() === CellType.Wall) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.wall'));
             return;
         }
         if (target.getType() === CellType.Hole) {
@@ -213,7 +218,7 @@ class Character {
             Cell.renderer?.updateCharacter(this);
         } else {
             // Blocked (occupied / printer / shredder): soft exception.
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.blocked'));
         }
     }
 
@@ -239,18 +244,18 @@ class Character {
     giveToSlot(slotIndex: number): void {
         const target = this.resolveSlotCell(slotIndex);
         if (!target) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noTarget'));
             return;
         }
         const dx = target.x - this.cell.x;
         const dy = target.y - this.cell.y;
         if (Math.abs(dx) > 1 || Math.abs(dy) > 1 || (dx === 0 && dy === 0)) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.tooFar'));
             return;
         }
         const direction = this.directionTo(target.x, target.y);
         if (!direction) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noDirection'));
             return;
         }
         this.giveItem(direction);
@@ -274,11 +279,11 @@ class Character {
         this.actionDirection = direction;
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (!newCell) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noPath'));
             return;
         }
         if (!this.item) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.nothingToGive'));
             return;
         }
         if (newCell.character && !newCell.character.item) {
@@ -324,18 +329,18 @@ class Character {
             }, duration);
             return;
         }
-        this.stun();
+        this.stun(STUN_DURATION_MS, i18n.t('stun.cantGive'));
     }
 
     take(direction: Direction):void {
         this.actionDirection = direction;
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (!newCell) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noPath'));
             return;
         }
         if (this.item) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.alreadyHolding'));
             return;
         }
         // Take a box from a neighbouring worker.
@@ -369,18 +374,18 @@ class Character {
             }, duration);
             return;
         }
-        this.stun();
+        this.stun(STUN_DURATION_MS, i18n.t('stun.nothingToTake'));
     }
 
     pickupFrom(direction: Direction): boolean {
         this.actionDirection = direction;
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (!newCell) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noPath'));
             return false;
         }
         if (this.item) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.alreadyHolding'));
             return false;
         }
         const item = newCell.getItem();
@@ -398,13 +403,13 @@ class Character {
             }, duration);
             return true;
         }
-        this.stun();
+        this.stun(STUN_DURATION_MS, i18n.t('stun.nothingHere'));
         return false;
     }
 
     write(value: number) {
         if (!this.item || this.item.destroyed) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noBox'));
             return;
         }
         this.item.setValue(clampInt32(value));
@@ -442,13 +447,13 @@ class Character {
                 }
             }, duration);
         } else {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.nothingHere'));
         }
     }
 
     dropItem() {
         if (!this.item) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noBox'));
             return;
         }
         if (this.cell instanceof Hole) {
@@ -478,7 +483,7 @@ class Character {
                 }
             }, duration);
         } else {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.cellOccupied'));
         }
     }
 
@@ -491,7 +496,7 @@ class Character {
 
     say(text: string | undefined, direction: Direction | 'all') {
         if (text === undefined) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noMessage'));
             return;
         }
         this.actionDirection = direction === 'all' ? null : direction;
@@ -513,7 +518,7 @@ class Character {
         }
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (!newCell) {
-            this.stun();
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noPath'));
             return;
         }
         if (newCell.character && newCell.character.hear === text) {

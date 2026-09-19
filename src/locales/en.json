@@ -138,5 +138,21 @@
       "printer": "printer",
       "shredder": "shredder"
     }
+  },
+  "stun": {
+    "wall": "Wall",
+    "blocked": "Blocked",
+    "noTarget": "No target",
+    "noPath": "No path",
+    "tooFar": "Too far",
+    "noDirection": "No direction",
+    "nothingToGive": "Nothing to give",
+    "cantGive": "Can't give",
+    "alreadyHolding": "Already holding",
+    "nothingToTake": "Nothing to take",
+    "nothingHere": "Nothing here",
+    "noBox": "No box",
+    "cellOccupied": "Cell occupied",
+    "noMessage": "No message"
   }
 }
