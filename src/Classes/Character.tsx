@@ -338,8 +338,8 @@ class Character {
             this.stun();
             return;
         }
+        // Take a box from a neighbouring worker.
         if (newCell.character?.item) {
-            // Take a cube from a neighbouring worker (freezes the donor briefly).
             this.setState(CharacterState.Taking);
             this.item = newCell.character.item;
             newCell.character.item = null;
@@ -355,7 +355,20 @@ class Character {
             }, duration);
             return;
         }
-        // Printers are handled via pickup in a direction; take is worker-to-worker.
+        // Take a box from a printer (prints a new box on demand).
+        if (newCell instanceof Printer) {
+            this.setState(CharacterState.Taking);
+            this.item = newCell.printBox();
+            Cell.renderer?.updateCharacter(this);
+
+            const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
+            setTimeout(() => {
+                if (this.state === CharacterState.Taking) {
+                    this.setState(CharacterState.Idle);
+                }
+            }, duration);
+            return;
+        }
         this.stun();
     }
 
@@ -369,19 +382,6 @@ class Character {
         if (this.item) {
             this.stun();
             return false;
-        }
-        if (newCell instanceof Printer) {
-            this.setState(CharacterState.Taking);
-            this.item = newCell.printBox();
-            Cell.renderer?.updateCharacter(this);
-
-            const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
-            setTimeout(() => {
-                if (this.state === CharacterState.Taking) {
-                    this.setState(CharacterState.Idle);
-                }
-            }, duration);
-            return true;
         }
         const item = newCell.getItem();
         if (item && !item.destroyed) {
