@@ -281,6 +281,55 @@ class Character {
             this.stun(STUN_DURATION_MS, i18n.t('stun.noPath'));
             return;
         }
+        // Falling into a shredder or hole kills the worker even without an item.
+        if (newCell instanceof Shredder) {
+            if (this.item) {
+                this.setState(CharacterState.Giving);
+                this.item.destroy();
+                newCell.shred();
+                this.item = null;
+                Cell.renderer?.updateCharacter(this);
+
+                const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
+                setTimeout(() => {
+                    if (this.state === CharacterState.Giving) {
+                        this.setState(CharacterState.Idle);
+                    }
+                }, duration);
+            } else {
+                // No item — worker falls into the shredder and dies.
+                this.cell.character = null;
+                this.cell = newCell;
+                newCell.character = this;
+                Cell.renderer?.updateCharacter(this);
+                this.die();
+            }
+            return;
+        }
+        if (newCell instanceof Hole) {
+            if (this.item) {
+                // Dropping a cube into a hole destroys it.
+                this.setState(CharacterState.Giving);
+                this.item.destroy();
+                this.item = null;
+                Cell.renderer?.updateCharacter(this);
+
+                const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
+                setTimeout(() => {
+                    if (this.state === CharacterState.Giving) {
+                        this.setState(CharacterState.Idle);
+                    }
+                }, duration);
+            } else {
+                // No item — worker falls into the hole and dies.
+                this.cell.character = null;
+                this.cell = newCell;
+                newCell.character = this;
+                Cell.renderer?.updateCharacter(this);
+                this.die();
+            }
+            return;
+        }
         if (!this.item) {
             this.stun(STUN_DURATION_MS, i18n.t('stun.nothingToGive'));
             return;
@@ -304,21 +353,6 @@ class Character {
             this.item.destroy();
             newCell.shred();
             this.item = null;
-
-            const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
-            setTimeout(() => {
-                if (this.state === CharacterState.Giving) {
-                    this.setState(CharacterState.Idle);
-                }
-            }, duration);
-            return;
-        }
-        if (newCell instanceof Hole) {
-            // Dropping a cube into a hole destroys it (works like a shredder).
-            this.setState(CharacterState.Giving);
-            this.item.destroy();
-            this.item = null;
-            Cell.renderer?.updateCharacter(this);
 
             const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
             setTimeout(() => {
