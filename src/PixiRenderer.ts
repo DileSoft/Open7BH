@@ -173,6 +173,10 @@ export class PixiRenderer {
     }
 
     private updateAnimations() {
+        this.cellRenderers.forEach(renderer => {
+            renderer.update(this.currentAnimationSpeed);
+        });
+
         this.characterRenderers.forEach(renderer => {
             renderer.update(this.currentAnimationSpeed);
         });
@@ -192,20 +196,24 @@ export class PixiRenderer {
         );
     }
 
-    private static colorToHex(color: string): number {
-        if (!color) return 0x000000;
+    public static colorToHex(color: string): number {
+        if (!color) return 0x0000ff;
         if (color.startsWith('#')) return parseInt(color.slice(1), 16);
         const colors: Record<string, number> = {
             red: 0xff0000,
             blue: 0x0000ff,
-            green: 0x00ff00,
-            yellow: 0xffff00,
-            orange: 0xffa500,
-            purple: 0x800080,
-            gray: 0x808080,
-            black: 0x000000,
+            green: 0x00cc44,
+            yellow: 0xffcc00,
+            orange: 0xff8800,
+            purple: 0x9900cc,
+            gray: 0x888888,
+            grey: 0x888888,
+            black: 0x222222,
             white: 0xffffff,
+            pink: 0xffc0cb,
+            cyan: 0x00cccc,
+            brown: 0x8b4513,
         };
-        return colors[color.toLowerCase()] || 0x000000;
+        return colors[color.toLowerCase()] ?? 0x0000ff;
     }
 }

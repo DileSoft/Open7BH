@@ -14,6 +14,10 @@ export enum CharacterState {
     PickingUp = 'pickingUp',
     Dropping = 'dropping',
     Giving = 'giving',
+    Writing = 'writing',
+    Calculating = 'calculating',
+    Saying = 'saying',
+    Listening = 'listening',
     Stunned = 'stunned',
     Dying = 'dying',
     Dead = 'dead',
@@ -61,6 +65,16 @@ class Character {
 
     hear?: string;
 
+    /** Last spoken message + expiry, for the speech bubble. */
+    lastSaidText?: string;
+
+    lastSaidUntil = 0;
+
+    /** Last calc expression, for the "thinking" bubble. */
+    lastCalcText?: string;
+
+    lastCalcUntil = 0;
+
     nextMove?: Cell;
 
     operationDone = false;
@@ -86,7 +100,7 @@ class Character {
         if (this.isTerminated) {
             return;
         }
-        if (this.hear) {
+        if (this.hear !== undefined) {
             return;
         }
         const code = this.cell.level.game.code;
@@ -143,7 +157,10 @@ class Character {
     }
 
     private processNextCommand() {
-        if (this.hear || this.operationDone) {
+        if (this.hear !== undefined || this.operationDone) {
+            if (this.hear !== undefined && this.state === CharacterState.Idle) {
+                this.setState(CharacterState.Listening);
+            }
             this.operationDone = false;
             return;
         }
@@ -160,6 +177,7 @@ class Character {
     }
 
     step(direction: Direction) {
+        this.actionDirection = direction;
         const target = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (!target) {
             // Edge of the room counts as a wall: soft exception.
@@ -253,6 +271,7 @@ class Character {
     }
 
     giveItem(direction: Direction):void {
+        this.actionDirection = direction;
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (!newCell) {
             this.stun();
@@ -309,6 +328,7 @@ class Character {
     }
 
     take(direction: Direction):void {
+        this.actionDirection = direction;
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (!newCell) {
             this.stun();
@@ -340,6 +360,7 @@ class Character {
     }
 
     pickupFrom(direction: Direction): boolean {
+        this.actionDirection = direction;
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (!newCell) {
             this.stun();
@@ -387,7 +408,23 @@ class Character {
             return;
         }
         this.item.setValue(clampInt32(value));
-        Cell.renderer?.updateCharacter(this);
+        this.flashAction(CharacterState.Writing);
+    }
+
+    flashCalc(expression: string) {
+        this.lastCalcText = expression;
+        this.lastCalcUntil = Date.now() + 1500;
+        this.flashAction(CharacterState.Calculating);
+    }
+
+    flashAction(state: CharacterState) {
+        this.setState(state);
+        const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
+        setTimeout(() => {
+            if (this.state === state) {
+                this.setState(CharacterState.Idle);
+            }
+        }, duration);
     }
 
     pickupItem() {
@@ -457,11 +494,19 @@ class Character {
             this.stun();
             return;
         }
+        this.actionDirection = direction === 'all' ? null : direction;
+        this.lastSaidText = text;
+        this.lastSaidUntil = Date.now() + 1500;
+        this.flashAction(CharacterState.Saying);
         if (direction === 'all') {
             this.cell.level.getCharacters().forEach(other => {
                 if (other !== this && other.hear === text) {
                     other.hear = undefined;
                     other.currentLine++;
+                    if (other.state === CharacterState.Listening) {
+                        other.setState(CharacterState.Idle);
+                    }
+                    Cell.renderer?.updateCharacter(other);
                 }
             });
             return;
@@ -474,6 +519,10 @@ class Character {
         if (newCell.character && newCell.character.hear === text) {
             newCell.character.hear = undefined;
             newCell.character.currentLine++;
+            if (newCell.character.state === CharacterState.Listening) {
+                newCell.character.setState(CharacterState.Idle);
+            }
+            Cell.renderer?.updateCharacter(newCell.character);
         }
     }
 

@@ -95,6 +95,7 @@ class OperatorCalc extends Operator {
         const slot = new NumberSlot(character);
         slot.setNumber(result);
         character.slots[this.slotResult] = slot;
+        character.flashCalc(`${value1} ${this.operator} ${value2} = ${slot.getNumberValue()}`);
         return character.currentLine + 1;
     }
 

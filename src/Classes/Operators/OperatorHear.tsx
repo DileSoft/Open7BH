@@ -12,7 +12,8 @@ class OperatorHear extends Operator {
 
     execute(character: Character): number {
         character.hear = this.hear;
-        return character.currentLine + 1;
+        // Stay on the hear line while waiting; say will advance past it on wake.
+        return character.currentLine;
     }
 
     setHear(value: string) {
