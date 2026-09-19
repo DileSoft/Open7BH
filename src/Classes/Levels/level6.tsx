@@ -4,6 +4,10 @@ import Shredder from '../Shredder';
 
 const level:GameSerialized = {
     name: 'Print and shred',
+    translations: {
+        task: { en: 'Print and shred 10 boxes', ru: 'Напечатать и уничтожить 10 ящиков' },
+        characterNames: { first: { en: 'first', ru: 'первый' }, second: { en: 'second', ru: 'второй' } },
+    },
     level: {
         task: 'Print and shred 10 boxes',
         width: 5,

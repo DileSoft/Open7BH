@@ -1,7 +1,7 @@
 ﻿import * as PIXI from 'pixi.js';
 import Character from './Classes/Character';
 import Cell from './Classes/Cell';
-import type { GameSerialized } from './Classes/Game';
+import type { GameSerialized, LevelTranslations } from './Classes/Game';
 import { CellRenderer } from './Renderers/CellRenderer';
 import { CharacterRenderer } from './Renderers/CharacterRenderer';
 import { ItemRenderer } from './Renderers/ItemRenderer';
@@ -31,6 +31,10 @@ export class PixiRenderer {
     itemRenderers: Map<Cell, ItemRenderer> = new Map();
 
     private initialized = false;
+
+    public translations: LevelTranslations | undefined;
+
+    public levelName: string | undefined;
 
     // Guard against concurrent init() calls (e.g. React StrictMode double-mount).
     // If an init is already in progress, reuse the same promise so we never create
@@ -166,6 +170,8 @@ export class PixiRenderer {
         // If game.speed = 100 (10 steps/sec), we want multiplier 10.
         const speedMultiplier = 1000 / (game.speed || 1000);
         this.currentAnimationSpeed = BASE_ANIMATION_SPEED * speedMultiplier;
+        this.translations = game.translations;
+        this.levelName = game.name;
 
         this.cellRenderers.forEach(r => r.update(this.currentAnimationSpeed));
         this.itemRenderers.forEach(r => r.update(this.currentAnimationSpeed));

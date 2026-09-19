@@ -8,6 +8,8 @@ import { DirectionWithHere } from "../Classes/Operators/OperatorStep";
 import { DirectionGrid } from "../DirectionGrid";
 import { OperatorType } from "../Classes/Operators/Operator";
 import CommandBadge from "./CommandBadge";
+import i18n from "../i18n";
+import { trOption } from "../tr";
 
 const calcRenderLine:RenderLineType<OperatorCalcSerialized> = (line, lineNumber, game):React.ReactNode => {
     if (!line.object || !game.object) {
@@ -15,9 +17,9 @@ const calcRenderLine:RenderLineType<OperatorCalcSerialized> = (line, lineNumber,
     }
 
     return <span>
-<CommandBadge type={OperatorType.Calc}>Calc</CommandBadge>
+<CommandBadge type={OperatorType.Calc} />
     {" "}
-    slot
+    {String(i18n.t('common.slot'))}
     <TextField
         type="number"
         value={line.slotResult}
@@ -48,7 +50,7 @@ const calcRenderLine:RenderLineType<OperatorCalcSerialized> = (line, lineNumber,
         variant="standard"
     >
         {Object.values(CalcOperand).map(option =>
-            <MenuItem key={option} value={option}>{option}</MenuItem>)}
+            <MenuItem key={option} value={option}>{trOption('operand', option)}</MenuItem>)}
     </Select>
     {line.operand1type === CalcOperand.Number &&
         <TextField
@@ -115,7 +117,7 @@ const calcRenderLine:RenderLineType<OperatorCalcSerialized> = (line, lineNumber,
         variant="standard"
     >
         {Object.values(CalcOperand).map(option =>
-            <MenuItem key={option} value={option}>{option}</MenuItem>)}
+            <MenuItem key={option} value={option}>{trOption('operand', option)}</MenuItem>)}
     </Select>
     {line.operand2type === CalcOperand.Number &&
         <TextField

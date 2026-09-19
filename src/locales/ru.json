@@ -1,0 +1,142 @@
+{
+  "app": {
+    "game": "Игра",
+    "editor": "Редактор",
+    "language": "Язык"
+  },
+  "level": {
+    "win": "Победа",
+    "lost": "Поражение",
+    "cellsOld": "Клетки (старые)",
+    "pixiNew": "PixiJS (новые)",
+    "showOld": "Показать старый вид",
+    "hideOld": "Скрыть старый вид",
+    "codeOld": "Код (старый)",
+    "speed": "Скорость:",
+    "run": "Запуск",
+    "stop": "Стоп",
+    "copy": "Копировать",
+    "clear": "Очистить",
+    "nothing": "пусто"
+  },
+  "groups": {
+    "movement": "Движение",
+    "transfer": "Передача",
+    "control": "Управление кодом",
+    "memory": "Память",
+    "communication": "Общение"
+  },
+  "commands": {
+    "step": "Шаг",
+    "pickup": "Поднять",
+    "drop": "Бросить",
+    "take": "Взять",
+    "give": "Отдать",
+    "goto": "Перейти",
+    "if": "Если",
+    "foreach": "Для всех",
+    "lose": "Проигрыш",
+    "end": "Конец",
+    "endif": "Конец если",
+    "endforeach": "Конец цикла",
+    "variable": "Переменная",
+    "write": "Записать",
+    "near": "Рядом",
+    "calc": "Вычислить",
+    "say": "Сказать",
+    "hear": "Слушать"
+  },
+  "common": {
+    "slot": "слот",
+    "all": "все",
+    "reason": "причина"
+  },
+  "editor": {
+    "import": "Импорт",
+    "copyCells": "Копировать клетки",
+    "copyCharacters": "Копировать персонажей",
+    "copyLevel": "Копировать уровень",
+    "save": "Сохранить",
+    "width": "ширина",
+    "height": "высота",
+    "crop": "Обрезать",
+    "pixiCellsNew": "Pixi-клетки (новые)",
+    "cellsOld": "Клетки (старые)",
+    "item": "Предмет:",
+    "itemValue": "Значение предмета",
+    "character": "Персонаж:"
+  },
+  "cells": {
+    "wall": "стена",
+    "printer": "принтер",
+    "shredder": "шредер"
+  },
+  "game": {
+    "workerFell": "Рабочий {{name}} упал в дыру",
+    "workerGaveUp": "Рабочий {{name}} сдался"
+  },
+  "options": {
+    "stepType": {
+      "Direction": "Направление",
+      "Slot": "Слот"
+    },
+    "operand": {
+      "number": "число",
+      "direction": "направление",
+      "slot": "слот",
+      "myItem": "свой предмет"
+    },
+    "logic": {
+      "and": "и",
+      "or": "или"
+    },
+    "condition": {
+      "eq": "равно",
+      "ne": "не равно",
+      "gt": "больше",
+      "ge": "больше или равно",
+      "lt": "меньше",
+      "le": "меньше или равно"
+    },
+    "rightType": {
+      "direction": "направление",
+      "number": "число",
+      "slot": "слот",
+      "myItem": "свой предмет",
+      "box": "ящик",
+      "printer": "принтер",
+      "shredder": "шредер",
+      "character": "персонаж",
+      "hole": "дыра",
+      "wall": "стена",
+      "empty": "пусто",
+      "nothing": "ничего"
+    },
+    "nearType": {
+      "printer": "принтер",
+      "shredder": "шредер",
+      "hole": "дыра",
+      "empty": "пусто",
+      "wall": "стена",
+      "datacube": "куб данных",
+      "worker": "рабочий"
+    },
+    "variableType": {
+      "number": "число",
+      "slot": "слот",
+      "myItem": "свой предмет",
+      "direction": "направление"
+    },
+    "writeType": {
+      "number": "число",
+      "slot": "слот"
+    },
+    "cellType": {
+      "empty": "пустая",
+      "wall": "стена",
+      "hole": "дыра",
+      "printer": "принтер",
+      "shredder": "шредер"
+    }
+  }
+}

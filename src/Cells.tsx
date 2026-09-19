@@ -1,5 +1,6 @@
 import ManIcon from '@mui/icons-material/Man';
 import AddBoxIcon from '@mui/icons-material/AddBox';
+import { useTranslation } from 'react-i18next';
 
 import { CoordinatesType } from './types';
 import { parseCoordinates } from './Utils';
@@ -15,6 +16,7 @@ const CELL_WIDTH = 80;
 function Cells(props: {game: GameSerialized,
      onClick?: (coordinates: CoordinatesType) => void
     }) {
+    const { t } = useTranslation();
     const cells = props.game.object.level.cells;
     const cellDivs = Object.keys(cells).map(cellCoordinate => {
         const coordinates = parseCoordinates(cellCoordinate);
@@ -34,13 +36,13 @@ function Cells(props: {game: GameSerialized,
             content = <div style={{ width: '100%', height: '100%', backgroundColor: 'black' }}></div>;
         }
         if (cell instanceof Wall) {
-            content = 'wall';
+            content = t('cells.wall');
         }
         if (cell instanceof Printer) {
-            content = 'printer';
+            content = t('cells.printer');
         }
         if (cell instanceof Shredder) {
-            content = 'shredder';
+            content = t('cells.shredder');
         }
 
         return <div

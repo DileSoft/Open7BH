@@ -5,6 +5,10 @@ import { Direction, StepType } from '../Operators/OperatorStep';
 
 const level:GameSerialized = {
     name: 'Move boxes',
+    translations: {
+        task: { en: 'Move boxes', ru: 'Переместить ящики' },
+        characterNames: { first: { en: 'first', ru: 'первый' }, second: { en: 'second', ru: 'второй' } },
+    },
     level: {
         task: 'Move boxes',
         width: 5,

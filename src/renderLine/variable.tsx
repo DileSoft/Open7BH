@@ -8,6 +8,8 @@ import { DirectionWithHere } from '../Classes/Operators/OperatorStep';
 import { DirectionGrid } from '../DirectionGrid';
 import { OperatorType } from '../Classes/Operators/Operator';
 import CommandBadge from './CommandBadge';
+import i18n from '../i18n';
+import { trOption } from '../tr';
 
 const variableOptions = [
     OperatorVariableType.Number,
@@ -17,9 +19,9 @@ const variableOptions = [
 ];
 
 const variableRenderLine:RenderLineType<OperatorVariableSerialized> = (line, lineNumber, game):React.ReactNode => <span>
-<CommandBadge type={OperatorType.Variable}>Variable</CommandBadge>
+<CommandBadge type={OperatorType.Variable} />
     {' '}
-    slot
+    {String(i18n.t('common.slot'))}
     <TextField
         type="number"
         value={line.slot}
@@ -51,7 +53,7 @@ const variableRenderLine:RenderLineType<OperatorVariableSerialized> = (line, lin
         variant="standard"
     >
         {variableOptions.map(option =>
-            <MenuItem key={option} value={option}>{option}</MenuItem>)}
+            <MenuItem key={option} value={option}>{trOption('variableType', option)}</MenuItem>)}
     </Select>
     {line.variableType === OperatorVariableType.Number &&
         <TextField

@@ -1,0 +1,142 @@
+{
+  "app": {
+    "game": "Game",
+    "editor": "Editor",
+    "language": "Language"
+  },
+  "level": {
+    "win": "Win",
+    "lost": "Lost",
+    "cellsOld": "Cells (Old)",
+    "pixiNew": "PixiJS (New)",
+    "showOld": "Show old view",
+    "hideOld": "Hide old view",
+    "codeOld": "Code (Old)",
+    "speed": "Speed:",
+    "run": "Run",
+    "stop": "Stop",
+    "copy": "Copy",
+    "clear": "Clear",
+    "nothing": "nothing"
+  },
+  "groups": {
+    "movement": "Movement",
+    "transfer": "Transfer",
+    "control": "Code control",
+    "memory": "Memory",
+    "communication": "Communication"
+  },
+  "commands": {
+    "step": "Step",
+    "pickup": "Pickup",
+    "drop": "Drop",
+    "take": "Take",
+    "give": "Give",
+    "goto": "Goto",
+    "if": "If",
+    "foreach": "Foreach",
+    "lose": "Lose",
+    "end": "End",
+    "endif": "Endif",
+    "endforeach": "Endforeach",
+    "variable": "Variable",
+    "write": "Write",
+    "near": "Near",
+    "calc": "Calc",
+    "say": "Say",
+    "hear": "Hear"
+  },
+  "common": {
+    "slot": "slot",
+    "all": "all",
+    "reason": "reason"
+  },
+  "editor": {
+    "import": "Import",
+    "copyCells": "Copy cells",
+    "copyCharacters": "Copy characters",
+    "copyLevel": "Copy level",
+    "save": "Save",
+    "width": "width",
+    "height": "height",
+    "crop": "Crop",
+    "pixiCellsNew": "Pixi Cells (New)",
+    "cellsOld": "Cells (Old)",
+    "item": "Item:",
+    "itemValue": "Item value",
+    "character": "Character:"
+  },
+  "cells": {
+    "wall": "wall",
+    "printer": "printer",
+    "shredder": "shredder"
+  },
+  "game": {
+    "workerFell": "Worker {{name}} fell into a hole",
+    "workerGaveUp": "Worker {{name}} gave up"
+  },
+  "options": {
+    "stepType": {
+      "Direction": "Direction",
+      "Slot": "Slot"
+    },
+    "operand": {
+      "number": "number",
+      "direction": "direction",
+      "slot": "slot",
+      "myItem": "myItem"
+    },
+    "logic": {
+      "and": "and",
+      "or": "or"
+    },
+    "condition": {
+      "eq": "eq",
+      "ne": "ne",
+      "gt": "gt",
+      "ge": "ge",
+      "lt": "lt",
+      "le": "le"
+    },
+    "rightType": {
+      "direction": "direction",
+      "number": "number",
+      "slot": "slot",
+      "myItem": "myItem",
+      "box": "box",
+      "printer": "printer",
+      "shredder": "shredder",
+      "character": "character",
+      "hole": "hole",
+      "wall": "wall",
+      "empty": "empty",
+      "nothing": "nothing"
+    },
+    "nearType": {
+      "printer": "printer",
+      "shredder": "shredder",
+      "hole": "hole",
+      "empty": "empty",
+      "wall": "wall",
+      "datacube": "datacube",
+      "worker": "worker"
+    },
+    "variableType": {
+      "number": "number",
+      "slot": "slot",
+      "myItem": "myItem",
+      "direction": "direction"
+    },
+    "writeType": {
+      "number": "number",
+      "slot": "slot"
+    },
+    "cellType": {
+      "empty": "empty",
+      "wall": "wall",
+      "hole": "hole",
+      "printer": "printer",
+      "shredder": "shredder"
+    }
+  }
+}

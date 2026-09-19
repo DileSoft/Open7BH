@@ -7,6 +7,7 @@ import {
     Button, TextField,
 } from '@mui/material';
 import ManIcon from '@mui/icons-material/Man';
+import { useTranslation } from 'react-i18next';
 import Cells from './Cells';
 import AddPanel from './AddPanel';
 import renderLine from './renderLine';
@@ -14,6 +15,7 @@ import Game, { GameSerialized, GameState } from './Classes/Game';
 import { LevelSerializedType } from './Classes/Level';
 import PixiCells from './PixiCells';
 import { OperatorType } from './Classes/Operators/Operator';
+import { getLevelTask, getCharacterName } from './levelTranslations';
 
 const SortableItem = sortableElement(({ children, index }: { children: React.ReactNode, index: number }) => {
     const [{ isOver }, drop] = useDrop(() => ({
@@ -70,6 +72,7 @@ function CodeDropZone(props: { index: number, game: GameSerialized, isLast?: boo
 }
 
 function Level(props: {level: GameSerialized, levelNumber: number}) {
+    const { t, i18n } = useTranslation();
     const [game, setGame] = useState<GameSerialized>();
     const [showLegacyCells, setShowLegacyCells] = useState(false);
 
@@ -100,7 +103,8 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
             currentIntend = lineResult.intend;
             return lineResult.result;
         });
-    }, [game]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [game, i18n.language]);
 
     if (!game) {
         return null;
@@ -108,26 +112,26 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
 
     return <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', width: '100%', boxSizing: 'border-box' }}>
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
-            <h2>{game.level?.task}</h2>
-            <h4>{game.level && game.level.winCallback(game.level.object as any) ? 'Win' : null}</h4>
-            <h4>{game.state === GameState.Lost ? `Lost${game.loseReason ? `: ${game.loseReason}` : ''}` : null}</h4>
+            <h2>{getLevelTask(props.level)}</h2>
+            <h4>{game.level && game.level.winCallback(game.level.object as any) ? t('level.win') : null}</h4>
+            <h4>{game.state === GameState.Lost ? `${t('level.lost')}${game.loseReason ? `: ${game.loseReason}` : ''}` : null}</h4>
             <div style={{ display: 'flex', gap: '20px' }}>
                 {showLegacyCells &&
                     <div>
-                        <h3>Cells (Old)</h3>
+                        <h3>{t('level.cellsOld')}</h3>
                         <Cells
                             game={game}
                         />
                     </div>}
                 <div>
-                    <h3>PixiJS (New)</h3>
+                    <h3>{t('level.pixiNew')}</h3>
                     <div>
                         <Button
                             variant="outlined"
                             size="small"
                             onClick={() => setShowLegacyCells(value => !value)}
                         >
-                            {showLegacyCells ? 'Hide old view' : 'Show old view'}
+                            {showLegacyCells ? t('level.hideOld') : t('level.showOld')}
                         </Button>
                     </div>
                     {game && <PixiCells
@@ -141,7 +145,7 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
         </div>
         <div style={{ flex: '1 1 auto', minWidth: 0 }}>
             <div style={{ paddingLeft: 20 }}>
-                <h3>Code (Old)</h3>
+                <h3>{t('level.codeOld')}</h3>
                 <SortableContainer onSortEnd={({ oldIndex, newIndex }: { oldIndex: number, newIndex: number }, e: any) => {
                     if (e.ctrlKey) {
                         // const newCode = clone(code);
@@ -170,7 +174,7 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
                     <CodeDropZone index={(game.code || []).length} game={game} isLast />
                 </SortableContainer>
                 <div style={{ paddingTop: 20 }}>
-Speed:
+{t('level.speed')}
                     {' '}
                     <TextField
                         variant="standard"
@@ -199,7 +203,7 @@ Speed:
                             }}
                             disabled={intend !== 0}
                         >
-                            {game.object?.state === GameState.Run ? 'Stop' : 'Run'}
+                            {game.object?.state === GameState.Run ? t('level.stop') : t('level.run')}
                         </Button>
                     </div>
                     <div>
@@ -207,7 +211,7 @@ Speed:
                             variant="contained"
                             onClick={() => game.object && copy(JSON.stringify(game.object.serialize(), null, 2))}
                         >
-Copy
+{t('level.copy')}
                         </Button>
                     </div>
                     <div>
@@ -220,12 +224,12 @@ Copy
                                 }
                             }}
                         >
-Clear
+{t('level.clear')}
                         </Button>
                     </div>
                 </div>
                 {game.object?.level.getCharacters().map(character => <div key={character.name}>
-                    {character.name}
+                    {getCharacterName(character.name, props.level.name)}
                     {' '}
                     <span style={{ color: character.color }}>
                         <ManIcon fontSize="small" />
@@ -237,14 +241,14 @@ Clear
                         const worker = slot.getCharacterValue();
                         const num = slot.getNumberValue();
                         const label: string = slot.isNothing()
-                            ? 'nothing'
+                            ? t('level.nothing')
                             : worker
                                 ? `worker:${worker.name}`
                                 : box
                                     ? `box:${box.value}`
                                     : cell
                                         ? `cell:${cell.x},${cell.y}${cell.item && !cell.item.destroyed ? `=${cell.item.value}` : ''}`
-                                        : num !== undefined ? String(num) : 'nothing';
+                                        : num !== undefined ? String(num) : t('level.nothing');
                         return <span key={key} title={label}>
                             {label}
                             {' '}

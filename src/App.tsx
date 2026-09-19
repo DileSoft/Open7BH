@@ -1,11 +1,13 @@
 import {
-    MenuItem, Select, Tabs, Tab,
+    MenuItem, Select, Tabs, Tab, Button,
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import Level from './Level';
 import Editor from './Editor';
 import Levels from './Classes/Levels';
+import { getLevelTask } from './levelTranslations';
 import './App.css';
 
 const theme = createTheme({
@@ -31,6 +33,7 @@ const theme = createTheme({
 Levels.preloadLevels();
 
 function App() {
+    const { t, i18n } = useTranslation();
     const [level, setLevel] = useState(0);
     const [editor, setEditor] = useState(false);
     const [levels, setLevels] = useState(Levels.getLevels());
@@ -39,15 +42,20 @@ function App() {
         <ThemeProvider theme={theme}>
             <div className="App">
                 <h1>Open7BH</h1>
-                <Tabs value={editor ? 1 : 0} onChange={(e, value) => setEditor(value === 1)}>
-                    <Tab label="Game" />
-                    <Tab label="Editor" />
-                </Tabs>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <Tabs value={editor ? 1 : 0} onChange={(e, value) => setEditor(value === 1)}>
+                        <Tab label={t('app.game')} />
+                        <Tab label={t('app.editor')} />
+                    </Tabs>
+                    <span style={{ fontSize: 12 }}>{t('app.language')}:</span>
+                    <Button size="small" variant={i18n.language === 'en' ? 'contained' : 'outlined'} onClick={() => i18n.changeLanguage('en')}>EN</Button>
+                    <Button size="small" variant={i18n.language === 'ru' ? 'contained' : 'outlined'} onClick={() => i18n.changeLanguage('ru')}>RU</Button>
+                </div>
                 {editor ? <Editor levels={levels} reloadLevels={reloadLevels} /> :
                     <>
                         <div>
                             <Select variant="standard" value={level} onChange={e => setLevel(parseInt(e.target.value as string))}>
-                                {levels.map((currentLevel, number) => <MenuItem key={number} value={number}>{currentLevel.level.task}</MenuItem>)}
+                                {levels.map((currentLevel, number) => <MenuItem key={number} value={number}>{getLevelTask(currentLevel)}</MenuItem>)}
                             </Select>
                         </div>
                         <Level level={levels[level]} levelNumber={level} />

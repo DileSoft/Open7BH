@@ -15,7 +15,7 @@ const foreachRenderLine:RenderLineType<OperatorForeachSerialized> = (line, lineN
     }
 
     return <span>
-<CommandBadge type={OperatorType.Foreach}>Foreach</CommandBadge>
+<CommandBadge type={OperatorType.Foreach} />
     {' '}
     <DirectionGrid
         value={line.directions}

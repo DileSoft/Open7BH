@@ -3,6 +3,10 @@ import Level, { LevelSerializedType } from '../Level';
 
 const level:GameSerialized = {
     name: 'Remove two boxes',
+    translations: {
+        task: { en: 'Remove two boxes', ru: 'Убрать два ящика' },
+        characterNames: { first: { en: 'first', ru: 'первый' }, second: { en: 'second', ru: 'второй' } },
+    },
     level: {
         task: 'Remove two boxes',
         width: 5,

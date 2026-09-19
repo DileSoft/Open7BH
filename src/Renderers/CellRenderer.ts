@@ -6,6 +6,7 @@ import Printer from '../Classes/Printer';
 import Shredder from '../Classes/Shredder';
 import { IRenderer } from './IRenderer';
 import { CELL_WIDTH } from '../PixiRenderer';
+import i18n from '../i18n';
 
 export class CellRenderer implements IRenderer {
     public container: PIXI.Container;
@@ -46,11 +47,11 @@ export class CellRenderer implements IRenderer {
             label = '';
         } else if (this.cell instanceof Wall) {
             fillColor = 0x888888;
-            label = 'WALL';
+            label = i18n.t('cells.wall');
         } else if (this.cell instanceof Printer) {
             const pulse = 0.5 + Math.sin(this.animationTime * 4) * 0.5;
             fillColor = 0x00cc44;
-            label = 'PRINT';
+            label = i18n.t('cells.printer');
             const printer = this.cell as Printer;
             sublabel = printer.fixedValue !== undefined
                 ? `${printer.fixedValue}`
@@ -60,7 +61,7 @@ export class CellRenderer implements IRenderer {
             g.fill({ color: 0x00ff66, alpha: 0.35 + pulse * 0.3 });
         } else if (this.cell instanceof Shredder) {
             fillColor = 0xcc2222;
-            label = 'SHRED';
+            label = i18n.t('cells.shredder');
             // Teeth
             g.fill(0x7a1010);
             for (let i = 0; i < 5; i++) {

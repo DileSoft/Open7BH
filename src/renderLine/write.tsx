@@ -6,9 +6,10 @@ import {
 import { OperatorWriteSerialized, WriteType } from '../Classes/Operators/OperatorWrite';
 import { OperatorType } from '../Classes/Operators/Operator';
 import CommandBadge from './CommandBadge';
+import { trOption } from '../tr';
 
 const writeRenderLine:RenderLineType<OperatorWriteSerialized> = (line, lineNumber, game):React.ReactNode => <span>
-<CommandBadge type={OperatorType.Write}>Write</CommandBadge>
+<CommandBadge type={OperatorType.Write} />
     {' '}
     {/* <Select
         IconComponent={null}
@@ -55,7 +56,7 @@ const writeRenderLine:RenderLineType<OperatorWriteSerialized> = (line, lineNumbe
         variant="standard"
     >
         {Object.values(WriteType).map(option =>
-            <MenuItem key={option} value={option}>{option}</MenuItem>)}
+            <MenuItem key={option} value={option}>{trOption('writeType', option)}</MenuItem>)}
     </Select>
     {line.writeType === WriteType.Number &&
         <TextField

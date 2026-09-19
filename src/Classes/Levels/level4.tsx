@@ -3,6 +3,10 @@ import Level, { LevelSerializedType } from '../Level';
 
 const level:GameSerialized = {
     name: 'Diagonal boxes',
+    translations: {
+        task: { en: 'Diagonal boxes', ru: 'Диагональные ящики' },
+        characterNames: { first: { en: 'first', ru: 'первый' }, second: { en: 'second', ru: 'второй' }, '3': { en: '3', ru: '3' }, '4': { en: '4', ru: '4' } },
+    },
     level: {
         task: 'Diagonal boxes',
         width: 5,

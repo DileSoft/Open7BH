@@ -58,7 +58,7 @@ function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSeri
         result = ifRenderLine((line as OperatorIfSerialized), lineNumber, game);
     }
     if (line.type === 'endif') {
-        result = <CommandBadge type={OperatorType.EndIf}>Endif</CommandBadge>;
+        result = <CommandBadge type={OperatorType.EndIf} />;
     }
     if (line.type === 'pickup') {
         result = pickupRenderLine((line as OperatorPickupSerialized), lineNumber, game);
@@ -85,7 +85,7 @@ function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSeri
         result = foreachRenderLine((line as OperatorForeachSerialized), lineNumber, game);
     }
     if (line.type === 'endforeach') {
-        result = <CommandBadge type={OperatorType.EndForeach}>Endforeach</CommandBadge>;
+        result = <CommandBadge type={OperatorType.EndForeach} />;
     }
     if (line.type === 'end') {
         result = endRenderLine(line as OperatorEndSerialized, lineNumber, game);

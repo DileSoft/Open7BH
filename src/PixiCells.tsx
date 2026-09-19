@@ -1,9 +1,11 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { GameSerialized } from './Classes/Game';
 import { PixiRenderer } from './PixiRenderer';
 
 function PixiCells(props: { game: GameSerialized }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const { i18n } = useTranslation();
 
     useEffect(() => {
         async function initRenderer() {
@@ -40,7 +42,7 @@ function PixiCells(props: { game: GameSerialized }) {
         if (props.game) {
             PixiRenderer.getInstance().update(props.game);
         }
-    }, [props.game]);
+    }, [props.game, i18n.language]);
 
     return (
         <div style={{ border: '2px solid red', display: 'inline-block', marginTop: 20 }}>

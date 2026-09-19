@@ -18,7 +18,7 @@ const giveRenderLine:RenderLineType<OperatorGiveSerialized> = (line, lineNumber,
     }
 
     return <span>
-<CommandBadge type={OperatorType.Give}>Give</CommandBadge>
+<CommandBadge type={OperatorType.Give} />
     {' '}
     <ManIcon fontSize="small" />
     <EastIcon fontSize="small" />

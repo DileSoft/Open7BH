@@ -6,7 +6,7 @@ import level5 from './Classes/Levels/level5';
 import level6 from './Classes/Levels/level6';
 import level7 from './Classes/Levels/level7';
 import { LevelSerializedType } from './Classes/Level';
-import { GameSerialized } from './Classes/Game';
+import { GameSerialized, LevelTranslations } from './Classes/Game';
 
 const levels:GameSerialized[] = [level1,
     level2,
@@ -16,5 +16,13 @@ const levels:GameSerialized[] = [level1,
     level6,
     level7,
 ];
+
+// Translations registry — always read from source files, never serialized to localStorage
+export const LEVEL_TRANSLATIONS: Record<string, LevelTranslations> = {};
+levels.forEach(level => {
+    if (level.translations) {
+        LEVEL_TRANSLATIONS[level.name] = level.translations;
+    }
+});
 
 export default levels;

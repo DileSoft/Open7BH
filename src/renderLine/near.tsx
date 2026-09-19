@@ -6,11 +6,13 @@ import {
 import { OperatorNearSerialized, OperatorNearType } from '../Classes/Operators/OperatorNear';
 import { OperatorType } from '../Classes/Operators/Operator';
 import CommandBadge from './CommandBadge';
+import i18n from '../i18n';
+import { trOption } from '../tr';
 
 const nearRenderLine:RenderLineType<OperatorNearSerialized> = (line, lineNumber, game):React.ReactNode => <span>
-<CommandBadge type={OperatorType.Near}>Near</CommandBadge>
+<CommandBadge type={OperatorType.Near} />
     {' '}
-    slot
+    {String(i18n.t('common.slot'))}
     <TextField
         type="number"
         value={line.slot}
@@ -31,7 +33,7 @@ const nearRenderLine:RenderLineType<OperatorNearSerialized> = (line, lineNumber,
         variant="standard"
     >
         {Object.values(OperatorNearType).map(option =>
-            <MenuItem key={option} value={option}>{option}</MenuItem>)}
+            <MenuItem key={option} value={option}>{trOption('nearType', option)}</MenuItem>)}
     </Select>
 </span>;
 

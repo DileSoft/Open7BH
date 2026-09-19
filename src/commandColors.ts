@@ -1,7 +1,7 @@
 import { OperatorType } from './Classes/Operators/Operator';
 
 export interface CommandGroup {
-    title: string;
+    titleKey: string;
     color: string;
     commands: OperatorType[];
 }
@@ -9,11 +9,11 @@ export interface CommandGroup {
 // end* (EndForeach, EndIf) скрыты в панели — появляются автоматически,
 // но в коде красятся тем же цветом, что и группа «Управление кодом».
 export const COMMAND_GROUPS: CommandGroup[] = [
-    { title: 'Движение', color: '#1976d2', commands: [OperatorType.Step] },
-    { title: 'Передача', color: '#2e7d32', commands: [OperatorType.Pickup, OperatorType.Drop, OperatorType.Take, OperatorType.Give] },
-    { title: 'Управление кодом', color: '#ed6c02', commands: [OperatorType.Goto, OperatorType.If, OperatorType.Foreach, OperatorType.Lose, OperatorType.End] },
-    { title: 'Память', color: '#9c27b0', commands: [OperatorType.Variable, OperatorType.Write, OperatorType.Near, OperatorType.Calc] },
-    { title: 'Общение', color: '#0097a7', commands: [OperatorType.Say, OperatorType.Hear] },
+    { titleKey: 'groups.movement', color: '#1976d2', commands: [OperatorType.Step] },
+    { titleKey: 'groups.transfer', color: '#2e7d32', commands: [OperatorType.Pickup, OperatorType.Drop, OperatorType.Take, OperatorType.Give] },
+    { titleKey: 'groups.control', color: '#ed6c02', commands: [OperatorType.Goto, OperatorType.If, OperatorType.Foreach, OperatorType.Lose, OperatorType.End] },
+    { titleKey: 'groups.memory', color: '#9c27b0', commands: [OperatorType.Variable, OperatorType.Write, OperatorType.Near, OperatorType.Calc] },
+    { titleKey: 'groups.communication', color: '#0097a7', commands: [OperatorType.Say, OperatorType.Hear] },
 ];
 
 const COLOR_BY_COMMAND = new Map<OperatorType, string>();

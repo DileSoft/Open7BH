@@ -26,6 +26,11 @@ export enum GameState {
     Lost = 'Lost',
 }
 
+export interface LevelTranslations {
+    task: { en: string; ru: string };
+    characterNames: Record<string, { en: string; ru: string }>;
+}
+
 export interface GameSerialized {
     level: LevelSerializedType;
     name: string;
@@ -50,6 +55,7 @@ export interface GameSerialized {
     state?: GameState;
     speed?: number;
     loseReason?: string;
+    translations?: LevelTranslations;
     object?: Game;
 }
 

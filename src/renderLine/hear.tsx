@@ -6,7 +6,7 @@ import { OperatorType } from '../Classes/Operators/Operator';
 import CommandBadge from './CommandBadge';
 
 const hearRenderLine:RenderLineType<OperatorHearSerialized> = (line, lineNumber, game):React.ReactNode => <span>
-    <CommandBadge type={OperatorType.Hear}>Hear</CommandBadge>
+    <CommandBadge type={OperatorType.Hear} />
     {' '}
     <TextField
         value={line.hear}

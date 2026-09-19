@@ -8,6 +8,7 @@ import { Direction } from '../Classes/Operators/OperatorStep';
 import { DirectionGrid } from '../DirectionGrid';
 import { OperatorType } from '../Classes/Operators/Operator';
 import CommandBadge from './CommandBadge';
+import i18n from '../i18n';
 
 const sayRenderLine:RenderLineType<OperatorSaySerialized> = (line, lineNumber, game):React.ReactNode => {
     if (!line.object || !game.object) {
@@ -17,7 +18,7 @@ const sayRenderLine:RenderLineType<OperatorSaySerialized> = (line, lineNumber, g
     const isAll = line.direction === 'all';
 
     return <span>
-    <CommandBadge type={OperatorType.Say}>Say</CommandBadge>
+    <CommandBadge type={OperatorType.Say} />
     {' '}
     <TextField
         value={line.hear}
@@ -42,7 +43,7 @@ const sayRenderLine:RenderLineType<OperatorSaySerialized> = (line, lineNumber, g
                 }}
             />
         }
-        label="all"
+        label={String(i18n.t('common.all'))}
     />
     {!isAll &&
         <DirectionGrid

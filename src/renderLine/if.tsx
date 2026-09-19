@@ -14,6 +14,7 @@ import { Direction, DirectionWithHere } from "../Classes/Operators/OperatorStep"
 import { DirectionGrid } from "../DirectionGrid";
 import { OperatorType } from "../Classes/Operators/Operator";
 import CommandBadge from "./CommandBadge";
+import { trOption } from "../tr";
 
 const ifRenderLine:RenderLineType<OperatorIfSerialized> = (line, lineNumber, game):React.ReactNode => {
     if (!line.object || !game.object) {
@@ -21,7 +22,7 @@ const ifRenderLine:RenderLineType<OperatorIfSerialized> = (line, lineNumber, gam
     }
 
     return <span>
-<CommandBadge type={OperatorType.If}>If</CommandBadge>
+<CommandBadge type={OperatorType.If} />
     {" "}
     {line.conditions.map((condition, conditionKey) => <span key={conditionKey}>
         {!!conditionKey && <Select
@@ -34,7 +35,7 @@ const ifRenderLine:RenderLineType<OperatorIfSerialized> = (line, lineNumber, gam
         >
             {Object.values(OperatorIfLogic).map(option =>
                 <MenuItem key={option} value={option}>
-                    {option}
+                    {trOption('logic', option)}
                 </MenuItem>)}
         </Select>}
         <Select
@@ -46,7 +47,7 @@ const ifRenderLine:RenderLineType<OperatorIfSerialized> = (line, lineNumber, gam
             variant="standard"
         >
             {Object.values(OperandIfLeftType).map(option =>
-                <MenuItem key={option} value={option}>{option}</MenuItem>)}
+                <MenuItem key={option} value={option}>{trOption('operand', option)}</MenuItem>)}
         </Select>
         {condition.leftType === "number" &&
         <TextField
@@ -87,7 +88,7 @@ const ifRenderLine:RenderLineType<OperatorIfSerialized> = (line, lineNumber, gam
             }}
         >
             {Object.values(OperatorIfCondition).map(option =>
-                <MenuItem key={option} value={option}>{option}</MenuItem>)}
+                <MenuItem key={option} value={option}>{trOption('condition', option)}</MenuItem>)}
         </Select>
         <Select
             value={condition.rightType}
@@ -98,7 +99,7 @@ const ifRenderLine:RenderLineType<OperatorIfSerialized> = (line, lineNumber, gam
             variant="standard"
         >
             {Object.values(OperandIfRightType).map(option =>
-                <MenuItem key={option} value={option}>{option}</MenuItem>)}
+                <MenuItem key={option} value={option}>{trOption('rightType', option)}</MenuItem>)}
         </Select>
         {condition.rightType === "number" &&
         <TextField

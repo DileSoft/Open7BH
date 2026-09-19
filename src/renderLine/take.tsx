@@ -17,7 +17,7 @@ const takeRenderLine:RenderLineType<OperatorTakeSerialized> = (line, lineNumber,
     }
 
     return <span>
-<CommandBadge type={OperatorType.Take}>Take</CommandBadge>
+<CommandBadge type={OperatorType.Take} />
     {' '}
     <ManIcon fontSize="small" />
     <WestIcon fontSize="small" />

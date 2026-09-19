@@ -3,6 +3,10 @@ import Level, { LevelSerializedType } from '../Level';
 
 const level:GameSerialized = {
     name: 'Sort numbers',
+    translations: {
+        task: { en: 'Sort numbers', ru: 'Сортировать числа' },
+        characterNames: { '1': { en: '1', ru: '1' }, '2': { en: '2', ru: '2' }, '3': { en: '3', ru: '3' }, '4': { en: '4', ru: '4' }, '5': { en: '5', ru: '5' } },
+    },
     level: {
         task: 'Sort numbers',
         width: 5,

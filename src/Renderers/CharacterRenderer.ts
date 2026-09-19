@@ -3,6 +3,7 @@ import Character, { CharacterState } from '../Classes/Character';
 import { Direction } from '../Classes/Operators/OperatorStep';
 import { IRenderer } from './IRenderer';
 import { CELL_WIDTH, PixiRenderer } from '../PixiRenderer';
+import { getCharacterName } from '../levelTranslations';
 
 const directionOffset = (direction: Direction | null | undefined): { x: number; y: number } => {
     switch (direction) {
@@ -101,6 +102,10 @@ export class CharacterRenderer implements IRenderer {
         this.updateHeldItem();
         this.updateBubbles();
         this.applyStateAnimations(animationSpeed);
+
+        // Update translated name
+        const renderer = PixiRenderer.getInstance();
+        this.nameText.text = getCharacterName(this.character.name, renderer.levelName);
 
         // Smooth movement with fixed step to prevent overshoot and infinite loops
         const dx = this.targetX - this.container.x;

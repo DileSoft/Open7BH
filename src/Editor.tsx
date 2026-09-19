@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import copy from 'copy-to-clipboard';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import PixiCells from './PixiCells';
 import PixiCodeEditor from './PixiCodeEditor';
 import Cells from './Cells';
@@ -13,6 +14,8 @@ import {
     parseCoordinates,
 } from './Utils';
 import Levels from './Classes/Levels';
+import { trOption } from './tr';
+import { getLevelTask } from './levelTranslations';
 import Game, { GameSerialized } from './Classes/Game';
 import Cell, { CellType } from './Classes/Cell';
 import Box from './Classes/Box';
@@ -24,6 +27,7 @@ import Printer from './Classes/Printer';
 import Shredder from './Classes/Shredder';
 
 function Editor(props: {levels: GameSerialized[], reloadLevels: () => void}) {
+    const { t } = useTranslation();
     const [game, setGame] = useState<GameSerialized>(() => {
         const newGame = new Game();
         newGame.deserialize(Levels.load(0));
@@ -40,7 +44,7 @@ function Editor(props: {levels: GameSerialized[], reloadLevels: () => void}) {
     return <div>
         <div>
             <Select variant="standard" value={template} onChange={e => setTemplate(parseInt(e.target.value as string))}>
-                {props.levels.map((currentLevel, number) => <MenuItem key={number} value={number}>{currentLevel.level.task}</MenuItem>)}
+                {props.levels.map((currentLevel, number) => <MenuItem key={number} value={number}>{getLevelTask(currentLevel)}</MenuItem>)}
             </Select>
             <Button onClick={() => {
                 const _game = new Game();
@@ -49,11 +53,11 @@ function Editor(props: {levels: GameSerialized[], reloadLevels: () => void}) {
                 _game.render();
             }}
             >
-Import
+{t('editor.import')}
             </Button>
-            <Button onClick={() => game.object && copy(JSON.stringify(game.object.level.serialize(false), null, 2))}>Copy cells</Button>
-            <Button onClick={() => game.object && copy(JSON.stringify(game.object.level.getCharacters(), null, 2))}>Copy characters</Button>
-            <Button onClick={() => copy(levelStringify)}>Copy level</Button>
+            <Button onClick={() => game.object && copy(JSON.stringify(game.object.level.serialize(false), null, 2))}>{t('editor.copyCells')}</Button>
+            <Button onClick={() => game.object && copy(JSON.stringify(game.object.level.getCharacters(), null, 2))}>{t('editor.copyCharacters')}</Button>
+            <Button onClick={() => copy(levelStringify)}>{t('editor.copyLevel')}</Button>
             <Button onClick={() => {
                 if (game.object && game.name) {
                     Levels.save(game.name, game.object.serialize());
@@ -61,12 +65,12 @@ Import
                 }
             }}
             >
-Save
+{t('editor.save')}
             </Button>
         </div>
         <div>
             <TextField
-                label="width"
+                label={t('editor.width')}
                 value={game.level?.width}
                 variant="standard"
                 onChange={e => {
@@ -77,7 +81,7 @@ Save
                 }}
             />
             <TextField
-                label="height"
+                label={t('editor.height')}
                 value={game.level?.height}
                 variant="standard"
                 onChange={e => {
@@ -94,18 +98,18 @@ Save
                 }
             }}
             >
-Crop
+{t('editor.crop')}
             </Button>
         </div>
         <div style={{ display: 'flex', gap: '20px' }}>
             <div>
-                <h3>Pixi Cells (New)</h3>
+                <h3>{t('editor.pixiCellsNew')}</h3>
                 <PixiCells
                     game={game}
                 />
             </div>
             <div>
-                <h3>Cells (Old)</h3>
+                <h3>{t('editor.cellsOld')}</h3>
                 <Cells
                     game={game}
                     onClick={(coordinates => setCellDialog(coordinates))}
@@ -169,11 +173,11 @@ Crop
                         }}
                     >
                         {Object.values(CellType).map(option =>
-                            <MenuItem value={option} key={option}>{option}</MenuItem>)}
+                            <MenuItem value={option} key={option}>{trOption('cellType', option)}</MenuItem>)}
                     </Select>
                 </div>
                 {selectedCell?.getType() === 'empty' ? <div>
-Item:
+{t('editor.item')}
                     {' '}
                     <Checkbox
                         checked={!!selectedCell?.item}
@@ -189,7 +193,7 @@ Item:
                 </div> : null}
                 {selectedCell?.item ? <div>
                     <TextField
-                        label="Item value"
+                        label={t('editor.itemValue')}
                         value={selectedCell?.item?.value}
                         variant="standard"
                         onChange={e => {
@@ -201,7 +205,7 @@ Item:
                     />
                 </div> : null}
                 {selectedCell?.getType() === 'empty' ? <div>
-Character:
+{t('editor.character')}
                     {' '}
                     <Checkbox
                         checked={!!selectedCell.character}
