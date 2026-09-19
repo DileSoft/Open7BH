@@ -1,5 +1,6 @@
 import { TextField } from '@mui/material';
 import React from 'react';
+import i18n from '../i18n';
 import {
     RenderLineType,
 } from '../types';
@@ -15,26 +16,27 @@ const foreachRenderLine:RenderLineType<OperatorForeachSerialized> = (line, lineN
     }
 
     return <span>
-<CommandBadge type={OperatorType.Foreach} />
-    {' '}
-    <DirectionGrid
-        value={line.directions}
-        multiple
-        onChange={newDirs => {
-            line.object?.setDirections(newDirs as Direction[]);
-            game.object?.render();
-        }}
-    />
-    <TextField
-        type="number"
-        value={line.slotNumber}
-        variant="standard"
-        onChange={e => {
-            line.object!.slotNumber = parseInt(e.target.value) || 0;
-            game.object?.render();
-        }}
-    />
-</span>;
+        <CommandBadge type={OperatorType.Foreach} />
+        {' '}
+        <DirectionGrid
+            value={line.directions}
+            multiple
+            onChange={newDirs => {
+                line.object?.setDirections(newDirs as Direction[]);
+                game.object?.render();
+            }}
+        />
+        {i18n.t('common.slot')}
+        <TextField
+            type="number"
+            value={line.slotNumber}
+            variant="standard"
+            onChange={e => {
+                line.object!.slotNumber = parseInt(e.target.value) || 0;
+                game.object?.render();
+            }}
+        />
+    </span>;
 };
 
 export default foreachRenderLine;
