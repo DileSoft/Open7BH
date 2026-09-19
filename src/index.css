@@ -11,3 +11,23 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.sortable-code,
+.sortable-code * {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.sortable-code input,
+.sortable-code textarea,
+.sortable-code select,
+.sortable-code [contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.sortable-code-helper {
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+}

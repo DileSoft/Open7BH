@@ -24,10 +24,21 @@ const SortableItem = sortableElement(({ children, index }: { children: React.Rea
         }),
     }), []);
 
-    return <div ref={drop as any} style={{ borderTop: isOver ? '2px solid green' : 'none' }}>{children}</div>;
+    return <div ref={drop as any} style={{ borderTop: isOver ? '2px solid green' : 'none', userSelect: 'none', WebkitUserSelect: 'none' }}>{children}</div>;
 });
 
-const SortableContainer = sortableContainer(({ children }: { children: React.ReactNode }) => <div>{children}</div>);
+const SortableContainer = sortableContainer(({ children }: { children: React.ReactNode }) => <div className="sortable-code" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>{children}</div>);
+
+// Dragging a code line must not start when interacting with controls/inputs inside it,
+// and moving lines must not select their text.
+const shouldCancelSortStart = (e: any) => {
+    const target = e.target as HTMLElement | null;
+    if (!target || !target.tagName) return false;
+    const tag = target.tagName.toUpperCase();
+    if (['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A', 'SVG', 'PATH'].includes(tag)) return true;
+    if (target.closest && target.closest('input,textarea,select,button,a,[contenteditable="true"],.MuiPopover-root,.MuiMenu-root,.MuiSelect-select')) return true;
+    return false;
+};
 
 function CodeDropZone(props: { index: number, game: GameSerialized, isLast?: boolean }) {
     const [{ isOver, canDrop }, drop] = useDrop(() => ({
@@ -131,9 +142,11 @@ function Level(props: {level: GameSerialized, levelNumber: number}) {
                         game.object.render();
                     }
                 }}
+                shouldCancelStart={shouldCancelSortStart}
+                helperClass="sortable-code-helper"
                 >
                     {(game.code || []).map((line, key) => {
-                        const result = <div key={line.object?.id}>
+                        const result = <div key={line.object?.id} style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
                             <CodeDropZone index={key} game={game} />
                             <SortableItem index={key}>
                                 {game.object?.level.getCharacters().filter(character => character.currentLine === key).map(character => <span key={character.name}>
