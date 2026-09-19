@@ -42,14 +42,16 @@ function App() {
         <ThemeProvider theme={theme}>
             <div className="App">
                 <h1>Open7BH</h1>
+                <div style={{ position: 'absolute', top: 8, right: 16, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: 12 }}>{t('app.language')}:</span>
+                    <Button size="small" variant={i18n.language === 'en' ? 'contained' : 'outlined'} onClick={() => i18n.changeLanguage('en')}>EN</Button>
+                    <Button size="small" variant={i18n.language === 'ru' ? 'contained' : 'outlined'} onClick={() => i18n.changeLanguage('ru')}>RU</Button>
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <Tabs value={editor ? 1 : 0} onChange={(e, value) => setEditor(value === 1)}>
                         <Tab label={t('app.game')} />
                         <Tab label={t('app.editor')} />
                     </Tabs>
-                    <span style={{ fontSize: 12 }}>{t('app.language')}:</span>
-                    <Button size="small" variant={i18n.language === 'en' ? 'contained' : 'outlined'} onClick={() => i18n.changeLanguage('en')}>EN</Button>
-                    <Button size="small" variant={i18n.language === 'ru' ? 'contained' : 'outlined'} onClick={() => i18n.changeLanguage('ru')}>RU</Button>
                 </div>
                 {editor ? <Editor levels={levels} reloadLevels={reloadLevels} /> :
                     <>
