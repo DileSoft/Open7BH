@@ -20,6 +20,8 @@ export class PixiRenderer {
 
     cellsLayer: PIXI.Container | null = null;
 
+    gridLayer: PIXI.Graphics | null = null;
+
     itemsLayer: PIXI.Container | null = null;
 
     charactersLayer: PIXI.Container | null = null;
@@ -98,8 +100,10 @@ export class PixiRenderer {
         this.app.stage.addChild(this.container);
 
         this.cellsLayer = new PIXI.Container();
+        this.gridLayer = new PIXI.Graphics();
         this.charactersLayer = new PIXI.Container();
         this.itemsLayer = new PIXI.Container();
+        this.container.addChild(this.gridLayer);
         this.container.addChild(this.cellsLayer);
         this.container.addChild(this.charactersLayer);
         this.container.addChild(this.itemsLayer);
@@ -200,6 +204,24 @@ export class PixiRenderer {
             width * CELL_WIDTH + 1,
             height * CELL_WIDTH + 1,
         );
+        this.drawGrid(width, height);
+    }
+
+    private drawGrid(width: number, height: number) {
+        if (!this.gridLayer) return;
+        const g = this.gridLayer;
+        g.clear();
+        // Vertical lines
+        for (let x = 0; x <= width; x++) {
+            g.moveTo(x * CELL_WIDTH, 0);
+            g.lineTo(x * CELL_WIDTH, height * CELL_WIDTH);
+        }
+        // Horizontal lines
+        for (let y = 0; y <= height; y++) {
+            g.moveTo(0, y * CELL_WIDTH);
+            g.lineTo(width * CELL_WIDTH, y * CELL_WIDTH);
+        }
+        g.stroke({ width: 1, color: 0x666666, alpha: 0.7 });
     }
 
     public static colorToHex(color: string): number {
