@@ -6,9 +6,7 @@ import levelList from '../levelsList';
 class Levels {
     static preloadLevels(): void {
         levelList.forEach(level => {
-            if (!Levels.load(level.name)) {
-                Levels.save(level.name, level);
-            }
+            Levels.save(level.name, level);
         });
     }
 

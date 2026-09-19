@@ -3,7 +3,7 @@ import Level, { LevelSerializedType } from '../Level';
 import Shredder from '../Shredder';
 
 const level:GameSerialized = {
-    name: 'Print and shred',
+    name: 'Print and shred (no move)',
     translations: {
         task: { en: 'Print and shred 10 boxes (no move)', ru: 'Напечатать и уничтожить 10 ящиков (без движения)' },
         characterNames: { '1': { en: '1', ru: '1' }, '2': { en: '2', ru: '2' }, '3': { en: '3', ru: '3' }, '4': { en: '4', ru: '4' }, '5': { en: '5', ru: '5' } },
