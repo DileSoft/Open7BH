@@ -1,6 +1,5 @@
 import { GameSerialized } from '../Game';
-import Level, { LevelSerializedType } from '../Level';
-import Shredder from '../Shredder';
+import Level from '../Level';
 
 const level:GameSerialized = {
     name: 'Print and shred (no move)',
@@ -36,7 +35,12 @@ hole hole hole hole hole hole hole`,
                 },
             ],
         ),
-        winCallback: (level: Level) => (level.cells['5x2'] as Shredder).shredded >= 10,
+        winConditions: {
+            mode: 'all',
+            conditions: [
+                { kind: 'shredded', coordinates: [5, 2], operator: 'ge', value: 10 },
+            ],
+        },
     },
     code: ([
     ]),

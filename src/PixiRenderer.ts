@@ -1,6 +1,7 @@
 ﻿import * as PIXI from 'pixi.js';
 import Character from './Classes/Character';
 import Cell from './Classes/Cell';
+import type Level from './Classes/Level';
 import type { GameSerialized, LevelTranslations } from './Classes/Game';
 import { CellRenderer } from './Renderers/CellRenderer';
 import { CharacterRenderer } from './Renderers/CharacterRenderer';
@@ -44,6 +45,12 @@ export class PixiRenderer {
     // registered renderers and leave the canvas blank).
     private initPromise: Promise<void> | null = null;
 
+    private levelWidth = 0;
+
+    private levelHeight = 0;
+
+    private cellClickHandler: ((x: number, y: number) => void) | null = null;
+
     private constructor() {
         Cell.renderer = this;
     }
@@ -60,6 +67,7 @@ export class PixiRenderer {
             if (this.app.canvas !== canvas) {
                 this.app.destroy(true, { children: true, texture: true });
                 this.clearState();
+                this.releaseLayers();
                 this.initialized = false;
             } else {
                 return;
@@ -112,8 +120,22 @@ export class PixiRenderer {
             this.updateAnimations();
         });
 
+        this.app.canvas.addEventListener('pointerdown', this.onCanvasPointerDown);
+
         this.initialized = true;
     }
+
+    private onCanvasPointerDown = (event: PointerEvent) => {
+        if (!this.cellClickHandler || !this.app) return;
+        const rect = this.app.canvas.getBoundingClientRect();
+        const scaleX = this.app.canvas.width / rect.width;
+        const scaleY = this.app.canvas.height / rect.height;
+        const x = Math.floor(((event.clientX - rect.left) * scaleX) / CELL_WIDTH);
+        const y = Math.floor(((event.clientY - rect.top) * scaleY) / CELL_WIDTH);
+        if (x >= 0 && y >= 0 && x < this.levelWidth && y < this.levelHeight) {
+            this.cellClickHandler(x, y);
+        }
+    };
 
     private clearState() {
         this.cellRenderers.forEach(r => r.destroy());
@@ -122,6 +144,22 @@ export class PixiRenderer {
         this.characterRenderers.clear();
         this.itemRenderers.forEach(r => r.destroy());
         this.itemRenderers.clear();
+    }
+
+    /**
+     * Drop references to the current (destroyed) containers. Called only when
+     * the app is being recreated on a different canvas, so that any renderer
+     * call that happens while the new app is initializing becomes a no-op
+     * instead of registering cells onto the dead layers.
+     */
+    private releaseLayers() {
+        this.container = null;
+        this.cellsLayer = null;
+        this.gridLayer = null;
+        this.charactersLayer = null;
+        this.itemsLayer = null;
+        this.levelWidth = 0;
+        this.levelHeight = 0;
     }
 
     public clearScene() {
@@ -177,9 +215,51 @@ export class PixiRenderer {
         this.translations = game.translations;
         this.levelName = game.name;
 
+        // Only reconcile renderers once the current app is fully initialized —
+        // otherwise cells could be registered onto layers of a destroyed app.
+        if (this.initialized && game.object?.level) {
+            this.syncLevel(game.object.level);
+        }
+
         this.cellRenderers.forEach(r => r.update(this.currentAnimationSpeed));
         this.itemRenderers.forEach(r => r.update(this.currentAnimationSpeed));
         this.characterRenderers.forEach(r => r.update(this.currentAnimationSpeed));
+    }
+
+    /**
+     * Reconcile registered renderers with the current level state. Cells that
+     * were replaced/removed (e.g. edited in the editor) lose their renderers,
+     * and newly created cells/characters get registered.
+     */
+    public syncLevel(level: Level) {
+        const cells = Object.values(level.cells);
+        const cellSet = new Set(cells);
+        this.cellRenderers.forEach((renderer, cell) => {
+            if (!cellSet.has(cell)) {
+                renderer.destroy();
+                this.cellRenderers.delete(cell);
+            }
+        });
+        this.itemRenderers.forEach((renderer, cell) => {
+            if (!cellSet.has(cell)) {
+                renderer.destroy();
+                this.itemRenderers.delete(cell);
+            }
+        });
+        const characters = level.getCharacters();
+        const characterSet = new Set(characters);
+        this.characterRenderers.forEach((renderer, character) => {
+            if (!characterSet.has(character)) {
+                renderer.destroy();
+                this.characterRenderers.delete(character);
+            }
+        });
+        cells.forEach(cell => this.registerCell(cell));
+        characters.forEach(character => this.registerCharacter(character));
+    }
+
+    public setCellClickHandler(handler: ((x: number, y: number) => void) | null) {
+        this.cellClickHandler = handler;
     }
 
     private updateAnimations() {
@@ -200,6 +280,8 @@ export class PixiRenderer {
         if (!this.app || !this.app.renderer) {
             return;
         }
+        this.levelWidth = width;
+        this.levelHeight = height;
         this.app.renderer.resize(
             width * CELL_WIDTH + 1,
             height * CELL_WIDTH + 1,

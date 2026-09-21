@@ -8,8 +8,20 @@ import { Direction, DirectionWithHere } from './Operators/OperatorStep';
 import Printer from './Printer';
 import Shredder from './Shredder';
 import Wall from './Wall';
+import {
+    DEFAULT_WIN_CONDITIONS,
+    evaluateConditions,
+    WinCondition,
+    WinConditionsList,
+} from './WinConditions';
 
 type WinCallback = (level: Level) => boolean;
+
+/** Legacy win condition used by pre-declarative saves (function). */
+interface LegacyLevelSerialized {
+    winCallback?: WinCallback;
+    winConditions?: WinConditionsList;
+}
 
 export interface CharacterSerializedType {
     name: string,
@@ -40,7 +52,7 @@ export interface LevelSerializedType {
     task: string,
     width: number,
     height: number,
-    winCallback: WinCallback,
+    winConditions: WinConditionsList,
     cells: CellSerializedType[],
     object?: Level,
 }
@@ -56,7 +68,7 @@ class Level {
 
     height: number;
 
-    winCallback: WinCallback;
+    winConditions: WinConditionsList = DEFAULT_WIN_CONDITIONS;
 
     static parseCells = (cellsStr:string, characters: CharacterSerializedType[]):CellSerializedType[] => {
         const result: CellSerializedType[] = [];
@@ -125,7 +137,7 @@ class Level {
             width: this.width,
             height: this.height,
             cells: [],
-            winCallback: this.winCallback,
+            winConditions: this.winConditions,
             object: withObject ? this : undefined,
         };
         Object.values(this.cells).forEach(cell => {
@@ -161,7 +173,18 @@ class Level {
         this.task = str.task;
         this.width = str.width;
         this.height = str.height;
-        this.winCallback = str.winCallback;
+        const legacy = (str as unknown as LegacyLevelSerialized);
+        if (legacy.winConditions) {
+            this.winConditions = legacy.winConditions;
+        } else if (legacy.winCallback) {
+            // Old saves stored the win condition as a function. Keep them working by
+            // converting the function source into an advanced "code" condition — it is
+            // fully editable in the editor and survives JSON export.
+            const codeCondition: WinCondition = { kind: 'code', code: legacy.winCallback.toString() };
+            this.winConditions = { mode: 'all', conditions: [codeCondition] };
+        } else {
+            this.winConditions = { ...DEFAULT_WIN_CONDITIONS, conditions: [] };
+        }
         this.cells = {};
         Cell.renderer?.resize(this.width, this.height);
         str.cells.forEach(cell => {
@@ -194,6 +217,10 @@ class Level {
 
     addCharacter(character: Character, x: number, y: number) {
         this.getCell(x, y).setCharacter(character);
+    }
+
+    evaluateWin(): boolean {
+        return evaluateConditions(this, this.winConditions);
     }
 
     moveCharacters() {

@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Level from './Level';
 import Editor from './Editor';
+import LevelBadge from './LevelBadge';
 import Levels from './Classes/Levels';
 import { getLevelTask } from './levelTranslations';
 import './App.css';
@@ -57,7 +58,10 @@ function App() {
                     <>
                         <div>
                             <Select variant="standard" value={level} onChange={e => setLevel(parseInt(e.target.value as string))}>
-                                {levels.map((currentLevel, number) => <MenuItem key={number} value={number}>{getLevelTask(currentLevel)}</MenuItem>)}
+                                {levels.map((currentLevel, number) => <MenuItem key={number} value={number}>
+                                    <LevelBadge name={currentLevel.name} />
+                                    {getLevelTask(currentLevel)}
+                                </MenuItem>)}
                             </Select>
                         </div>
                         <Level level={levels[level]} levelNumber={level} />

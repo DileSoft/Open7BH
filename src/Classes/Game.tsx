@@ -79,6 +79,8 @@ class Game {
 
     loseReason?: string;
 
+    translations?: LevelTranslations;
+
     renderCallback!: (game: GameSerialized) => void;
 
     interval: number | undefined;
@@ -199,7 +201,7 @@ class Game {
         this.level.moveCharacters();
         // Check win BEFORE loss — if win conditions are met, it takes priority
         // even if a character died in the same tick (e.g. fell into a hole).
-        if (this.level.winCallback(this.level)) {
+        if (this.level.evaluateWin()) {
             this.win();
             return;
         }
@@ -336,6 +338,7 @@ class Game {
             this.level = new Level(this);
         }
         this.name = serialized.name;
+        this.translations = serialized.translations;
         this.level.deserialize(serialized.level);
         this.deserializeCode(serialized.code);
     }
@@ -344,6 +347,7 @@ class Game {
         return {
             level: this.level.serialize(withObject),
             name: this.name,
+            translations: this.translations,
             code: this.code.map(operator => operator.serialize(withObject)),
             state: this.state,
             speed: this.speed,

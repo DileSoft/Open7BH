@@ -1,0 +1,30 @@
+{
+    "name": "JSON demo: dump the cubes",
+    "translations": {
+        "task": {
+            "en": "Dump all four cubes into the holes",
+            "ru": "Сбрось все четыре куба в дыры"
+        },
+        "characterNames": {
+            "first": { "en": "first", "ru": "первый" },
+            "second": { "en": "second", "ru": "второй" }
+        }
+    },
+    "level": {
+        "task": "Dump all four cubes into the holes",
+        "width": 8,
+        "height": 2,
+        "cellsMap": "box|1 box|1 box|1 box|1 empty empty empty empty\nhole hole hole hole empty empty empty empty",
+        "characters": [
+            { "coordinates": [0, 0], "name": "first", "color": "red" },
+            { "coordinates": [1, 0], "name": "second", "color": "green" }
+        ],
+        "winConditions": {
+            "mode": "all",
+            "conditions": [
+                { "kind": "noBoxes" }
+            ]
+        }
+    },
+    "code": []
+}

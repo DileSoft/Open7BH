@@ -35,11 +35,15 @@ empty empty empty empty empty`,
                 },
             ],
         ),
-        winCallback: (level: Level) => [0, 1, 2, 3, 4].every(
-            number => number === 0 ||
-        level.cells[`${number}x1`].character?.item?.value >=
-        level.cells[`${number - 1}x1`].character?.item?.value,
-        ),
+        winConditions: {
+            mode: 'all',
+            conditions: [
+                { kind: 'neighborCompare', coordinates: [1, 1], direction: 'left', operator: 'ge', source: 'character' },
+                { kind: 'neighborCompare', coordinates: [2, 1], direction: 'left', operator: 'ge', source: 'character' },
+                { kind: 'neighborCompare', coordinates: [3, 1], direction: 'left', operator: 'ge', source: 'character' },
+                { kind: 'neighborCompare', coordinates: [4, 1], direction: 'left', operator: 'ge', source: 'character' },
+            ],
+        },
     },
     code: ([
     //     {

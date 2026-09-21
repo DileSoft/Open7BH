@@ -1,5 +1,5 @@
 import { GameSerialized } from '../Game';
-import Level, { LevelSerializedType } from '../Level';
+import Level from '../Level';
 
 const level:GameSerialized = {
     name: 'Remove only box with 2',
@@ -28,11 +28,13 @@ hole hole`,
                 },
             ],
         ),
-        winCallback: (level:Level) => (
-            Object.values(level.cells).find(cell => cell.item?.tag === 'tag1') ||
-         level.getCharacters().find(character => character.item?.tag === 'tag1')) &&
-    !(Object.values(level.cells).find(cell => cell.item?.tag === 'tag2')
-    || level.getCharacters().find(character => !character.isTerminated && character.item?.tag === 'tag2')),
+        winConditions: {
+            mode: 'all',
+            conditions: [
+                { kind: 'tagPresent', tag: 'tag1' },
+                { kind: 'tagAbsent', tag: 'tag2' },
+            ],
+        },
     },
     code: ([
     //     { type: 'step', destination: { type: 'direction', directions: ['bottom'] } },

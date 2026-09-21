@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { GameSerialized } from './Classes/Game';
 import { PixiRenderer } from './PixiRenderer';
 
-function PixiCells(props: { game: GameSerialized }) {
+function PixiCells(props: { game: GameSerialized, onCellClick?: (x: number, y: number) => void }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const { i18n } = useTranslation();
 
@@ -43,6 +43,13 @@ function PixiCells(props: { game: GameSerialized }) {
             PixiRenderer.getInstance().update(props.game);
         }
     }, [props.game, i18n.language]);
+
+    // Attach/refresh the cell-click handler (used by the editor).
+    useEffect(() => {
+        const renderer = PixiRenderer.getInstance();
+        renderer.setCellClickHandler(props.onCellClick ?? null);
+        return () => renderer.setCellClickHandler(null);
+    }, [props.onCellClick]);
 
     return (
         <div style={{ border: '2px solid red', display: 'inline-block', marginTop: 20 }}>

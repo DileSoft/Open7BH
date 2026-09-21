@@ -34,7 +34,12 @@ empty empty empty empty empty`,
                 },
             ],
         ),
-        winCallback: (level: Level) => [0, 1, 2, 3, 4].every(number => level.cells[`${number}x${number + 1}`].item),
+        winConditions: {
+            mode: 'all',
+            conditions: [
+                { kind: 'cellsHaveItems', coordinates: [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]] },
+            ],
+        },
     },
     code: ([
     ]),

@@ -28,8 +28,12 @@ hole hole`,
                 },
             ],
         ),
-        winCallback: level => Object.values(level.cells).filter(cell => cell.item).length +
-        level.getCharacters().filter(character => !character.isDead && character.item).length === 5,
+        winConditions: {
+            mode: 'all',
+            conditions: [
+                { kind: 'boxCount', operator: 'eq', value: 5 },
+            ],
+        },
     },
     code: [],
 };
