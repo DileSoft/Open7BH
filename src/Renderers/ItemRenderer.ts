@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js';
 import Cell from '../Classes/Cell';
+import { GameState } from '../Classes/Game';
 import { IRenderer } from './IRenderer';
 import { CELL_WIDTH } from '../PixiRenderer';
 
@@ -37,7 +38,7 @@ export class ItemRenderer implements IRenderer {
         const item = this.cell.getItem();
         if (item && !item.destroyed) {
             this.container.visible = true;
-            const label = item.isRandom ? '?' : item.value.toString();
+            const label = item.isRandom && this.cell.level.game.state !== GameState.Run ? '?' : item.value.toString();
             if (label !== this.lastValue) {
                 // Pop on appear / value change (e.g. write)
                 this.lastValue = label;
