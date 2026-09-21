@@ -334,11 +334,13 @@ class Character {
             this.stun(STUN_DURATION_MS, i18n.t('stun.nothingToGive'));
             return;
         }
-        if (newCell.character && !newCell.character.item) {
+        if (newCell.character) {
             this.setState(CharacterState.Giving);
+            // Give our item; if the receiver already holds one, swap instead.
+            const received = newCell.character.item;
             newCell.character.setItem(this.item);
             newCell.character.operationDone = true;
-            this.item = null;
+            this.setItem(received);
 
             const duration = Math.max(100, (this.cell.level.game.speed || 1000) * 0.8);
             setTimeout(() => {

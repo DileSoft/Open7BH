@@ -16,6 +16,10 @@ class OperatorEndForeach extends Operator {
     operatorForeach: OperatorForeach;
 
     execute(character: Character): number {
+        if (!this.operatorForeach) {
+            character.stun();
+            return character.currentLine + 1;
+        }
         const foreachOperator:OperatorForeach = this.level.game.code.find(_operator => _operator.id === this.operatorForeach.id) as OperatorForeach;
         if (!foreachOperator) {
             character.stun();
@@ -36,7 +40,7 @@ class OperatorEndForeach extends Operator {
         return {
             type: OperatorType.EndForeach,
             id: this.id,
-            operatorForeach: this.operatorForeach.id,
+            operatorForeach: this.operatorForeach?.id,
             object: withObject ? this : undefined,
         };
     }
@@ -48,6 +52,13 @@ class OperatorEndForeach extends Operator {
 
     postDeserialize() {
         this.operatorForeach = this.level.game.code.find(_operator => _operator.id === this.operatorForeachId) as OperatorForeach;
+    }
+
+    remove() {
+        const foreach = this.level.game.code.findIndex(operator => operator === this.operatorForeach);
+        if (foreach !== -1) {
+            this.level.game.code.splice(foreach, 1);
+        }
     }
 }
 

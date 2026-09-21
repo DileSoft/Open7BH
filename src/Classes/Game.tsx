@@ -310,6 +310,25 @@ class Game {
             return null;
         }).filter(operator => operator !== null) as Operator[];
         this.code.forEach(operator => operator.postDeserialize());
+        // Heal orphaned pair operators (Foreach/EndForeach, If/EndIf) left behind by old saves
+        // or by deletions that predated pairing-aware remove(). Dropping them keeps serialize()
+        // and execute() from dereferencing undefined partners.
+        this.code = this.code.filter(operator => {
+            let keep = true;
+            if (operator instanceof OperatorForeach) {
+                keep = operator.operatorEndForeach != null;
+            } else if (operator instanceof OperatorEndForeach) {
+                keep = operator.operatorForeach != null;
+            } else if (operator instanceof OperatorIf) {
+                keep = operator.operatorEndIf != null;
+            } else if (operator instanceof OperatorEndIf) {
+                keep = operator.operatorIf != null;
+            }
+            if (!keep) {
+                console.warn(`Dropping orphaned ${operator.constructor.name} operator (missing matched pair)`);
+            }
+            return keep;
+        });
     }
 
     deserialize(serialized: GameSerialized) {

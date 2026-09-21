@@ -1,4 +1,5 @@
-import { CellType } from '../Cell';
+import Box from '../Box';
+import Cell, { CellType } from '../Cell';
 import Character from '../Character';
 import Level from '../Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';
@@ -91,6 +92,16 @@ class OperatorIf extends Operator {
 
     removeCondition(conditionKey: number) {
         this.conditions.splice(conditionKey, 1);
+    }
+
+    // Item "in a direction": from the cell's floor, or held by the character standing there.
+    private getDirectionBox(cell?: Cell): Box | undefined {
+        if (!cell) return undefined;
+        const ground = cell.item;
+        if (ground && !ground.destroyed) return ground;
+        const held = cell.character?.item;
+        if (held && !held.destroyed) return held;
+        return undefined;
     }
 
     checkCondition(character: Character): boolean {
@@ -188,8 +199,8 @@ class OperatorIf extends Operator {
                 } else if (condition.leftType === OperandIfLeftType.MyItem) {
                     left = character.item && !character.item.destroyed ? character.item.value : undefined;
                 } else if (condition.leftType === OperandIfLeftType.Direction) {
-                    const item = leftCell?.item;
-                    left = item && !item.destroyed ? item.value : undefined;
+                    const item = this.getDirectionBox(leftCell);
+                    left = item ? item.value : undefined;
                 }
                 if (condition.rightType === OperandIfRightType.Number) {
                     right = condition.rightNumber;
@@ -198,8 +209,8 @@ class OperatorIf extends Operator {
                 } else if (condition.rightType === OperandIfRightType.MyItem) {
                     right = character.item && !character.item.destroyed ? character.item.value : undefined;
                 } else if (condition.rightType === OperandIfRightType.Direction) {
-                    const item = rightCell?.item;
-                    right = item && !item.destroyed ? item.value : undefined;
+                    const item = this.getDirectionBox(rightCell);
+                    right = item ? item.value : undefined;
                 }
                 if (left === undefined || right === undefined) {
                     if (condition.type === OperatorIfCondition.Eq) {
@@ -268,7 +279,7 @@ class OperatorIf extends Operator {
             type: OperatorType.If,
             id: this.id,
             conditions: this.conditions,
-            operatorEndIf: this.operatorEndIf.id,
+            operatorEndIf: this.operatorEndIf?.id,
             object: withObject ? this : undefined,
         };
     }

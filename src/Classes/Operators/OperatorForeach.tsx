@@ -61,11 +61,18 @@ class OperatorForeach extends Operator {
         this.directions = directions;
     }
 
+    remove() {
+        const endForeach = this.level.game.code.findIndex(operator => operator === this.operatorEndForeach);
+        if (endForeach !== -1) {
+            this.level.game.code.splice(endForeach, 1);
+        }
+    }
+
     serialize(withObject: boolean): OperatorForeachSerialized {
         return {
             type: OperatorType.Foreach,
             id: this.id,
-            operatorEndForeach: this.operatorEndForeach.id,
+            operatorEndForeach: this.operatorEndForeach?.id,
             directions: this.directions,
             slotNumber: this.slotNumber,
             object: withObject ? this : undefined,
