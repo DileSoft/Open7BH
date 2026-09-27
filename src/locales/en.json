@@ -113,7 +113,7 @@
     "ascending": "Ascending",
     "descending": "Descending",
     "customCode": "Custom code",
-    "conditionCodeHint": "Body of a function: level => { … } or level => boolean-expression",
+    "conditionCodeHint": "Monaco editor with the Level type. Annotate the parameter for hints: /** @param {Level} level */ level => …",
     "random": "Random value",
     "printer": "Printer",
     "printerMin": "Printer min",

@@ -4,6 +4,7 @@ import {
     Select,
     TextField,
 } from '@mui/material';
+import { lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import { GameSerialized } from './Classes/Game';
 import {
@@ -15,6 +16,9 @@ import {
     WinValueSource,
     defaultCondition,
 } from './Classes/WinConditions';
+
+// Monaco is heavy, so load it lazily only when a "custom code" condition is shown.
+const WinCodeEditor = lazy(() => import('./WinCodeEditor'));
 
 const coordListToString = (coordinates: [number, number][]): string => (
     coordinates.map(([x, y]) => `${x},${y}`).join('\n')
@@ -198,16 +202,12 @@ function WinConditionsEditor(props: { game: GameSerialized }) {
                     </Select>
                 </>;
             case 'code':
-                return <TextField
-                    label={t('editor.customCode')}
-                    variant="standard"
-                    multiline
-                    fullWidth
-                    minRows={3}
-                    value={condition.code}
-                    onChange={e => updateCondition(index, { ...condition, code: e.target.value })}
-                    helperText={t('editor.conditionCodeHint')}
-                />;
+                return <Suspense fallback={<div style={{ padding: 8, opacity: 0.6 }}>…</div>}>
+                    <WinCodeEditor
+                        value={condition.code}
+                        onChange={value => updateCondition(index, { ...condition, code: value })}
+                    />
+                </Suspense>;
             default:
                 return null;
         }

@@ -113,7 +113,7 @@
     "ascending": "По возрастанию",
     "descending": "По убыванию",
     "customCode": "Свой код",
-    "conditionCodeHint": "Тело функции: level => { … } или level => логическое-выражение",
+    "conditionCodeHint": "Редактор Monaco с типом Level. Для подсказок укажите тип параметра: /** @param {Level} level */ level => …",
     "random": "Случайное значение",
     "printer": "Принтер",
     "printerMin": "Принтер мин",

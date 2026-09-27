@@ -75,7 +75,7 @@ export function defaultCondition(kind: WinCondition['kind']): WinCondition {
         case 'neighborCompare':
             return { kind: 'neighborCompare', coordinates: [1, 0], direction: 'left', operator: 'ge', source: 'cell' };
         case 'code':
-            return { kind: 'code', code: 'level => true' };
+            return { kind: 'code', code: '/** @param {Level} level */\n(level) => true' };
         default:
             return { kind: 'noBoxes' };
     }

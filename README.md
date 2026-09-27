@@ -49,4 +49,7 @@ into a "custom code" condition when loaded (backwards compatibility for previous
 - `sortedByItemValue` — box values along the listed cells are monotonic (ascending/descending);
 - `neighborCompare` — box value on a cell compared with the value on the neighbor cell
   (direction + operator) — useful for "sort this row" tasks;
-- `code` — advanced fallback: body of a `level => …` function.
+- `code` — advanced fallback edited in an embedded Monaco editor that has the
+  `Level` type available for completion. Annotate the parameter to get hints
+  (the code stays plain JavaScript, so it is evaluated as-is):
+  `/** @param {Level} level */ level => level.getCharacters().length === 0`.
