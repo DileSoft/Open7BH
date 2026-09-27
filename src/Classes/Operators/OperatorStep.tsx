@@ -84,31 +84,11 @@ class OperatorStep extends Operator {
         if (this.type === StepType.Direction) {
             const direction = randomArray(this.directions);
             character.step(direction);
+            return character.currentLine + 1;
         }
-        if (this.type === StepType.Slot) {
-            const target = this.resolveSlotTarget(character);
-            if (!target) {
-                character.stun();
-            } else {
-                const path = this.level.findNear(
-                    [character.cell.x, character.cell.y],
-                    cell => cell === target,
-                );
-                if (path.length > 1 && path[1]) {
-                    const dx = path[1].x - character.cell.x;
-                    const dy = path[1].y - character.cell.y;
-                    const direction = this.getDirectionFromOffset(dx, dy);
-                    if (!direction) {
-                        character.stun();
-                    } else {
-                        character.step(direction);
-                    }
-                } else {
-                    character.stun();
-                }
-            }
-        }
-        return character.currentLine + 1;
+        // Stepping to a memory target: stay on this command until the worker arrives.
+        const finished = character.stepToSlot(this.slot ?? 0);
+        return finished ? character.currentLine + 1 : character.currentLine;
     }
 
     private resolveSlotTarget(character: Character) {

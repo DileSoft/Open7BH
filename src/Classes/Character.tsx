@@ -26,6 +26,9 @@ export enum CharacterState {
 
 export const STUN_DURATION_MS = 1000;
 
+/** Outcome of a single pathfinding step toward a target cell. */
+type StepTowardResult = 'arrived' | 'moving' | 'blocked' | 'noPath';
+
 class Character {
     name: string;
 
@@ -181,17 +184,18 @@ class Character {
         }
     }
 
-    step(direction: Direction) {
+    /** Try a single step. Returns true when the step was actually taken. */
+    step(direction: Direction): boolean {
         this.actionDirection = direction;
         const target = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (!target) {
             // Edge of the room counts as a wall: soft exception.
             this.stun(STUN_DURATION_MS, i18n.t('stun.wall'));
-            return;
+            return false;
         }
         if (target.getType() === CellType.Wall) {
             this.stun(STUN_DURATION_MS, i18n.t('stun.wall'));
-            return;
+            return false;
         }
         if (target.getType() === CellType.Hole) {
             // Stepping into a hole kills the worker.
@@ -200,7 +204,7 @@ class Character {
             target.character = this;
             Cell.renderer?.updateCharacter(this);
             this.die();
-            return;
+            return false;
         }
         const nextCell = this.getMoveCell(direction);
         if (nextCell) {
@@ -215,10 +219,11 @@ class Character {
             nextCell.character = this;
 
             Cell.renderer?.updateCharacter(this);
-        } else {
-            // Blocked (occupied / printer / shredder): soft exception.
-            this.stun(STUN_DURATION_MS, i18n.t('stun.blocked'));
+            return true;
         }
+        // Blocked (occupied / printer / shredder): soft exception.
+        this.stun(STUN_DURATION_MS, i18n.t('stun.blocked'));
+        return false;
     }
 
     setItem(item: Box | null) {
@@ -240,24 +245,31 @@ class Character {
         return undefined;
     }
 
-    giveToSlot(slotIndex: number): void {
+    /**
+     * Walk to the recipient referenced by a memory slot and give the held cube.
+     * Returns true when the command is finished (given or failed), false while travelling.
+     */
+    giveToSlot(slotIndex: number): boolean {
         const target = this.resolveSlotCell(slotIndex);
         if (!target) {
             this.stun(STUN_DURATION_MS, i18n.t('stun.noTarget'));
-            return;
+            return true;
         }
-        const dx = target.x - this.cell.x;
-        const dy = target.y - this.cell.y;
-        if (Math.abs(dx) > 1 || Math.abs(dy) > 1 || (dx === 0 && dy === 0)) {
+        if (target === this.cell) {
             this.stun(STUN_DURATION_MS, i18n.t('stun.tooFar'));
-            return;
+            return true;
         }
         const direction = this.directionTo(target.x, target.y);
-        if (!direction) {
-            this.stun(STUN_DURATION_MS, i18n.t('stun.noDirection'));
-            return;
+        if (direction) {
+            this.giveItem(direction);
+            return true;
         }
-        this.giveItem(direction);
+        const result = this.stepToward(target);
+        if (result === 'noPath' || result === 'arrived') {
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noPath'));
+            return true;
+        }
+        return false;
     }
 
     private directionTo(x: number, y: number): Direction | undefined {
@@ -412,25 +424,31 @@ class Character {
         this.stun(STUN_DURATION_MS, i18n.t('stun.nothingToTake'));
     }
 
-    /** Walk to the worker/printer referenced by a memory slot and take a cube from it. */
-    takeFromSlot(slotIndex: number) {
+    /**
+     * Walk to the worker/printer referenced by a memory slot and take a cube from it.
+     * Returns true when the command is finished, false while travelling.
+     */
+    takeFromSlot(slotIndex: number): boolean {
         if (this.item) {
             this.stun(STUN_DURATION_MS, i18n.t('stun.alreadyHolding'));
-            return;
+            return true;
         }
         const target = this.resolveSlotCell(slotIndex);
         if (!target) {
             this.stun(STUN_DURATION_MS, i18n.t('stun.noTarget'));
-            return;
+            return true;
         }
         const direction = this.directionTo(target.x, target.y);
         if (direction) {
             this.take(direction);
-            return;
+            return true;
         }
-        if (!this.stepToward(target)) {
-            this.stun(STUN_DURATION_MS, i18n.t('stun.noPath'));
+        const result = this.stepToward(target);
+        if (result === 'noPath' || result === 'arrived') {
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noTarget'));
+            return true;
         }
+        return false;
     }
 
     pickupFrom(direction: Direction): boolean {
@@ -463,29 +481,31 @@ class Character {
         return false;
     }
 
-    /** Walk to a cube referenced by a memory slot and pick it up. */
-    pickupFromSlot(slotIndex: number) {
+    /**
+     * Walk to a cube referenced by a memory slot and pick it up.
+     * Returns true when the command is finished, false while travelling.
+     */
+    pickupFromSlot(slotIndex: number): boolean {
         if (this.item) {
             this.stun(STUN_DURATION_MS, i18n.t('stun.alreadyHolding'));
-            return;
+            return true;
         }
         const target = this.resolveSlotCell(slotIndex);
         if (!target) {
             this.stun(STUN_DURATION_MS, i18n.t('stun.noTarget'));
-            return;
+            return true;
         }
         if (target === this.cell) {
             this.pickupItem();
-            return;
+            return true;
         }
-        const direction = this.directionTo(target.x, target.y);
-        if (direction) {
-            this.pickupFrom(direction);
-            return;
-        }
-        if (!this.stepToward(target)) {
+        // Pickup by reference walks all the way onto the cube's tile, then picks up.
+        const result = this.stepToward(target);
+        if (result === 'noPath') {
             this.stun(STUN_DURATION_MS, i18n.t('stun.noPath'));
+            return true;
         }
+        return false;
     }
 
     write(value: number) {
@@ -568,8 +588,17 @@ class Character {
         }
     }
 
-    /** Take a single step along the shortest path to the target cell. Returns false if no route. */
-    stepToward(target: Cell): boolean {
+    /**
+     * Take one step along the shortest path to the target cell.
+     * - 'arrived' — already standing on the target;
+     * - 'moving'  — a step was taken;
+     * - 'blocked' — the next tile is occupied (the step already complained);
+     * - 'noPath'  — the target cannot be reached.
+     */
+    private stepToward(target: Cell): StepTowardResult {
+        if (target === this.cell) {
+            return 'arrived';
+        }
         const path = this.cell.level.findNear(
             [this.cell.x, this.cell.y],
             cell => cell === target,
@@ -577,9 +606,29 @@ class Character {
         if (path.length > 1 && path[1]) {
             const direction = this.directionTo(path[1].x, path[1].y);
             if (direction) {
-                this.step(direction);
-                return true;
+                return this.step(direction) ? 'moving' : 'blocked';
             }
+        }
+        return 'noPath';
+    }
+
+    /**
+     * Walk to the cell referenced by a memory slot (`step memX`).
+     * Returns true when the command is finished, false while travelling.
+     */
+    stepToSlot(slotIndex: number): boolean {
+        const target = this.resolveSlotCell(slotIndex);
+        if (!target) {
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noTarget'));
+            return true;
+        }
+        const result = this.stepToward(target);
+        if (result === 'arrived') {
+            return true;
+        }
+        if (result === 'noPath') {
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noPath'));
+            return true;
         }
         return false;
     }

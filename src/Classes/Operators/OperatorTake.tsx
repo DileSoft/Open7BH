@@ -32,10 +32,11 @@ class OperatorTake extends Operator {
 
     execute(character: Character):number {
         if (this.slot !== undefined) {
-            character.takeFromSlot(this.slot);
-        } else {
-            character.take(this.direction);
+            // Stay on this command until the source is reached and the cube taken.
+            const finished = character.takeFromSlot(this.slot);
+            return finished ? character.currentLine + 1 : character.currentLine;
         }
+        character.take(this.direction);
         return character.currentLine + 1;
     }
 

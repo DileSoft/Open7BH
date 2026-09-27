@@ -31,10 +31,11 @@ class OperatorGive extends Operator {
 
     execute(character: Character):number {
         if (this.slot !== undefined) {
-            character.giveToSlot(this.slot);
-        } else {
-            character.giveItem(this.direction);
+            // Stay on this command until the recipient is reached and given the cube.
+            const finished = character.giveToSlot(this.slot);
+            return finished ? character.currentLine + 1 : character.currentLine;
         }
+        character.giveItem(this.direction);
         return character.currentLine + 1;
     }
 

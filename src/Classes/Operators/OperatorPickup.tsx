@@ -31,8 +31,11 @@ class OperatorPickup extends Operator {
 
     execute(character: Character) {
         if (this.slot !== undefined) {
-            character.pickupFromSlot(this.slot);
-        } else if (this.direction && this.direction !== DirectionWithHere.Here) {
+            // Stay on this command until the cube is reached and picked up.
+            const finished = character.pickupFromSlot(this.slot);
+            return finished ? character.currentLine + 1 : character.currentLine;
+        }
+        if (this.direction && this.direction !== DirectionWithHere.Here) {
             character.pickupFrom(this.direction as Direction);
         } else {
             character.pickupItem();
