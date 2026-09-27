@@ -1,5 +1,5 @@
 import { randomArray } from '../../Utils';
-import Character from '../Character';
+import Character, { StepStatus } from '../Character';
 import Level from '../Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';
 
@@ -83,8 +83,10 @@ class OperatorStep extends Operator {
     execute(character: Character):number {
         if (this.type === StepType.Direction) {
             const direction = randomArray(this.directions);
-            character.step(direction);
-            return character.currentLine + 1;
+            const status = character.step(direction);
+            // A tile occupied by another worker makes the worker wait (and swap
+            // on a head-on pass); an ineffective step (wall) still completes.
+            return status === StepStatus.Blocked ? character.currentLine : character.currentLine + 1;
         }
         // Stepping to a memory target: stay on this command until the worker arrives.
         const finished = character.stepToSlot(this.slot ?? 0);

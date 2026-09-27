@@ -26,6 +26,16 @@ export enum CharacterState {
 
 export const STUN_DURATION_MS = 1000;
 
+/** Outcome of a single step attempt. */
+export enum StepStatus {
+    /** The worker changed tiles (stepped or swapped with another worker). */
+    Moved = 'moved',
+    /** The destination is occupied by another worker; retry later. */
+    Blocked = 'blocked',
+    /** Wall / edge / appliance: the step has no effect and the command completes. */
+    NoEffect = 'noEffect',
+}
+
 /** Outcome of a single pathfinding step toward a target cell. */
 type StepTowardResult = 'arrived' | 'moving' | 'blocked' | 'noPath';
 
@@ -46,6 +56,9 @@ class Character {
     stateTimer: number = 0;
     targetCell: Cell | null = null;
     actionDirection: Direction | null = null;
+
+    /** Direction of the step the worker is (still) trying to make, for head-on swaps. */
+    stepIntent?: Direction;
 
     /** Individual execution speed multiplier (1 = normal). */
     speedMultiplier = 1;
@@ -82,6 +95,9 @@ class Character {
     nextMove?: Cell;
 
     operationDone = false;
+
+    /** Set when the pending step was already satisfied by a head-on swap. */
+    private pendingStepDone = false;
 
     foreachLoops: {
         [id: string]: Direction,
@@ -165,6 +181,19 @@ class Character {
     }
 
     private processNextCommand() {
+        // A head-on swap already fulfilled the pending step: count it as done.
+        if (this.pendingStepDone) {
+            this.pendingStepDone = false;
+            this.stepIntent = undefined;
+            const code = this.cell.level.game.code;
+            this.currentLine++;
+            if (this.currentLine >= code.length) {
+                this.isTerminated = true;
+            }
+            return;
+        }
+        // A new command is starting: any previous step intent is stale.
+        this.stepIntent = undefined;
         if (this.hear !== undefined || this.operationDone) {
             if (this.hear !== undefined && this.state === CharacterState.Idle) {
                 this.setState(CharacterState.Listening);
@@ -184,18 +213,19 @@ class Character {
         }
     }
 
-    /** Try a single step. Returns true when the step was actually taken. */
-    step(direction: Direction): boolean {
+    /** Try a single step. */
+    step(direction: Direction): StepStatus {
         this.actionDirection = direction;
+        this.stepIntent = direction;
         const target = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         if (!target) {
-            // Edge of the room counts as a wall: soft exception.
+            // Edge of the room counts as a wall: soft exception, no effect.
             this.stun(STUN_DURATION_MS, i18n.t('stun.wall'));
-            return false;
+            return StepStatus.NoEffect;
         }
         if (target.getType() === CellType.Wall) {
             this.stun(STUN_DURATION_MS, i18n.t('stun.wall'));
-            return false;
+            return StepStatus.NoEffect;
         }
         if (target.getType() === CellType.Hole) {
             // Stepping into a hole kills the worker.
@@ -204,7 +234,7 @@ class Character {
             target.character = this;
             Cell.renderer?.updateCharacter(this);
             this.die();
-            return false;
+            return StepStatus.NoEffect;
         }
         const nextCell = this.getMoveCell(direction);
         if (nextCell) {
@@ -218,12 +248,60 @@ class Character {
             this.cell = nextCell;
             nextCell.character = this;
 
+            this.stepIntent = undefined;
             Cell.renderer?.updateCharacter(this);
-            return true;
+            return StepStatus.Moved;
         }
-        // Blocked (occupied / printer / shredder): soft exception.
+        // Occupied by another worker: swap when walking head-on, or when the
+        // occupant has finished its program and politely yields.
+        const other = target.character;
+        if (other && other !== this && (other.isTerminated || this.faces(other))) {
+            this.swapCells(other);
+            return StepStatus.Moved;
+        }
+        // Otherwise wait: soft exception "blocked" and retry the same command.
         this.stun(STUN_DURATION_MS, i18n.t('stun.blocked'));
-        return false;
+        return StepStatus.Blocked;
+    }
+
+    /** True when `other` is trying to step into this worker's tile. */
+    private faces(other: Character): boolean {
+        if (!other.stepIntent) {
+            return false;
+        }
+        const direction = other.directionTo(this.cell.x, this.cell.y);
+        return direction !== undefined && direction === other.stepIntent;
+    }
+
+    /** Exchange tiles with another worker (head-on pass). */
+    private swapCells(other: Character) {
+        const myCell = this.cell;
+        const otherCell = other.cell;
+
+        myCell.character = null;
+        otherCell.character = null;
+
+        this.cell = otherCell;
+        otherCell.character = this;
+        other.cell = myCell;
+        myCell.character = other;
+
+        this.targetCell = otherCell;
+        other.targetCell = myCell;
+        this.stepIntent = undefined;
+        other.stepIntent = undefined;
+        this.state = CharacterState.Moving;
+        other.state = CharacterState.Moving;
+
+        // The other worker already returned "blocked" for its step (or will be
+        // skipped while moving), so mark that step as fulfilled by the swap —
+        // otherwise it would step one extra tile on the next tick.
+        if (!other.isTerminated) {
+            other.pendingStepDone = true;
+        }
+
+        Cell.renderer?.updateCharacter(this);
+        Cell.renderer?.updateCharacter(other);
     }
 
     setItem(item: Box | null) {
@@ -606,7 +684,10 @@ class Character {
         if (path.length > 1 && path[1]) {
             const direction = this.directionTo(path[1].x, path[1].y);
             if (direction) {
-                return this.step(direction) ? 'moving' : 'blocked';
+                const status = this.step(direction);
+                if (status === StepStatus.Moved) return 'moving';
+                if (status === StepStatus.Blocked) return 'blocked';
+                return 'noPath';
             }
         }
         return 'noPath';
