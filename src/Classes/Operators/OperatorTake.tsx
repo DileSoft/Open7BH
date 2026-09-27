@@ -13,6 +13,9 @@ export interface OperatorTakeSerialized extends OperatorSerialized {
 class OperatorTake extends Operator {
     direction: Direction;
 
+    /** When set, walk to the worker/printer referenced by this memory slot and take from it. */
+    slot?: number;
+
     constructor(level: Level) {
         super(level);
         this.direction = Direction.Down;
@@ -20,10 +23,19 @@ class OperatorTake extends Operator {
 
     setDirection(direction: Direction) {
         this.direction = direction;
+        this.slot = undefined;
+    }
+
+    setSlot(slot: number) {
+        this.slot = slot;
     }
 
     execute(character: Character):number {
-        character.take(this.direction);
+        if (this.slot !== undefined) {
+            character.takeFromSlot(this.slot);
+        } else {
+            character.take(this.direction);
+        }
         return character.currentLine + 1;
     }
 
@@ -31,12 +43,14 @@ class OperatorTake extends Operator {
         return {
             type: OperatorType.Take,
             direction: this.direction,
+            slot: this.slot,
             object: withObject ? this : undefined,
         };
     }
 
     deserialize(operator: OperatorTakeSerialized): void {
         this.direction = operator.direction;
+        this.slot = operator.slot;
     }
 }
 

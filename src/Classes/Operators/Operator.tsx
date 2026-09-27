@@ -14,6 +14,7 @@ export enum OperatorType {
     Goto = 'goto',
     Hear = 'hear',
     If = 'if',
+    Else = 'else',
     EndIf = 'endif',
     Near = 'near',
     Say = 'say',

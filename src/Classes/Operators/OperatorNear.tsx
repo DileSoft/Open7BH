@@ -1,6 +1,7 @@
 import Cell from '../Cell';
 import CellSlot from '../CellSlot';
 import Character from '../Character';
+import NothingSlot from '../NothingSlot';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';
 
 export enum OperatorNearType {
@@ -42,7 +43,8 @@ class OperatorNear extends Operator {
         };
         const path = this.level.findNear([character.cell.x, character.cell.y], find);
         if (!path.length) {
-            character.stun();
+            // No instance found: the register is set to "nothing" (no soft exception).
+            character.slots[this.slot] = new NothingSlot(character);
             return character.currentLine + 1;
         }
         const cell = path[path.length - 1];

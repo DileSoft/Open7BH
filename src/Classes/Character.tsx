@@ -412,6 +412,27 @@ class Character {
         this.stun(STUN_DURATION_MS, i18n.t('stun.nothingToTake'));
     }
 
+    /** Walk to the worker/printer referenced by a memory slot and take a cube from it. */
+    takeFromSlot(slotIndex: number) {
+        if (this.item) {
+            this.stun(STUN_DURATION_MS, i18n.t('stun.alreadyHolding'));
+            return;
+        }
+        const target = this.resolveSlotCell(slotIndex);
+        if (!target) {
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noTarget'));
+            return;
+        }
+        const direction = this.directionTo(target.x, target.y);
+        if (direction) {
+            this.take(direction);
+            return;
+        }
+        if (!this.stepToward(target)) {
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noPath'));
+        }
+    }
+
     pickupFrom(direction: Direction): boolean {
         this.actionDirection = direction;
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
@@ -440,6 +461,31 @@ class Character {
         }
         this.stun(STUN_DURATION_MS, i18n.t('stun.nothingHere'));
         return false;
+    }
+
+    /** Walk to a cube referenced by a memory slot and pick it up. */
+    pickupFromSlot(slotIndex: number) {
+        if (this.item) {
+            this.stun(STUN_DURATION_MS, i18n.t('stun.alreadyHolding'));
+            return;
+        }
+        const target = this.resolveSlotCell(slotIndex);
+        if (!target) {
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noTarget'));
+            return;
+        }
+        if (target === this.cell) {
+            this.pickupItem();
+            return;
+        }
+        const direction = this.directionTo(target.x, target.y);
+        if (direction) {
+            this.pickupFrom(direction);
+            return;
+        }
+        if (!this.stepToward(target)) {
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noPath'));
+        }
     }
 
     write(value: number) {
@@ -522,11 +568,40 @@ class Character {
         }
     }
 
+    /** Take a single step along the shortest path to the target cell. Returns false if no route. */
+    stepToward(target: Cell): boolean {
+        const path = this.cell.level.findNear(
+            [this.cell.x, this.cell.y],
+            cell => cell === target,
+        );
+        if (path.length > 1 && path[1]) {
+            const direction = this.directionTo(path[1].x, path[1].y);
+            if (direction) {
+                this.step(direction);
+                return true;
+            }
+        }
+        return false;
+    }
+
     getMoveCell(direction: Direction, prepare = false):Cell | undefined {
         const newCell: Cell | undefined = this.cell.level.getMoveCell(this.cell.x, this.cell.y, direction);
         return newCell && newCell.isEmpty 
         && (newCell.getType() === CellType.Empty || newCell.getType() === CellType.Hole)
         && (prepare || !newCell.character) ? newCell : undefined;
+    }
+
+    /** Wake a worker that is listening for exactly this message. */
+    private wakeListener(target: Character, text: string) {
+        if (target.hear !== text) {
+            return;
+        }
+        target.hear = undefined;
+        target.currentLine++;
+        if (target.state === CharacterState.Listening) {
+            target.setState(CharacterState.Idle);
+        }
+        Cell.renderer?.updateCharacter(target);
     }
 
     say(text: string | undefined, direction: Direction | 'all') {
@@ -540,13 +615,8 @@ class Character {
         this.flashAction(CharacterState.Saying);
         if (direction === 'all') {
             this.cell.level.getCharacters().forEach(other => {
-                if (other !== this && other.hear === text) {
-                    other.hear = undefined;
-                    other.currentLine++;
-                    if (other.state === CharacterState.Listening) {
-                        other.setState(CharacterState.Idle);
-                    }
-                    Cell.renderer?.updateCharacter(other);
+                if (other !== this) {
+                    this.wakeListener(other, text);
                 }
             });
             return;
@@ -556,14 +626,28 @@ class Character {
             this.stun(STUN_DURATION_MS, i18n.t('stun.noPath'));
             return;
         }
-        if (newCell.character && newCell.character.hear === text) {
-            newCell.character.hear = undefined;
-            newCell.character.currentLine++;
-            if (newCell.character.state === CharacterState.Listening) {
-                newCell.character.setState(CharacterState.Idle);
-            }
-            Cell.renderer?.updateCharacter(newCell.character);
+        if (newCell.character) {
+            this.wakeListener(newCell.character, text);
         }
+    }
+
+    /** Tell a message to the worker referenced by a memory slot. */
+    sayToSlot(slotIndex: number, text?: string) {
+        if (text === undefined) {
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noMessage'));
+            return;
+        }
+        const target = this.slots[slotIndex]?.getCharacterValue()
+            ?? this.resolveSlotCell(slotIndex)?.character;
+        if (!target) {
+            this.stun(STUN_DURATION_MS, i18n.t('stun.noTarget'));
+            return;
+        }
+        this.actionDirection = null;
+        this.lastSaidText = text;
+        this.lastSaidUntil = Date.now() + 1500;
+        this.flashAction(CharacterState.Saying);
+        this.wakeListener(target, text);
     }
 
     terminate() {

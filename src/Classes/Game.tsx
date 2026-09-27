@@ -2,6 +2,7 @@ import Level, { LevelSerializedType } from './Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operators/Operator';
 import OperatorCalc, { OperatorCalcSerialized } from './Operators/OperatorCalc';
 import OperatorDrop, { OperatorDropSerialized } from './Operators/OperatorDrop';
+import OperatorElse, { OperatorElseSerialized } from './Operators/OperatorElse';
 import OperatorEnd, { OperatorEndSerialized } from './Operators/OperatorEnd';
 import OperatorEndForeach, { OperatorEndForeachSerialized } from './Operators/OperatorEndForeach';
 import OperatorEndIf, { OperatorEndIfSerialized } from './Operators/OperatorEndIf';
@@ -38,6 +39,7 @@ export interface GameSerialized {
     code?: (
         OperatorSerialized |
         OperatorDropSerialized |
+        OperatorElseSerialized |
         OperatorEndSerialized |
         OperatorForeachSerialized |
         OperatorGiveSerialized |
@@ -263,6 +265,11 @@ class Game {
                 operatorEndIf.deserialize(operator as OperatorEndIfSerialized);
                 return operatorEndIf;
             }
+            if (operator.type === OperatorType.Else) {
+                const operatorElse = new OperatorElse(this.level);
+                operatorElse.deserialize(operator as OperatorElseSerialized);
+                return operatorElse;
+            }
             if (operator.type === OperatorType.Calc) {
                 const operatorCalc = new OperatorCalc(this.level);
                 operatorCalc.deserialize(operator as OperatorCalcSerialized);
@@ -324,6 +331,8 @@ class Game {
             } else if (operator instanceof OperatorIf) {
                 keep = operator.operatorEndIf != null;
             } else if (operator instanceof OperatorEndIf) {
+                keep = operator.operatorIf != null;
+            } else if (operator instanceof OperatorElse) {
                 keep = operator.operatorIf != null;
             }
             if (!keep) {

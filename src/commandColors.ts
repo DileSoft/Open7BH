@@ -20,9 +20,10 @@ const COLOR_BY_COMMAND = new Map<OperatorType, string>();
 COMMAND_GROUPS.forEach((group) => {
     group.commands.forEach((command) => COLOR_BY_COMMAND.set(command, group.color));
 });
-// Авто-концы красим как «Управление кодом».
+// Авто-концы и else красим как «Управление кодом».
 COLOR_BY_COMMAND.set(OperatorType.EndIf, '#ed6c02');
 COLOR_BY_COMMAND.set(OperatorType.EndForeach, '#ed6c02');
+COLOR_BY_COMMAND.set(OperatorType.Else, '#ed6c02');
 
 export function getOperatorColor(type: OperatorType): string {
     return COLOR_BY_COMMAND.get(type) ?? '#000000';

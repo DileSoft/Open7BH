@@ -3,6 +3,7 @@ import Cell, { CellType } from '../Cell';
 import Character from '../Character';
 import Level from '../Level';
 import Operator, { OperatorSerialized, OperatorType } from './Operator';
+import OperatorElse from './OperatorElse';
 import OperatorEndIf from './OperatorEndIf';
 import { DirectionWithHere } from './OperatorStep';
 
@@ -59,7 +60,8 @@ export interface OperatorIfSerialized extends OperatorSerialized {
     type: OperatorType.If,
     id: string,
     conditions: IfCondition[],
-    operatorEndIf: string
+    operatorEndIf: string,
+    operatorElse?: string,
     object?: OperatorIf,
 }
 
@@ -67,6 +69,10 @@ class OperatorIf extends Operator {
     operatorEndIfId: string;
 
     operatorEndIf: OperatorEndIf;
+
+    operatorElseId?: string;
+
+    operatorElse?: OperatorElse;
 
     conditions: IfCondition[] = [];
 
@@ -255,15 +261,46 @@ class OperatorIf extends Operator {
     }
 
     remove() {
+        if (this.operatorElse) {
+            const elseIndex = this.level.game.code.findIndex(operator => operator === this.operatorElse);
+            if (elseIndex !== -1) {
+                this.level.game.code.splice(elseIndex, 1);
+            }
+        }
         const endIf = this.level.game.code.findIndex(operator => operator === this.operatorEndIf);
-        this.level.game.code.splice(endIf, 1);
+        if (endIf !== -1) {
+            this.level.game.code.splice(endIf, 1);
+        }
     }
 
     execute(character: Character): number {
         if (this.checkCondition(character)) {
             return character.currentLine + 1;
         }
+        if (this.operatorElse) {
+            const elseIndex = this.level.game.code.findIndex(operator => operator === this.operatorElse);
+            if (elseIndex > character.currentLine) {
+                return elseIndex + 1;
+            }
+        }
         return this.level.game.code.findIndex(operator => operator === this.operatorEndIf) + 1;
+    }
+
+    /** Insert an "else" branch right before the matching EndIf. */
+    createElse(): OperatorElse {
+        if (this.operatorElse) {
+            return this.operatorElse;
+        }
+        const operatorElse = new OperatorElse(this.level);
+        operatorElse.operatorIf = this;
+        this.operatorElse = operatorElse;
+        const endIfIndex = this.level.game.code.findIndex(operator => operator === this.operatorEndIf);
+        if (endIfIndex !== -1) {
+            this.level.game.code.splice(endIfIndex, 0, operatorElse);
+        } else {
+            this.level.game.code.push(operatorElse);
+        }
+        return operatorElse;
     }
 
     createEndIf(): OperatorEndIf {
@@ -280,6 +317,7 @@ class OperatorIf extends Operator {
             id: this.id,
             conditions: this.conditions,
             operatorEndIf: this.operatorEndIf?.id,
+            operatorElse: this.operatorElse?.id,
             object: withObject ? this : undefined,
         };
     }
@@ -287,11 +325,15 @@ class OperatorIf extends Operator {
     deserialize(operator: OperatorIfSerialized): void {
         this.id = operator.id;
         this.operatorEndIfId = operator.operatorEndIf;
+        this.operatorElseId = operator.operatorElse;
         this.conditions = operator.conditions;
     }
 
     postDeserialize() {
         this.operatorEndIf = this.level.game.code.find(_operator => _operator.id === this.operatorEndIfId) as OperatorEndIf;
+        this.operatorElse = this.operatorElseId
+            ? this.level.game.code.find(_operator => _operator.id === this.operatorElseId) as OperatorElse
+            : undefined;
     }
 }
 

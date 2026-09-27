@@ -35,6 +35,7 @@
     "give": "Give",
     "goto": "Goto",
     "if": "If",
+    "else": "Else",
     "foreach": "Foreach",
     "lose": "Lose",
     "end": "End",
@@ -167,6 +168,16 @@
     "goalNotAchieved": "Goal not achieved"
   },
   "options": {
+    "targetType": {
+      "here": "here",
+      "direction": "direction",
+      "slot": "slot"
+    },
+    "sayTarget": {
+      "direction": "direction",
+      "all": "all",
+      "slot": "slot"
+    },
     "stepType": {
       "Direction": "Direction",
       "Slot": "Slot"

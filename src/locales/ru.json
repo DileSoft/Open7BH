@@ -35,6 +35,7 @@
     "give": "Отдать",
     "goto": "Перейти",
     "if": "Если",
+    "else": "Иначе",
     "foreach": "Для всех",
     "lose": "Проигрыш",
     "end": "Конец",
@@ -167,6 +168,16 @@
     "goalNotAchieved": "Цель не достигнута"
   },
   "options": {
+    "targetType": {
+      "here": "здесь",
+      "direction": "направление",
+      "slot": "слот"
+    },
+    "sayTarget": {
+      "direction": "направление",
+      "all": "все",
+      "slot": "слот"
+    },
     "stepType": {
       "Direction": "Направление",
       "Slot": "Слот"

@@ -26,7 +26,7 @@ const foreachRenderLine:RenderLineType<OperatorForeachSerialized> = (line, lineN
                 game.object?.render();
             }}
         />
-        {i18n.t('common.slot')}
+        {String(i18n.t('common.slot'))}
         <TextField
             type="number"
             value={line.slotNumber}

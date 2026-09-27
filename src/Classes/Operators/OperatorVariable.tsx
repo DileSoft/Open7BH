@@ -87,11 +87,16 @@ class OperatorVariable extends Operator {
             }
         } else if (this.variableType === OperatorVariableType.Direction) {
             // memX = set <direction>: store whatever is in the cell in that direction.
-            // Worker cell -> worker reference, cube on floor -> cell reference,
-            // empty cell -> nothing.
+            // A data cube lying on the floor takes precedence (even if a worker is
+            // standing on it), then a worker reference, then the empty cell.
             const cell = this.level.getMoveCell(character.cell.x, character.cell.y, this.directionValue);
+            const floorBox = cell?.getItem();
             if (!cell) {
                 character.slots[target] = new NothingSlot(character);
+            } else if (floorBox && !floorBox.destroyed) {
+                const slot = new BoxSlot(character);
+                slot.setBox(floorBox);
+                character.slots[target] = slot;
             } else if (cell.character) {
                 const slot = new WorkerSlot(character);
                 slot.setWorker(cell.character);
@@ -107,14 +112,22 @@ class OperatorVariable extends Operator {
             // Backward compatibility: old saves stored Cell/Worker/Nothing directly.
             // Treat them as Direction with the stored directionValue.
             const cell = this.level.getMoveCell(character.cell.x, character.cell.y, this.directionValue);
+            const floorBox = cell?.getItem();
             if (this.variableType === OperatorVariableType.Nothing || !cell) {
                 character.slots[target] = new NothingSlot(character);
-            } else if (this.variableType === OperatorVariableType.Worker && cell.character) {
-                const slot = new WorkerSlot(character);
-                slot.setWorker(cell.character);
-                character.slots[target] = slot;
             } else if (this.variableType === OperatorVariableType.Worker) {
-                character.slots[target] = new NothingSlot(character);
+                if (cell.character) {
+                    const slot = new WorkerSlot(character);
+                    slot.setWorker(cell.character);
+                    character.slots[target] = slot;
+                } else {
+                    character.slots[target] = new NothingSlot(character);
+                }
+            } else if (floorBox && !floorBox.destroyed) {
+                // Deprecated "Cell": a data cube on the floor takes precedence.
+                const slot = new BoxSlot(character);
+                slot.setBox(floorBox);
+                character.slots[target] = slot;
             } else if (cell.character) {
                 const slot = new WorkerSlot(character);
                 slot.setWorker(cell.character);

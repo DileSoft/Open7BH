@@ -6,11 +6,15 @@ import { Direction, DirectionWithHere } from './OperatorStep';
 export interface OperatorPickupSerialized extends OperatorSerialized {
     type: OperatorType.Pickup,
     direction?: Direction | DirectionWithHere,
+    slot?: number,
     object?: OperatorPickup,
 }
 
 class OperatorPickup extends Operator {
     direction?: Direction | DirectionWithHere;
+
+    /** When set, walk to the object referenced by this memory slot and pick it up. */
+    slot?: number;
 
     constructor(level: Level) {
         super(level);
@@ -18,10 +22,17 @@ class OperatorPickup extends Operator {
 
     setDirection(direction?: Direction | DirectionWithHere) {
         this.direction = direction;
+        this.slot = undefined;
+    }
+
+    setSlot(slot: number) {
+        this.slot = slot;
     }
 
     execute(character: Character) {
-        if (this.direction && this.direction !== DirectionWithHere.Here) {
+        if (this.slot !== undefined) {
+            character.pickupFromSlot(this.slot);
+        } else if (this.direction && this.direction !== DirectionWithHere.Here) {
             character.pickupFrom(this.direction as Direction);
         } else {
             character.pickupItem();
@@ -33,12 +44,14 @@ class OperatorPickup extends Operator {
         return {
             type: OperatorType.Pickup,
             direction: this.direction,
+            slot: this.slot,
             object: withObject ? this : undefined,
         };
     }
 
     deserialize(serialized: OperatorPickupSerialized): void {
         this.direction = serialized.direction;
+        this.slot = serialized.slot;
     }
 }
 

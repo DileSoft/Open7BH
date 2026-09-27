@@ -1,5 +1,5 @@
 import {
-    IconButton, MenuItem, Select, TextField,
+    Button, IconButton, MenuItem, Select, TextField,
 } from "@mui/material";
 import React from "react";
 import AddIcon from "@mui/icons-material/Add";
@@ -15,6 +15,7 @@ import { DirectionGrid } from "../DirectionGrid";
 import { OperatorType } from "../Classes/Operators/Operator";
 import CommandBadge from "./CommandBadge";
 import { trOption } from "../tr";
+import i18n from "../i18n";
 
 const ifRenderLine:RenderLineType<OperatorIfSerialized> = (line, lineNumber, game):React.ReactNode => {
     if (!line.object || !game.object) {
@@ -151,6 +152,17 @@ const ifRenderLine:RenderLineType<OperatorIfSerialized> = (line, lineNumber, gam
             <AddIcon />
         </IconButton>}
     </span>)}
+    {!line.object.operatorElse &&
+    <Button
+        size="small"
+        sx={{ minWidth: 0, ml: 0.5, fontSize: 11, textTransform: 'none' }}
+        onMouseDown={() => {
+            line.object?.createElse();
+            game.object?.render();
+        }}
+    >
+        {`+ ${String(i18n.t('commands.else'))}`}
+    </Button>}
 </span>;
 };
 

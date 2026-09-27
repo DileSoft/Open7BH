@@ -60,6 +60,9 @@ function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSeri
     if (line.type === 'endif') {
         result = <CommandBadge type={OperatorType.EndIf} />;
     }
+    if (line.type === 'else') {
+        result = <CommandBadge type={OperatorType.Else} />;
+    }
     if (line.type === 'pickup') {
         result = pickupRenderLine((line as OperatorPickupSerialized), lineNumber, game);
     }
@@ -103,6 +106,9 @@ function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSeri
     if (line.type === 'endif') {
         intend -= 20;
     }
+    if (line.type === 'else') {
+        intend -= 20;
+    }
     if (line.type === 'endforeach') {
         intend -= 20;
     }
@@ -133,6 +139,9 @@ function renderLine(line: OperatorSerialized, lineNumber: number, game: GameSeri
         </IconButton>
     </span>;
     if (line.type === 'if') {
+        intend += 20;
+    }
+    if (line.type === 'else') {
         intend += 20;
     }
     if (line.type === 'foreach') {

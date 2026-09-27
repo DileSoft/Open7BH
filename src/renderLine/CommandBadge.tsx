@@ -15,6 +15,7 @@ const COMMAND_LABEL_KEYS: Record<OperatorType, string> = {
     [OperatorType.Goto]: 'commands.goto',
     [OperatorType.Hear]: 'commands.hear',
     [OperatorType.If]: 'commands.if',
+    [OperatorType.Else]: 'commands.else',
     [OperatorType.EndIf]: 'commands.endif',
     [OperatorType.Near]: 'commands.near',
     [OperatorType.Say]: 'commands.say',

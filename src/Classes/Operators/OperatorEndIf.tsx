@@ -15,8 +15,16 @@ class OperatorEndIf extends Operator {
     operatorIf: OperatorIf;
 
     remove() {
+        if (this.operatorIf?.operatorElse) {
+            const elseIndex = this.level.game.code.findIndex(operator => operator === this.operatorIf.operatorElse);
+            if (elseIndex !== -1) {
+                this.level.game.code.splice(elseIndex, 1);
+            }
+        }
         const operatorIf = this.level.game.code.findIndex(operator => operator === this.operatorIf);
-        this.level.game.code.splice(operatorIf, 1);
+        if (operatorIf !== -1) {
+            this.level.game.code.splice(operatorIf, 1);
+        }
     }
 
     execute(character: Character): number {
